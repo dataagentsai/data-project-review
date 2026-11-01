@@ -1,0 +1,168 @@
+# Delivery checks: release coordination. The business and organisational side of going live: deciding go or
+# no-go on agreed evidence, getting users ready, switching off what the new solution replaces, avoiding clashes
+# with other releases, and telling every consumer. The technical release and rollback is REL-*.
+
+- id: RLC-01
+  title: Go or no-go decided on the day, not agreed in advance
+  kind: delivery
+  concern: release-coordination
+  question: >-
+    Are the go-live criteria (reconciled numbers within tolerance, no open critical defects, support ready,
+    users trained, rollback rehearsed) written down and agreed with the business owner before the go or no-go
+    meeting? If the history load finishes with two regions unreconciled, do we already know whether we go?
+  why: >-
+    With no agreed criteria, the go or no-go meeting became a debate. The sponsor wanted the date, the test
+    lead wanted another week, and they went live with known differences that took three months to explain away.
+  applies: {kind: [any], components: [any], patterns: [any]}
+  owner: project-manager
+  also: [business-owner, technical-anchor, test-lead, operations]
+  evidence:
+    docs: [deployment, decisions]
+    looks_like: >-
+      A go or no-go checklist agreed weeks before cut-over, with each criterion, the evidence for it, who
+      confirms it, and what happens if it fails (delay, go with a workaround, or partial release).
+  signals:
+    - No go-live criteria are written, or they say "UAT signed off".
+    - The go or no-go decision has no named decider.
+    - Criteria do not mention reconciliation, support readiness or rollback.
+  contradiction: >-
+    Compare the go-live criteria with the test results and defect list on the decision date: a go decision
+    taken while a criterion was unmet means the criteria were not the real basis.
+  due: {plan: 4, designed: 7, evidenced: 8}
+  fail_fast: >-
+    Draft the go-live checklist now and ask the business owner which line they would refuse to go without.
+  severity: high
+  related: [GOV-02, PM-14, REC-03]
+  signal_id: null
+
+- id: RLC-02
+  title: Users not ready on go-live day
+  kind: delivery
+  concern: release-coordination
+  question: >-
+    Are the users ready: told what is changing and when, trained on the new reports and what the numbers now
+    mean, and pointed at where to ask for help, with the service desk briefed? On the first Monday, will users
+    know why their numbers look different from last week?
+  why: >-
+    The new sales report used the agreed definition of revenue, which excluded returns. Nobody told the
+    regional managers, who saw lower figures, assumed the report was broken, and kept using their old spreadsheets.
+  applies: {kind: [any], components: [serving, modelling], patterns: [any]}
+  owner: project-manager
+  also: [business-owner, business-analyst, data-consumer]
+  evidence:
+    docs: [plan, stakeholders]
+    looks_like: >-
+      A business readiness plan: user groups, messages and dates, training sessions with attendance, a short
+      note on changed definitions and why numbers differ, and a briefed service desk.
+  signals:
+    - No training, user communication or service desk briefing is in the plan.
+    - Definitions changed during the project but no user-facing explanation exists.
+    - The only user communication is a go-live announcement.
+  contradiction: >-
+    Compare definitions that changed in the decision log or data model with the user communications: a changed
+    definition users were never told about will be reported as a defect.
+  due: {plan: 4, designed: 7, evidenced: 8}
+  fail_fast: >-
+    Ask three future users what will change for them on go-live day, and note what they do not know.
+  severity: medium
+  related: [COM-02, REQ-03, STK-03]
+  signal_id: null
+
+- id: RLC-03
+  title: Old reports and feeds never switched off
+  kind: delivery
+  concern: release-coordination
+  question: >-
+    Is there a list of the old reports, extracts and spreadsheets the new solution replaces, each with an owner
+    who agrees to switch it off and a date? A year after go-live, how many people will still be using the old
+    numbers, and paying to run them?
+  why: >-
+    The old reports were left running "just in case". Two years later both sets were still in use, gave
+    different answers in board meetings, and the cost of the old system was never saved.
+  applies: {kind: [any], components: [serving], patterns: [any]}
+  owner: project-manager
+  also: [business-owner, data-consumer, operations]
+  evidence:
+    docs: [plan, deployment]
+    looks_like: >-
+      A switch-off list naming each old report or feed, its users, its owner, the switch-off date after the
+      parallel run, and confirmation that it was done.
+  signals:
+    - The plan has no switch-off or decommissioning tasks.
+    - Benefits depend on retiring an old system, but no retirement date exists.
+    - Old reports are listed as "to be reviewed after go-live".
+  contradiction: >-
+    Compare the benefits in the business case with the switch-off list: savings that depend on retiring the old
+    system, with no switch-off date, will not arrive.
+  due: {plan: 4, designed: 7, evidenced: 9, proven: 10}
+  fail_fast: >-
+    List every old report the new one replaces and ask each owner for a switch-off date.
+  severity: medium
+  related: [PM-15, BEN-01, HAND-05]
+  signal_id: null
+
+- id: RLC-04
+  title: Clashes with other releases and platform changes
+  kind: delivery
+  concern: release-coordination
+  question: >-
+    Has the release been checked against other changes in the same window: source system upgrades, platform
+    upgrades, other projects changing shared tables, network or identity changes? Which other team's release
+    could break ours the same weekend?
+  why: >-
+    The project went live the same weekend the source system was upgraded. Two columns changed type, the first
+    production loads failed, and nobody could tell which release had caused it.
+  applies: {kind: [any], components: [any], patterns: [any]}
+  owner: technical-anchor
+  also: [project-manager, release-devops, platform-team, source-owner]
+  evidence:
+    docs: [deployment, raid]
+    looks_like: >-
+      The release date checked against the change calendar for sources, the platform and shared data, with
+      clashes recorded as dependencies or risks and agreed with the other teams.
+  signals:
+    - No mention of the change calendar or other releases in the deployment plan.
+    - A shared platform or source upgrade is known but not on the RAID log.
+    - Other projects write to tables this project reads, with no coordination recorded.
+  contradiction: >-
+    Compare the go-live date in the deployment plan with source and platform release dates in the RAID log or
+    change calendar: two changes to the same system in one window will hide each other's faults.
+  due: {plan: 4, evidenced: 8}
+  fail_fast: >-
+    Ask the change board for every change planned to the sources and platform in the go-live week.
+  severity: medium
+  related: [PM-18, SCH-03, REL-07]
+  signal_id: null
+
+- id: RLC-05
+  title: Consumers outside the steering group not told
+  kind: delivery
+  concern: release-coordination
+  question: >-
+    Have all consumers of the data being replaced or changed been found and told, including other teams'
+    extracts, downstream systems and spreadsheets fed from the old source, not only the users in the steering
+    group? Who will discover our go-live because their own report broke?
+  why: >-
+    The old warehouse table was replaced. A pricing team nobody had met read it every night for their own
+    model, and their prices were wrong for three days before anyone linked it to the release.
+  applies: {kind: [any], components: [serving, modelling], patterns: [any]}
+  owner: project-manager
+  also: [technical-anchor, data-consumer, operations]
+  evidence:
+    docs: [stakeholders, deployment]
+    looks_like: >-
+      A consumer list built from access logs and lineage, not only interviews, each consumer told the change
+      and the date, and their confirmation recorded.
+  signals:
+    - The consumer list comes only from the steering group and requirements workshops.
+    - No one has checked who reads the tables or feeds being replaced.
+    - No notice period for consumers is in the deployment plan.
+  contradiction: >-
+    Compare the consumers in the stakeholder map with the readers found in access logs or lineage: a reader who
+    is not on the map has not been told.
+  due: {plan: 4, evidenced: 8}
+  fail_fast: >-
+    Pull the last ninety days of reads on the tables being replaced and contact every reader not on the map.
+  severity: high
+  related: [STK-01, SERV-03, SERV-01]
+  signal_id: null

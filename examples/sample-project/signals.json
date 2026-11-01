@@ -163,8 +163,15 @@
     "checks": [
       "HAND-01"
     ],
-    "count": 2,
+    "count": 3,
     "findings": [
+      {
+        "doc": null,
+        "line": null,
+        "doc_type": "budget",
+        "text": "No budget document (Budget, spend against plan, forecast, contingency, running cost after go-live).",
+        "checks": []
+      },
       {
         "doc": null,
         "line": null,

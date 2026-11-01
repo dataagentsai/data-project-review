@@ -1,0 +1,68 @@
+# Delivery checks: benefits. Whether the value the project was paid for actually arrives. The baseline and the
+# post-go-live measurement are HAND-05; these checks cover what has to happen for the benefit to be real.
+
+- id: BEN-01
+  title: Adoption never tracked
+  kind: delivery
+  concern: benefits
+  question: >-
+    After go-live, will anyone track who is using the new reports and data, compared with the old ones, and act
+    when a user group does not move? Six months on, how will we know the people the project was built for are
+    actually using it?
+  why: >-
+    The new dashboards went live on time and the project closed. Usage logs, read a year later, showed most
+    managers had opened them once and gone back to spreadsheets exported from the old system.
+  applies: {kind: [any], components: [serving], patterns: [any]}
+  owner: business-owner
+  also: [project-manager, data-consumer]
+  evidence:
+    docs: [plan, status]
+    looks_like: >-
+      An adoption measure per user group (for example weekly active users of the new reports against use of the
+      old ones), a target, a named person who reviews it monthly, and an action when a group lags.
+  signals:
+    - No adoption or usage measure in the plan or the benefits list.
+    - The project closes on go-live with no review of usage afterwards.
+    - Old reports keep running with no plan to compare their use with the new ones.
+  contradiction: >-
+    Compare the benefits in the business case with the measures planned after go-live: a benefit that depends
+    on people using the new reports, with no usage measure, cannot be shown.
+  due: {plan: 4, evidenced: 10}
+  fail_fast: >-
+    Agree today which usage figure, read one month after go-live, would tell the sponsor adoption is failing.
+  severity: medium
+  related: [HAND-05, RLC-03, RLC-02]
+  signal_id: null
+
+- id: BEN-02
+  title: Benefits depend on business changes nobody owns
+  kind: delivery
+  concern: benefits
+  question: >-
+    For each promised benefit, is it written down what the business must change to get it (a process, a role,
+    a meeting, a decision that now uses the new data), and who owns that change? If the data arrives perfectly
+    and nothing improves, which business change did nobody make?
+  why: >-
+    The business case promised two days saved at each month-end. The data arrived early as designed, but the
+    finance close process was never changed, so the team still waited for the old sign-off steps.
+  applies: {kind: [any], components: [any], patterns: [any]}
+  owner: business-owner
+  also: [project-manager, business-analyst]
+  evidence:
+    docs: [discovery, plan]
+    looks_like: >-
+      A benefits map linking each benefit to the data the project delivers and to the business change it needs,
+      with an owner and date for each business change.
+  signals:
+    - Benefits are described as outcomes of the data alone, with no business change named.
+    - Process or role changes are mentioned as "the business will adapt" with no owner.
+    - No business change tasks appear in any plan.
+  contradiction: >-
+    Compare the benefits in the business case with the scope: a benefit that needs a process change that is
+    outside scope and owned by nobody will not arrive.
+  due: {plan: 3, designed: 4, evidenced: 10}
+  fail_fast: >-
+    For the biggest benefit, ask the business owner which process changes on day one and who will change it.
+  severity: medium
+  related: [HAND-05, REQ-07, STK-06]
+  signal_id: null

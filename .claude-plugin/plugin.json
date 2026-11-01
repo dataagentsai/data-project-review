@@ -1,6 +1,6 @@
 {
   "name": "data-project-review",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Fail fast on data engineering project delivery: review a project's documents for business analysis, project management and technical gaps at its lifecycle stage, with a fail-fast plan. Any technology via bindings.",
   "author": {"name": "Clean Data Engineering", "url": "https://cleandataengineering.ai/"},
   "homepage": "https://cleandataengineering.ai/learn/technical-anchor/project-review/",

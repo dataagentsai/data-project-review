@@ -1,0 +1,102 @@
+# Delivery checks: business rules.
+# Rules the data must follow, written so that a tester can prove them and a user can recognise them.
+
+- id: RULE-01
+  title: Business rules written as prose, not as testable rules
+  kind: delivery
+  concern: business-rules
+  question: >-
+    Is every business rule (how a customer is classified, when an order counts, how a discount is applied)
+    written as a precise rule with at least one worked example of input and expected result? If a tester and
+    a developer read the rule separately, would they agree on the answer for a tricky case?
+  why: >-
+    The rule said "VIP customers get priority". Nobody wrote down that VIP meant spend over a threshold in the
+    last twelve rolling months, so developers used the calendar year and a fifth of VIPs were missing.
+  applies: {kind: [any], components: [transformation, modelling], patterns: [any]}
+  owner: business-analyst
+  also: [test-lead, developer, data-consumer]
+  evidence:
+    docs: [requirements, test-strategy]
+    looks_like: >-
+      Each rule numbered, stated as a condition and a result, with two or three worked examples using real
+      values, including at least one edge case, and the person who confirmed it.
+  signals:
+    - Rules are embedded in long paragraphs rather than listed and numbered.
+    - Rules have no examples, or only the obvious case.
+    - Words such as "usually", "normally", "where appropriate" or "as needed" appear in rules.
+  contradiction: >-
+    Compare the business rules in the requirements with the test cases: a rule with no test, or a test that
+    checks something no rule states, shows the rules were never made testable.
+  due: {plan: 3, designed: 5, evidenced: 7}
+  fail_fast: >-
+    Pick the three most complex rules and ask the business owner to work one real record through each by hand.
+  severity: high
+  related: [REQ-02, RULE-03]
+  signal_id: null
+
+- id: RULE-02
+  title: What the user sees when data is bad or missing not decided by the business
+  kind: delivery
+  concern: business-rules
+  question: >-
+    When a value is missing, a record fails a check, or a source is late, what should the user see: a blank,
+    a placeholder such as "unknown", yesterday's figure, a warning, or nothing at all? Has the business
+    chosen, for each key report? If a manager makes a decision on incomplete data, will the report have told them?
+  why: >-
+    A store's sales file failed to load. The dashboard showed the store at zero without any warning, and a
+    regional manager phoned the store manager to ask why nothing had been sold.
+  applies: {kind: [any], components: [modelling, serving], patterns: [any]}
+  owner: business-analyst
+  also: [data-consumer, technical-anchor]
+  evidence:
+    docs: [requirements]
+    looks_like: >-
+      For each key report or consumer, what is shown for missing values, rejected rows, late sources and
+      partial periods, agreed with the users, with how they are told the data is incomplete.
+  signals:
+    - The requirements describe only the happy path.
+    - Rules for bad data exist in the technical design but not in the requirements.
+    - Words such as "unknown", "missing", "incomplete", "partial" or "late" never appear in the requirements.
+  contradiction: >-
+    Compare the requirements with the data quality design: if the design quarantines or drops rows but the
+    requirements never say what users should see when that happens, users will see silent gaps.
+  due: {plan: 3, designed: 4, evidenced: 7}
+  fail_fast: >-
+    Show users a mock-up of a key report with one region missing and ask what they expect it to look like.
+  severity: high
+  related: [DQ-02, SERV-02, DQ-04]
+  signal_id: null
+
+- id: RULE-03
+  title: The exceptions nobody mentioned
+  kind: delivery
+  concern: business-rules
+  question: >-
+    Have the unusual cases been asked about and given rules: returns, cancellations, refunds, credit notes,
+    intercompany sales, test and internal accounts, free items, split shipments, merged customers? Which
+    exception will the users spot in the first week of testing?
+  why: >-
+    Nobody asked about staff purchases. They were twelve per cent of transactions at one site, were excluded
+    from every report the business trusted, and were included in every number the new system produced.
+  applies: {kind: [any], components: [transformation, modelling], patterns: [any]}
+  owner: business-analyst
+  also: [data-consumer, source-owner]
+  evidence:
+    docs: [requirements, discovery]
+    looks_like: >-
+      A list of exception types found in the data profile and in interviews, each with how often it occurs,
+      and a rule for whether and how it counts in each metric.
+  signals:
+    - No requirement mentions returns, cancellations, internal accounts, test records or adjustments.
+    - The data profile shows unusual record types or status codes that no requirement explains.
+    - Rules cover only the standard case.
+  contradiction: >-
+    Compare the status codes and record types in the data profile with the business rules: every code with
+    no rule will be treated by default, and the default is rarely what the business wants.
+  due: {plan: 3, designed: 4}
+  fail_fast: >-
+    List every distinct status or type code in the main source and ask the business owner what each one
+    means and whether it counts.
+  severity: medium
+  related: [RULE-01, DQ-05, CUR-04]
+  signal_id: null

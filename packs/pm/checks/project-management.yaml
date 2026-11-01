@@ -318,3 +318,268 @@
   severity: high
   related: [PM-01, EST-04]
   signal_id: null
+
+# Planning checks specific to data projects: the work that data projects always have and plans often leave out.
+
+- id: PM-11
+  title: History load not on the plan as real tasks
+  kind: delivery
+  concern: project-management
+  question: >-
+    Is the history load on the plan as its own tasks, with the elapsed time it needs (source extract windows,
+    several trial runs, checking the old numbers), not folded into "build"? If go-live slips, will it be
+    because the history load turned out to be a project of its own?
+  why: >-
+    The plan gave the history load two days before go-live. The source could only be read at night, the first
+    run found years with a different code list, and the full load took five weekends.
+  applies: {kind: [any], components: [ingestion], patterns: [history-load]}
+  owner: project-manager
+  also: [technical-anchor, source-owner]
+  evidence:
+    docs: [plan, deployment]
+    looks_like: >-
+      Plan tasks for the history extract, at least one full trial run, checking the old periods with the
+      business and the final load, each with elapsed time, source windows and an owner.
+  signals:
+    - The history load appears only in the architecture, not in the plan.
+    - The plan has one task, or a few days, for loading many years of history.
+    - No trial run of the history load is planned before the cut-over.
+  contradiction: >-
+    Compare the history load approach in the architecture or deployment plan with the plan's tasks: an
+    approach that needs night windows and several runs, given a couple of days in the plan, will slip.
+  due: {plan: 3, designed: 4, evidenced: 7}
+  fail_fast: >-
+    Time a full extract of one year of history from the source now and multiply by the years in scope.
+  severity: high
+  related: [HIST-01, HIST-02, EST-07]
+  signal_id: null
+
+- id: PM-12
+  title: Data fixes with no owner and no time
+  kind: delivery
+  concern: project-management
+  question: >-
+    When profiling or testing finds bad data at the source (missing keys, wrong codes, duplicate customers), is
+    it agreed who fixes it, where (at the source, by the business, or in the pipeline), and is that time on
+    someone's plan? Whose plan holds the weeks of cleansing that the profile is already hinting at?
+  why: >-
+    Profiling showed that a fifth of customers had no region. Everyone assumed someone else would fix it; the
+    business had no time booked, and user acceptance failed on regional totals six weeks before go-live.
+  applies: {kind: [any], components: [ingestion, transformation], patterns: [any]}
+  owner: project-manager
+  also: [business-owner, source-owner, technical-anchor]
+  evidence:
+    docs: [plan, raid]
+    looks_like: >-
+      A data issues list from profiling, each with the decision on where it is fixed, an owner, the effort, and
+      matching tasks in the project plan or the source team's plan.
+  signals:
+    - The data profile lists quality problems that appear nowhere in the plan or RAID log.
+    - Fixes are assigned to "the business" or "the source" with no name or date.
+    - No time for data fixing appears in the plan.
+  contradiction: >-
+    Compare the data profile or data quality findings with the plan: each problem that needs fixing, with no
+    task and owner, is work that will appear in user acceptance instead.
+  due: {plan: 3, designed: 4, evidenced: 7}
+  fail_fast: >-
+    Take the top five data problems from the profile and get a named owner and a date for each this week.
+  severity: high
+  related: [DQ-05, DQ-01, EST-07]
+  signal_id: null
+
+- id: PM-13
+  title: Reconciliation and user acceptance planned as one pass
+  kind: delivery
+  concern: project-management
+  question: >-
+    Does the plan allow for more than one cycle of reconciliation and user acceptance (test, find differences,
+    explain or fix, test again), with business time booked for each cycle? If the first round finds the
+    numbers do not match, is there any time left to fix them?
+  why: >-
+    One week of user acceptance was planned. The first day showed revenue three percent off the ledger, the
+    explanation took two weeks, and there was no second test window before the go-live date.
+  applies: {kind: [any], components: [modelling, serving], patterns: [any]}
+  owner: project-manager
+  also: [test-lead, business-owner, technical-anchor]
+  evidence:
+    docs: [plan, test-strategy]
+    looks_like: >-
+      At least two reconciliation and acceptance cycles on the plan, with time between them to explain and fix
+      differences, and business testers booked for each.
+  signals:
+    - The plan has a single user acceptance window.
+    - Reconciliation is not a task in the plan, or sits inside "testing".
+    - No time between the end of user acceptance and go-live.
+  contradiction: >-
+    Compare the test strategy's reconciliation approach with the plan: a strategy that compares every layer
+    with trusted figures, given one short window, will run out of time on the first difference.
+  due: {plan: 4, designed: 6, evidenced: 7}
+  fail_fast: >-
+    Reconcile one month of one key number against the business's trusted figure now and time how long it takes.
+  severity: high
+  related: [REC-02, REC-03, TEST-04, RES-04]
+  signal_id: null
+
+- id: PM-14
+  title: Cut-over weekend not planned
+  kind: delivery
+  concern: project-management
+  question: >-
+    Is there an hour-by-hour cut-over plan covering the business freeze, the final loads, the checks before
+    users are let in, the point after which there is no going back, the rollback steps, and who is on call?
+    At three in the morning on cut-over night, if the final load fails, who decides what happens next?
+  why: >-
+    Cut-over was "the weekend after UAT". The final history load overran by ten hours, nobody had agreed a
+    point to stop, and on Monday half the users saw new numbers while the rest still had the old reports.
+  applies: {kind: [any], components: [any], patterns: [any]}
+  owner: project-manager
+  also: [technical-anchor, release-devops, operations, business-owner]
+  evidence:
+    docs: [deployment, plan]
+    looks_like: >-
+      A cut-over runbook with timed steps and owners, the business freeze window, checks before opening to
+      users, a go-back deadline and rollback steps, a call list, and at least one rehearsal.
+  signals:
+    - No cut-over plan, or one line saying "deploy to production".
+    - No business freeze, rollback window or decision point is mentioned.
+    - No rehearsal of the cut-over is planned.
+  contradiction: >-
+    Compare the cut-over plan's timings with the history load and final load run times measured in test: a
+    window shorter than the measured loads will overrun.
+  due: {plan: 4, designed: 7, evidenced: 8}
+  fail_fast: >-
+    Write the cut-over as timed steps on one page and add up the hours against the window you have.
+  severity: high
+  related: [REL-07, HIST-03, RLC-01]
+  signal_id: null
+
+- id: PM-15
+  title: No parallel run period
+  kind: delivery
+  concern: project-management
+  question: >-
+    Where the new solution replaces an existing report or feed, is there a period when both run side by side,
+    with a named person comparing them, a length that covers at least one month-end, and criteria for ending
+    it? When the new number and the old number differ in week one, who decides which is right?
+  why: >-
+    The old report was switched off on go-live day. In the first month-end the new figures differed from what
+    finance expected, there was nothing left to compare against, and trust in the new report never recovered.
+  applies: {kind: [any], components: [serving, modelling], patterns: [any]}
+  owner: project-manager
+  also: [business-owner, data-consumer, technical-anchor]
+  evidence:
+    docs: [plan, deployment]
+    looks_like: >-
+      A parallel run on the plan with dates covering a month-end, a person who compares old and new, a
+      tolerance, a decision owner for differences and written exit criteria.
+  signals:
+    - The old system or report is switched off on the go-live date.
+    - Parallel running is mentioned with no length, owner or exit criteria.
+    - The parallel run ends before the first month-end or quarter-end.
+  contradiction: >-
+    Compare the plan's parallel run dates with the business calendar: a parallel run that ends before the first
+    month-end tests the easy days only.
+  due: {plan: 4, designed: 7, evidenced: 9}
+  fail_fast: >-
+    Ask the business owner which month-end they would want to see matched before switching off the old report.
+  severity: medium
+  related: [REC-04, RLC-03, BUD-06]
+  signal_id: null
+
+- id: PM-16
+  title: Team rolled off before the first month-end
+  kind: delivery
+  concern: project-management
+  question: >-
+    Does the plan and budget keep the people who built the solution available through early-life support,
+    including the first month-end, quarter-end or other peak that the data will meet? When the first month-end
+    load breaks, are the developers who wrote it still on the project?
+  why: >-
+    The developers moved to a new project the Monday after go-live. The first month-end load hit late
+    corrections the tests never had, and support spent four days rebuilding knowledge the team could have given in an hour.
+  applies: {kind: [any], components: [any], patterns: [any]}
+  owner: project-manager
+  also: [technical-anchor, operations, business-owner]
+  evidence:
+    docs: [plan, runbook]
+    looks_like: >-
+      Named people booked for early-life support, an end date after the first month-end or other peak, and the
+      exit criteria for handing over fully to support.
+  signals:
+    - The plan and budget end on the go-live date.
+    - Early-life support is mentioned but nobody is named or funded for it.
+    - Team members are already booked on other projects from go-live.
+  contradiction: >-
+    Compare the plan's end date and staffing with the support model's early-life support period: a support
+    period that outlasts the team's booking has nobody to do it.
+  due: {plan: 4, designed: 7, evidenced: 9}
+  fail_fast: >-
+    Check each developer's next booking date against the first month-end after go-live.
+  severity: medium
+  related: [HAND-04, HAND-06, OPS-05]
+  signal_id: null
+
+- id: PM-17
+  title: Buffers not where data surprises cluster
+  kind: delivery
+  concern: project-management
+  question: >-
+    Does the plan hold explicit buffer time after the points where data projects usually find surprises: the
+    first real extract, the first full load, the history load and the first reconciliation? Where in this plan
+    would a two-week surprise from the data fit without moving go-live?
+  why: >-
+    Every task was planned back to back with no slack. The first full load showed that keys were not unique,
+    and with nowhere to absorb the fix, every later date moved by the same three weeks.
+  applies: {kind: [any], components: [any], patterns: [any]}
+  owner: project-manager
+  also: [technical-anchor]
+  evidence:
+    docs: [plan, raid]
+    looks_like: >-
+      Named buffer tasks after the first real loads, the history load and reconciliation, sized to the risks
+      in the RAID log, with a rule for who may use them.
+  signals:
+    - No buffer appears in the plan, or one buffer sits at the very end.
+    - Tasks after the first full load and reconciliation are planned with no gap before go-live.
+    - The RAID log has data risks with no time set aside for them.
+  contradiction: >-
+    Compare the data risks in the RAID log with the plan: a high data risk that hits in the middle of the plan,
+    with no buffer after it, will move every later date.
+  due: {plan: 4, evidenced: 6}
+  fail_fast: >-
+    Ask where a two-week slip after the first full load would land, and whether the go-live date survives it.
+  severity: medium
+  related: [PM-02, BUD-04, EST-02]
+  signal_id: null
+
+- id: PM-18
+  title: The business calendar ignored
+  kind: delivery
+  concern: project-management
+  question: >-
+    Has the plan been checked against the business and data calendar: month-end and year-end close, audit,
+    peak trading, source system change freezes and the platform's own release windows? Which key date in our
+    plan falls in a week when the business or a source team cannot help us?
+  why: >-
+    Go-live was set for the first week of January. Finance was closing the year, the source system was frozen
+    for its own year-end, and the release had to wait until February.
+  applies: {kind: [any], components: [any], patterns: [any]}
+  owner: project-manager
+  also: [business-owner, source-owner, platform-team]
+  evidence:
+    docs: [plan, raid]
+    looks_like: >-
+      Business close periods, peak periods and change freezes marked on the plan, with no testing, cut-over or
+      go-live inside them unless agreed.
+  signals:
+    - The plan shows no business calendar, freezes or close periods.
+    - Go-live, cut-over or user acceptance falls in a month-end, year-end or known freeze.
+  contradiction: >-
+    Compare the plan's key dates with source teams' and the platform's change freezes: a release planned inside
+    a freeze will not be allowed to happen.
+  due: {plan: 3, designed: 4}
+  fail_fast: >-
+    Ask finance, the source owners and the platform team for their freeze and close dates for the next year.
+  severity: medium
+  related: [PM-01, RES-04, RLC-04]
+  signal_id: null

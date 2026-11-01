@@ -1,0 +1,105 @@
+# Delivery checks: regulatory and policy needs, from the business side.
+# The business states what is allowed, how long data must be kept and what must be proven to an auditor.
+# The tech pack (SEC-*) covers how it is implemented.
+
+- id: POL-01
+  title: Use of personal data not confirmed as allowed
+  kind: delivery
+  concern: policy-needs
+  question: >-
+    For each use of personal data in the requirements, has the business confirmed with its privacy or legal
+    team that the use is allowed: the purpose, any consent it depends on, and who may see it? If the privacy
+    team stops the project a month before go-live, will it be over a use nobody asked them about?
+  why: >-
+    The marketing dashboard joined customer purchases to support-call notes. Customers had never been told
+    their call notes would be used for marketing, and the privacy officer stopped the release in user testing.
+  applies: {kind: [any], components: [any], patterns: [any]}
+  owner: business-analyst
+  also: [security, business-owner]
+  evidence:
+    docs: [requirements, decisions]
+    looks_like: >-
+      A list of the personal data each requirement needs, the business purpose, the basis that allows it
+      (consent, contract, legal duty), who may see it, and the privacy team's recorded answer.
+  signals:
+    - Requirements need customer, employee or patient data with no mention of purpose or permission.
+    - The privacy or legal team is not on the stakeholder map.
+    - Personal data is treated only as a security or masking question.
+  contradiction: >-
+    Compare the personal data named in the requirements with the stakeholder map and decision log: personal
+    data in use with no privacy sign-off recorded is a go-live blocker waiting to be found.
+  due: {plan: 3, evidenced: 4}
+  fail_fast: >-
+    Send the privacy team a one-page list of the personal data and its purposes this week and ask for a yes,
+    a no or a condition.
+  severity: high
+  related: [SEC-01, SEC-05, STK-01]
+  signal_id: null
+
+- id: POL-02
+  title: Retention needs not stated by the business
+  kind: delivery
+  concern: policy-needs
+  question: >-
+    For each kind of data, how long does the business need to keep it, how long does law or policy require
+    it to be kept, and when must it be deleted? When a user asks for seven-year trends and policy says
+    delete after three, who decides?
+  why: >-
+    The business asked for ten years of customer history. Company policy required customer data to be
+    deleted three years after the relationship ended, and the history load had to be cut back after it was done.
+  applies: {kind: [any], components: [governance, modelling], patterns: [any]}
+  owner: business-analyst
+  also: [security, business-owner]
+  evidence:
+    docs: [requirements, decisions]
+    looks_like: >-
+      A retention table per data kind: the business need, the legal or policy minimum and maximum, the
+      agreed period, and who signed it, including what happens to aggregated figures after detail is deleted.
+  signals:
+    - Retention is not mentioned in the requirements, or is "to be agreed".
+    - The history requested is longer than any retention period stated.
+    - No one from records management, legal or compliance is named.
+  contradiction: >-
+    Compare the history depth requested in the requirements with the retention periods: history the
+    business wants beyond the period policy allows must be resolved before it is loaded.
+  due: {plan: 3, designed: 4}
+  fail_fast: >-
+    Ask the records or compliance owner for the retention rule for the two most sensitive data kinds, and
+    compare it with the history asked for.
+  severity: medium
+  related: [SEC-03, DATA-03]
+  signal_id: null
+
+- id: POL-03
+  title: What must be proven to an auditor not stated
+  kind: delivery
+  concern: policy-needs
+  question: >-
+    Will auditors, regulators or internal control need to see how a reported figure was produced, reproduce
+    a past figure exactly as it was reported, or see who changed what and when? Has the business written down
+    those needs, so the design can meet them?
+  why: >-
+    A regulator asked the bank to reproduce a capital figure reported six months earlier. The data had been
+    corrected since, nobody had kept what was reported, and the bank could not show where the number came from.
+  applies: {kind: [any], components: [modelling, serving, governance], patterns: [any]}
+  owner: business-analyst
+  also: [security, business-owner, technical-anchor]
+  evidence:
+    docs: [requirements]
+    looks_like: >-
+      A list of audit and control needs in business terms: which figures must be reproducible as reported and
+      for how long, which changes need a record of who and when, and which reports need sign-off before release.
+  signals:
+    - Figures go to regulators, auditors or external parties but no audit need is stated.
+    - The requirements never mention reproducing past figures, sign-off of published numbers, or change history.
+    - Audit is mentioned only as access logging.
+  contradiction: >-
+    Compare the audit needs in the requirements with the restatement policy: if published figures may be
+    restated but must also be reproducible as reported, the design has to keep both versions.
+  due: {plan: 3, designed: 4, evidenced: 7}
+  fail_fast: >-
+    Ask the finance or compliance owner: "Which number from this system could an auditor ask us to reproduce
+    in a year's time?"
+  severity: medium
+  related: [SEC-04, DATA-05]
+  signal_id: null

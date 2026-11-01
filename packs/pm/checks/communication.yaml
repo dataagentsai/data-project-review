@@ -192,3 +192,36 @@
   severity: low
   related: [COM-01]
   signal_id: null
+
+- id: COM-07
+  title: Steering packs that ask for nothing
+  kind: delivery
+  concern: communication
+  question: >-
+    Does each steering pack open with the decisions and help the project needs from that meeting (a date, a
+    budget release, a source team pushed, a definition settled), each with options and a deadline? After the
+    next steering meeting, which blocker will still be blocked because we only reported progress?
+  why: >-
+    Steering packs ran to twenty slides of activity. The one line that mattered, that a source team had not
+    started its extract change, sat on slide fourteen, and nobody in the room acted on it for three meetings.
+  applies: {kind: [any], components: [any], patterns: [any]}
+  owner: project-manager
+  also: [technical-anchor, business-owner]
+  evidence:
+    docs: [status, decisions]
+    looks_like: >-
+      A first page listing the decisions and help needed, each with options, a recommendation and a deadline,
+      and notes from the meeting recording what was decided.
+  signals:
+    - Steering packs contain progress and activity but no "decisions needed" section.
+    - The same blocker appears in several packs with no request attached.
+    - Steering notes record no decisions.
+  contradiction: >-
+    Compare open issues and decisions in the RAID log with the steering packs: an issue that needs steering
+    action but never appears as a request in the pack is being reported, not escalated.
+  due: {plan: 4, evidenced: 6}
+  fail_fast: >-
+    Put "decisions we need from you today" as the first slide of the next steering pack.
+  severity: medium
+  related: [GOV-01, PM-08, COM-01]
+  signal_id: null

@@ -1,0 +1,134 @@
+# Delivery checks: resourcing. Whether the people the plan needs are really there, for the hours the plan
+# assumes - including the people who are not on the project team (source experts, business testers).
+
+- id: RES-01
+  title: Capacity counted in people, not in real hours
+  kind: delivery
+  concern: resourcing
+  question: >-
+    Does the plan use each person's real availability: their share of time on this project, planned leave,
+    public holidays, other commitments and support duties? If the team delivers two thirds of what was
+    planned, will the missing third be leave and part-time allocations nobody subtracted?
+  why: >-
+    The plan assumed five full-time developers. Two were shared with production support, one had three weeks
+    of leave in the summer, and the real capacity was barely three people, so the first MVP slipped a month.
+  applies: {kind: [any], components: [any], patterns: [any]}
+  owner: project-manager
+  also: [technical-anchor]
+  evidence:
+    docs: [plan, estimate]
+    looks_like: >-
+      A team table with each named person, their percentage on the project, known leave and the weeks they are
+      needed, with the total compared against the effort in the estimate.
+  signals:
+    - The plan lists roles or head counts with no names or percentages.
+    - No mention of leave, holidays or support duties.
+    - The same person is allocated full time on this project and another one.
+  contradiction: >-
+    Compare the estimate's effort with the plan's available hours: if effort divided by real capacity gives a
+    later date than the plan shows, the plan assumes people who do not exist.
+  due: {plan: 3, designed: 4, evidenced: 6}
+  fail_fast: >-
+    Add up each person's real available days for the next eight weeks and compare them with the planned work.
+  severity: high
+  related: [PM-06, PM-07, EST-03]
+  signal_id: null
+
+- id: RES-02
+  title: New joiners assumed productive on day one
+  kind: delivery
+  concern: resourcing
+  question: >-
+    Does the plan allow for the time a new person needs before they are useful: laptop, accounts, access to
+    sources and environments, security training and learning the domain? When a developer joins in week six,
+    in which week will they first deliver?
+  why: >-
+    Two contractors joined to catch up the plan. Their access to the source data took four weeks to approve,
+    so they were paid for a month of reading documents while the slip grew.
+  applies: {kind: [any], components: [any], patterns: [any]}
+  owner: project-manager
+  also: [technical-anchor, platform-team, security]
+  evidence:
+    docs: [plan, raid]
+    looks_like: >-
+      An onboarding checklist with the lead time of each item, requests raised before the start date, and the
+      plan showing reduced output for each new person's first weeks.
+  signals:
+    - People are added to the plan at full output from their first week.
+    - No onboarding checklist or access lead times are written down.
+    - Recovery plans rely on adding people late in the build.
+  contradiction: >-
+    Compare the plan's joining dates with the access request lead times in the RAID log: a person planned to
+    deliver before their access can arrive will sit idle.
+  due: {plan: 4, evidenced: 6}
+  fail_fast: >-
+    Ask the most recent joiner how many days passed before they could query real data, and use that number.
+  severity: medium
+  related: [PM-10, ENV-02, RES-01]
+  signal_id: null
+
+- id: RES-03
+  title: Source experts' time never booked
+  kind: delivery
+  concern: resourcing
+  question: >-
+    Is the time the project needs from source system experts (to explain tables, deletes and odd values, to
+    review mappings and to fix extracts) agreed with their manager, in hours per week and by date? When the
+    team needs an answer about the source, how long will it wait?
+  why: >-
+    The only person who understood the source's status codes worked on that system's own release. She gave
+    the project an hour a week when she could, and every mapping question waited ten days for an answer.
+  applies: {kind: [any], components: [ingestion, transformation], patterns: [any]}
+  owner: project-manager
+  also: [source-owner, technical-anchor, business-analyst]
+  evidence:
+    docs: [plan, stakeholders]
+    looks_like: >-
+      Named source experts with agreed hours per week through discovery, build and test, confirmed by their
+      line manager, and a deputy for each.
+  signals:
+    - Source experts are named in the stakeholder map with no time commitment.
+    - Open questions about source data stay open across several status reports.
+    - The plan relies on "input from the source team" without names or dates.
+  contradiction: >-
+    Compare the number of sources in the architecture with the expert time booked in the plan: a source with
+    no booked expert will be understood by guessing.
+  due: {plan: 3, evidenced: 5}
+  fail_fast: >-
+    Ask each source expert's manager to confirm, in writing, the hours per week they will give the project.
+  severity: high
+  related: [PM-06, REQ-04, DQ-05]
+  signal_id: null
+
+- id: RES-04
+  title: Business testers and sign-off people not booked
+  kind: delivery
+  concern: resourcing
+  question: >-
+    Are the business users who will test, reconcile numbers and sign off named, with their days booked and
+    clear of month-end, year-end and their own peak periods? If user acceptance slips, will it be because the
+    testers were closing the books that week?
+  why: >-
+    User acceptance was planned for the last week of the quarter. Every finance tester was on the quarter
+    close, the test window passed with a handful of cases run, and go-live moved by six weeks.
+  applies: {kind: [any], components: [modelling, serving], patterns: [any]}
+  owner: project-manager
+  also: [business-owner, test-lead, data-consumer]
+  evidence:
+    docs: [plan, test-strategy]
+    looks_like: >-
+      Named testers and approvers, the days each has agreed to give, their managers' agreement, and a test
+      window checked against the business calendar.
+  signals:
+    - The test strategy says "business users" without names.
+    - User acceptance dates fall in a month-end, quarter-end or year-end period.
+    - No business manager has agreed to release testers.
+  contradiction: >-
+    Compare the plan's user acceptance window with the business calendar or the testers' own commitments: a
+    window that overlaps their busiest week will not get the testing it needs.
+  due: {plan: 4, designed: 6, evidenced: 7}
+  fail_fast: >-
+    Ask each named tester's manager to put the test days in their calendar now.
+  severity: high
+  related: [TEST-04, COM-05, PM-18]
+  signal_id: null

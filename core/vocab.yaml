@@ -55,6 +55,20 @@ concerns:           # groups used to organise checks and the report
     stakeholders: Who is involved, who decides, who can block
     communication: How news, decisions and problems travel
     handover: Documentation, knowledge transfer, support model
+    budget: Budget and its basis, spend against plan, contingency, running cost ownership, cost of change
+    resourcing: Named people and their real availability, onboarding, booked time from source experts and business users
+    vendors-and-third-parties: Source teams, vendors and suppliers as dependencies, with agreed dates, terms and escalation
+    governance: Steering group, stage gates and their exit criteria, escalation, approval boards, lessons per gate
+    release-coordination: Go or no-go, business readiness, old reports switched off, clashing releases, consumers told
+    benefits: Whether the promised value arrives after go-live - adoption and the business changes it depends on
+    current-state: How the business gets the numbers today - reports replaced, trusted figures, manual adjustments, decisions served
+    data-requirements: The business side of the data needed - sources and owners, grain, history, freshness, late data, source of truth
+    metrics-and-definitions: Each metric fully defined, departmental conflicts resolved, a business glossary, roll-up rules
+    business-rules: Business rules as testable rules with examples, exceptions, and what users see when data is bad or missing
+    data-ownership: Named business owners for data domains, definitions and mappings, and who approves changes to meaning
+    consumers-and-use: Every consumer and channel named with what it needs, and self-service expectations
+    policy-needs: Privacy purpose, retention and audit needs stated by the business (the tech pack covers implementation)
+    acceptance-and-uat: User acceptance designed early with real users, recognisable numbers, data, environment and sign-off
 
 doc_types:          # kinds of project documents; projects map their files to these in project.yaml
   requirements: Business requirements, user stories, acceptance criteria
@@ -63,6 +77,7 @@ doc_types:          # kinds of project documents; projects map their files to th
   platform: Platform architecture, environments, network, security
   data-model: Data model, definitions, data dictionary, mappings
   estimate: Estimates and their assumptions
+  budget: Budget, spend against plan, forecast, contingency, running cost after go-live
   plan: Project plan, milestones, MVPs, roadmap
   raid: Risks, assumptions, issues, dependencies
   decisions: Decision log, architecture decision records

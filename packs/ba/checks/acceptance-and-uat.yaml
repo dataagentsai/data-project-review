@@ -1,0 +1,107 @@
+# Delivery checks: acceptance and user acceptance testing.
+# REQ-02 asks for acceptance criteria per requirement and TEST-04 (tech) for users testing with numbers they
+# recognise. These checks make sure acceptance is planned early, with the right people, data and sign-off.
+
+- id: UAT-01
+  title: User acceptance scenarios designed late, without the users
+  kind: delivery
+  concern: acceptance-and-uat
+  question: >-
+    Were the user acceptance scenarios written during discovery, with the users who will test, and built
+    around the questions they really ask and the figures they already know (last month's total for their
+    region, a customer they can name)? When testing starts, will the testers know what to check, or will they
+    click around and say it looks fine?
+  why: >-
+    The scenarios were written by the test team in the last week of the build, from the requirements alone.
+    They checked that screens loaded, not that numbers were right, and the first month-end after go-live
+    showed revenue a few per cent out in every region.
+  applies: {kind: [any], components: [modelling, serving], patterns: [any]}
+  owner: business-analyst
+  also: [test-lead, data-consumer]
+  evidence:
+    docs: [test-strategy, requirements]
+    looks_like: >-
+      A first set of acceptance scenarios agreed with named users by discovery sign-off, each one a real
+      question with the expected figure from a trusted report for a known period, covering every user group
+      and the tricky cases (returns, late data, reorganisations).
+  signals:
+    - The test strategy says "user acceptance testing" with no scenarios, or "scenarios to be defined".
+    - Scenarios describe screens and clicks, not figures and expected values.
+    - Scenarios were written by the project team with no named business contributor.
+  contradiction: >-
+    Compare the acceptance scenarios in the test strategy with the decisions and user groups in the
+    requirements: a decision or user group with no scenario will be accepted without being tested.
+  due: {plan: 3, designed: 5, evidenced: 7}
+  fail_fast: >-
+    Ask two real users to write down three questions they will ask the new system and the answers they expect
+    for last month; those are the first scenarios.
+  severity: high
+  related: [TEST-04, REQ-02, CUR-02, RES-04]
+  signal_id: null
+
+- id: UAT-02
+  title: No data or environment for user testing
+  kind: delivery
+  concern: acceptance-and-uat
+  question: >-
+    What data will business testers use (real enough for them to recognise their numbers, covering a period
+    they know), in which environment, with what access, and is personal data in it allowed? If testers cannot
+    log in on the first day, or see numbers they cannot judge, how many testing days are lost?
+  why: >-
+    User testing used invented data so that no personal data left production. The testers could not tell
+    whether any figure was right, signed off out of politeness, and the first real month showed the errors.
+  applies: {kind: [any], components: [modelling, serving], patterns: [any]}
+  owner: business-analyst
+  also: [test-lead, platform-team, security]
+  evidence:
+    docs: [test-strategy, platform]
+    looks_like: >-
+      A statement of which period and data the testers will use, how it is made safe if it holds personal
+      data, which environment they use, and that their access was requested and tested before testing starts.
+  signals:
+    - The test strategy says user testing will use "test data" or "sample data" with no period named.
+    - Business testers' access to the test environment is not in the plan.
+    - Nothing says whether personal data may be used in user testing.
+  contradiction: >-
+    Compare the user testing approach in the test strategy with the platform environments: user testing that
+    needs production-like data in an environment that is not allowed to hold it cannot happen as planned.
+  due: {plan: 4, designed: 6, evidenced: 7}
+  fail_fast: >-
+    Ask one business tester to log in to the test environment this week and find last month's figure for
+    their own area.
+  severity: medium
+  related: [TEST-02, ENV-01, POL-01]
+  signal_id: null
+
+- id: UAT-03
+  title: Acceptance signed by the wrong people, or with no exit rule
+  kind: delivery
+  concern: acceptance-and-uat
+  question: >-
+    Will acceptance be signed by the people who will use the output, and is it agreed in advance what
+    counts as accepted: which differences from the trusted figure are tolerable, and which open defects may
+    go live? If testing ends with twenty open defects, is the go or no-go already decided?
+  why: >-
+    The project manager and the sponsor signed acceptance. The analysts who used the reports daily had found
+    differences they could not explain, were not asked, and quietly went back to the old spreadsheets.
+  applies: {kind: [any], components: [modelling, serving], patterns: [any]}
+  owner: business-analyst
+  also: [business-owner, data-consumer, test-lead]
+  evidence:
+    docs: [test-strategy, decisions]
+    looks_like: >-
+      Named acceptors from each user group, exit rules agreed before testing (tolerances for differences,
+      severity of defects that may remain), and a dated sign-off record.
+  signals:
+    - Acceptance is signed only by the sponsor or the project team.
+    - No exit criteria or tolerances are stated for user testing.
+    - The sign-off template has no place to record open defects or conditions.
+  contradiction: >-
+    Compare the acceptors named in the test strategy with the user groups in the requirements: a user group
+    with no acceptor has not accepted anything.
+  due: {plan: 4, designed: 6, evidenced: 7}
+  fail_fast: >-
+    Write the exit rule in three lines now and get the business owner and one real user to agree to it.
+  severity: high
+  related: [REC-03, STK-05, REQ-05, RLC-01]
+  signal_id: null

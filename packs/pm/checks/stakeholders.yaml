@@ -191,3 +191,36 @@
   severity: low
   related: [REQ-07, STK-01]
   signal_id: null
+
+- id: STK-07
+  title: Sponsor or owner changes and nobody re-confirms
+  kind: delivery
+  concern: stakeholders
+  question: >-
+    When the sponsor, business owner or a key data owner changes during the project, is the new person taken
+    through the scope, definitions, decisions, budget and dates, and asked to confirm them in writing? If a
+    reorganisation replaces our sponsor next month, which agreed decision is the new one most likely to reopen?
+  why: >-
+    The business owner moved roles after discovery sign-off. Her successor had never seen the definitions, did
+    not accept the agreed treatment of returns, and two months of modelling were redone.
+  applies: {kind: [any], components: [any], patterns: [any]}
+  owner: project-manager
+  also: [business-owner, business-analyst]
+  evidence:
+    docs: [stakeholders, decisions]
+    looks_like: >-
+      A record of each change in key stakeholders, the briefing given to the new person, and their written
+      confirmation (or the decisions they reopened, handled as change requests).
+  signals:
+    - Names in recent status reports or meeting notes differ from those on the stakeholder map or sign-off record.
+    - A new sponsor or owner appears with no record of a handover briefing.
+    - Signed decisions are being questioned again in meeting notes after a change of people.
+  contradiction: >-
+    Compare the signatories on the discovery sign-off with the people now named as sponsor and owners: a
+    decider who did not sign has not yet agreed.
+  due: {plan: 4, evidenced: 6}
+  fail_fast: >-
+    Check whether everyone who signed discovery still holds the same role, and brief anyone new this week.
+  severity: medium
+  related: [STK-02, STK-05, PM-03]
+  signal_id: null

@@ -55,7 +55,21 @@
     "project-management": "Plan, dependencies, risks, decisions, status",
     "stakeholders": "Who is involved, who decides, who can block",
     "communication": "How news, decisions and problems travel",
-    "handover": "Documentation, knowledge transfer, support model"
+    "handover": "Documentation, knowledge transfer, support model",
+    "budget": "Budget and its basis, spend against plan, contingency, running cost ownership, cost of change",
+    "resourcing": "Named people and their real availability, onboarding, booked time from source experts and business users",
+    "vendors-and-third-parties": "Source teams, vendors and suppliers as dependencies, with agreed dates, terms and escalation",
+    "governance": "Steering group, stage gates and their exit criteria, escalation, approval boards, lessons per gate",
+    "release-coordination": "Go or no-go, business readiness, old reports switched off, clashing releases, consumers told",
+    "benefits": "Whether the promised value arrives after go-live - adoption and the business changes it depends on",
+    "current-state": "How the business gets the numbers today - reports replaced, trusted figures, manual adjustments, decisions served",
+    "data-requirements": "The business side of the data needed - sources and owners, grain, history, freshness, late data, source of truth",
+    "metrics-and-definitions": "Each metric fully defined, departmental conflicts resolved, a business glossary, roll-up rules",
+    "business-rules": "Business rules as testable rules with examples, exceptions, and what users see when data is bad or missing",
+    "data-ownership": "Named business owners for data domains, definitions and mappings, and who approves changes to meaning",
+    "consumers-and-use": "Every consumer and channel named with what it needs, and self-service expectations",
+    "policy-needs": "Privacy purpose, retention and audit needs stated by the business (the tech pack covers implementation)",
+    "acceptance-and-uat": "User acceptance designed early with real users, recognisable numbers, data, environment and sign-off"
    }
   },
   "doc_types": {
@@ -65,6 +79,7 @@
    "platform": "Platform architecture, environments, network, security",
    "data-model": "Data model, definitions, data dictionary, mappings",
    "estimate": "Estimates and their assumptions",
+   "budget": "Budget, spend against plan, forecast, contingency, running cost after go-live",
    "plan": "Project plan, milestones, MVPs, roadmap",
    "raid": "Risks, assumptions, issues, dependencies",
    "decisions": "Decision log, architecture decision records",
@@ -185,6 +200,1529 @@
   }
  },
  "checks": [
+  {
+   "id": "UAT-01",
+   "title": "User acceptance scenarios designed late, without the users",
+   "kind": "delivery",
+   "concern": "acceptance-and-uat",
+   "question": "Were the user acceptance scenarios written during discovery, with the users who will test, and built around the questions they really ask and the figures they already know (last month's total for their region, a customer they can name)? When testing starts, will the testers know what to check, or will they click around and say it looks fine?",
+   "why": "The scenarios were written by the test team in the last week of the build, from the requirements alone. They checked that screens loaded, not that numbers were right, and the first month-end after go-live showed revenue a few per cent out in every region.",
+   "applies": {
+    "kind": [
+     "any"
+    ],
+    "components": [
+     "modelling",
+     "serving"
+    ],
+    "patterns": [
+     "any"
+    ]
+   },
+   "owner": "business-analyst",
+   "also": [
+    "test-lead",
+    "data-consumer"
+   ],
+   "evidence": {
+    "docs": [
+     "test-strategy",
+     "requirements"
+    ],
+    "looks_like": "A first set of acceptance scenarios agreed with named users by discovery sign-off, each one a real question with the expected figure from a trusted report for a known period, covering every user group and the tricky cases (returns, late data, reorganisations)."
+   },
+   "signals": [
+    "The test strategy says \"user acceptance testing\" with no scenarios, or \"scenarios to be defined\".",
+    "Scenarios describe screens and clicks, not figures and expected values.",
+    "Scenarios were written by the project team with no named business contributor."
+   ],
+   "contradiction": "Compare the acceptance scenarios in the test strategy with the decisions and user groups in the requirements: a decision or user group with no scenario will be accepted without being tested.",
+   "due": {
+    "plan": 3,
+    "designed": 5,
+    "evidenced": 7
+   },
+   "fail_fast": "Ask two real users to write down three questions they will ask the new system and the answers they expect for last month; those are the first scenarios.",
+   "severity": "high",
+   "related": [
+    "TEST-04",
+    "REQ-02",
+    "CUR-02",
+    "RES-04"
+   ],
+   "signal_id": null,
+   "pack": "ba",
+   "file": "packs/ba/checks/acceptance-and-uat.yaml"
+  },
+  {
+   "id": "UAT-02",
+   "title": "No data or environment for user testing",
+   "kind": "delivery",
+   "concern": "acceptance-and-uat",
+   "question": "What data will business testers use (real enough for them to recognise their numbers, covering a period they know), in which environment, with what access, and is personal data in it allowed? If testers cannot log in on the first day, or see numbers they cannot judge, how many testing days are lost?",
+   "why": "User testing used invented data so that no personal data left production. The testers could not tell whether any figure was right, signed off out of politeness, and the first real month showed the errors.",
+   "applies": {
+    "kind": [
+     "any"
+    ],
+    "components": [
+     "modelling",
+     "serving"
+    ],
+    "patterns": [
+     "any"
+    ]
+   },
+   "owner": "business-analyst",
+   "also": [
+    "test-lead",
+    "platform-team",
+    "security"
+   ],
+   "evidence": {
+    "docs": [
+     "test-strategy",
+     "platform"
+    ],
+    "looks_like": "A statement of which period and data the testers will use, how it is made safe if it holds personal data, which environment they use, and that their access was requested and tested before testing starts."
+   },
+   "signals": [
+    "The test strategy says user testing will use \"test data\" or \"sample data\" with no period named.",
+    "Business testers' access to the test environment is not in the plan.",
+    "Nothing says whether personal data may be used in user testing."
+   ],
+   "contradiction": "Compare the user testing approach in the test strategy with the platform environments: user testing that needs production-like data in an environment that is not allowed to hold it cannot happen as planned.",
+   "due": {
+    "plan": 4,
+    "designed": 6,
+    "evidenced": 7
+   },
+   "fail_fast": "Ask one business tester to log in to the test environment this week and find last month's figure for their own area.",
+   "severity": "medium",
+   "related": [
+    "TEST-02",
+    "ENV-01",
+    "POL-01"
+   ],
+   "signal_id": null,
+   "pack": "ba",
+   "file": "packs/ba/checks/acceptance-and-uat.yaml"
+  },
+  {
+   "id": "UAT-03",
+   "title": "Acceptance signed by the wrong people, or with no exit rule",
+   "kind": "delivery",
+   "concern": "acceptance-and-uat",
+   "question": "Will acceptance be signed by the people who will use the output, and is it agreed in advance what counts as accepted: which differences from the trusted figure are tolerable, and which open defects may go live? If testing ends with twenty open defects, is the go or no-go already decided?",
+   "why": "The project manager and the sponsor signed acceptance. The analysts who used the reports daily had found differences they could not explain, were not asked, and quietly went back to the old spreadsheets.",
+   "applies": {
+    "kind": [
+     "any"
+    ],
+    "components": [
+     "modelling",
+     "serving"
+    ],
+    "patterns": [
+     "any"
+    ]
+   },
+   "owner": "business-analyst",
+   "also": [
+    "business-owner",
+    "data-consumer",
+    "test-lead"
+   ],
+   "evidence": {
+    "docs": [
+     "test-strategy",
+     "decisions"
+    ],
+    "looks_like": "Named acceptors from each user group, exit rules agreed before testing (tolerances for differences, severity of defects that may remain), and a dated sign-off record."
+   },
+   "signals": [
+    "Acceptance is signed only by the sponsor or the project team.",
+    "No exit criteria or tolerances are stated for user testing.",
+    "The sign-off template has no place to record open defects or conditions."
+   ],
+   "contradiction": "Compare the acceptors named in the test strategy with the user groups in the requirements: a user group with no acceptor has not accepted anything.",
+   "due": {
+    "plan": 4,
+    "designed": 6,
+    "evidenced": 7
+   },
+   "fail_fast": "Write the exit rule in three lines now and get the business owner and one real user to agree to it.",
+   "severity": "high",
+   "related": [
+    "REC-03",
+    "STK-05",
+    "REQ-05",
+    "RLC-01"
+   ],
+   "signal_id": null,
+   "pack": "ba",
+   "file": "packs/ba/checks/acceptance-and-uat.yaml"
+  },
+  {
+   "id": "RULE-01",
+   "title": "Business rules written as prose, not as testable rules",
+   "kind": "delivery",
+   "concern": "business-rules",
+   "question": "Is every business rule (how a customer is classified, when an order counts, how a discount is applied) written as a precise rule with at least one worked example of input and expected result? If a tester and a developer read the rule separately, would they agree on the answer for a tricky case?",
+   "why": "The rule said \"VIP customers get priority\". Nobody wrote down that VIP meant spend over a threshold in the last twelve rolling months, so developers used the calendar year and a fifth of VIPs were missing.",
+   "applies": {
+    "kind": [
+     "any"
+    ],
+    "components": [
+     "transformation",
+     "modelling"
+    ],
+    "patterns": [
+     "any"
+    ]
+   },
+   "owner": "business-analyst",
+   "also": [
+    "test-lead",
+    "developer",
+    "data-consumer"
+   ],
+   "evidence": {
+    "docs": [
+     "requirements",
+     "test-strategy"
+    ],
+    "looks_like": "Each rule numbered, stated as a condition and a result, with two or three worked examples using real values, including at least one edge case, and the person who confirmed it."
+   },
+   "signals": [
+    "Rules are embedded in long paragraphs rather than listed and numbered.",
+    "Rules have no examples, or only the obvious case.",
+    "Words such as \"usually\", \"normally\", \"where appropriate\" or \"as needed\" appear in rules."
+   ],
+   "contradiction": "Compare the business rules in the requirements with the test cases: a rule with no test, or a test that checks something no rule states, shows the rules were never made testable.",
+   "due": {
+    "plan": 3,
+    "designed": 5,
+    "evidenced": 7
+   },
+   "fail_fast": "Pick the three most complex rules and ask the business owner to work one real record through each by hand.",
+   "severity": "high",
+   "related": [
+    "REQ-02",
+    "RULE-03"
+   ],
+   "signal_id": null,
+   "pack": "ba",
+   "file": "packs/ba/checks/business-rules.yaml"
+  },
+  {
+   "id": "RULE-02",
+   "title": "What the user sees when data is bad or missing not decided by the business",
+   "kind": "delivery",
+   "concern": "business-rules",
+   "question": "When a value is missing, a record fails a check, or a source is late, what should the user see: a blank, a placeholder such as \"unknown\", yesterday's figure, a warning, or nothing at all? Has the business chosen, for each key report? If a manager makes a decision on incomplete data, will the report have told them?",
+   "why": "A store's sales file failed to load. The dashboard showed the store at zero without any warning, and a regional manager phoned the store manager to ask why nothing had been sold.",
+   "applies": {
+    "kind": [
+     "any"
+    ],
+    "components": [
+     "modelling",
+     "serving"
+    ],
+    "patterns": [
+     "any"
+    ]
+   },
+   "owner": "business-analyst",
+   "also": [
+    "data-consumer",
+    "technical-anchor"
+   ],
+   "evidence": {
+    "docs": [
+     "requirements"
+    ],
+    "looks_like": "For each key report or consumer, what is shown for missing values, rejected rows, late sources and partial periods, agreed with the users, with how they are told the data is incomplete."
+   },
+   "signals": [
+    "The requirements describe only the happy path.",
+    "Rules for bad data exist in the technical design but not in the requirements.",
+    "Words such as \"unknown\", \"missing\", \"incomplete\", \"partial\" or \"late\" never appear in the requirements."
+   ],
+   "contradiction": "Compare the requirements with the data quality design: if the design quarantines or drops rows but the requirements never say what users should see when that happens, users will see silent gaps.",
+   "due": {
+    "plan": 3,
+    "designed": 4,
+    "evidenced": 7
+   },
+   "fail_fast": "Show users a mock-up of a key report with one region missing and ask what they expect it to look like.",
+   "severity": "high",
+   "related": [
+    "DQ-02",
+    "SERV-02",
+    "DQ-04"
+   ],
+   "signal_id": null,
+   "pack": "ba",
+   "file": "packs/ba/checks/business-rules.yaml"
+  },
+  {
+   "id": "RULE-03",
+   "title": "The exceptions nobody mentioned",
+   "kind": "delivery",
+   "concern": "business-rules",
+   "question": "Have the unusual cases been asked about and given rules: returns, cancellations, refunds, credit notes, intercompany sales, test and internal accounts, free items, split shipments, merged customers? Which exception will the users spot in the first week of testing?",
+   "why": "Nobody asked about staff purchases. They were twelve per cent of transactions at one site, were excluded from every report the business trusted, and were included in every number the new system produced.",
+   "applies": {
+    "kind": [
+     "any"
+    ],
+    "components": [
+     "transformation",
+     "modelling"
+    ],
+    "patterns": [
+     "any"
+    ]
+   },
+   "owner": "business-analyst",
+   "also": [
+    "data-consumer",
+    "source-owner"
+   ],
+   "evidence": {
+    "docs": [
+     "requirements",
+     "discovery"
+    ],
+    "looks_like": "A list of exception types found in the data profile and in interviews, each with how often it occurs, and a rule for whether and how it counts in each metric."
+   },
+   "signals": [
+    "No requirement mentions returns, cancellations, internal accounts, test records or adjustments.",
+    "The data profile shows unusual record types or status codes that no requirement explains.",
+    "Rules cover only the standard case."
+   ],
+   "contradiction": "Compare the status codes and record types in the data profile with the business rules: every code with no rule will be treated by default, and the default is rarely what the business wants.",
+   "due": {
+    "plan": 3,
+    "designed": 4
+   },
+   "fail_fast": "List every distinct status or type code in the main source and ask the business owner what each one means and whether it counts.",
+   "severity": "medium",
+   "related": [
+    "RULE-01",
+    "DQ-05",
+    "CUR-04"
+   ],
+   "signal_id": null,
+   "pack": "ba",
+   "file": "packs/ba/checks/business-rules.yaml"
+  },
+  {
+   "id": "USE-01",
+   "title": "Not every consumer and channel named",
+   "kind": "delivery",
+   "concern": "consumers-and-use",
+   "question": "Is every consumer of the output named, with the channel they use (dashboard, scheduled extract, file to a partner, application interface, machine learning model, AI assistant answering questions) and what each needs from it? Who will turn up at go-live asking where their feed is?",
+   "why": "The project built dashboards for the sales team. Two weeks before go-live the pricing team said their model read a nightly extract from the old system, which nobody had listed, and the cut-over was postponed.",
+   "applies": {
+    "kind": [
+     "any"
+    ],
+    "components": [
+     "serving"
+    ],
+    "patterns": [
+     "any"
+    ]
+   },
+   "owner": "business-analyst",
+   "also": [
+    "data-consumer",
+    "technical-anchor"
+   ],
+   "evidence": {
+    "docs": [
+     "requirements",
+     "stakeholders"
+    ],
+    "looks_like": "A consumer list: one row per consumer or channel with who they are, how they receive the data, what data and grain they need, how fresh, and any needs such as languages, accessibility or mobile use."
+   },
+   "signals": [
+    "Requirements describe only dashboards or reports, with no extracts, interfaces, models or assistants.",
+    "Downstream systems that read today's data are not listed.",
+    "Consumers are named as \"the business\" or \"users\" without groups."
+   ],
+   "contradiction": "Compare the consumer list in the requirements with the outputs drawn in the architecture: an output with no named consumer is unowned work, and a consumer with no output will be missed at go-live.",
+   "due": {
+    "plan": 3,
+    "designed": 4
+   },
+   "fail_fast": "Ask the source and current-report owners for the list of everyone who receives or queries today's data, and check each one against the requirements.",
+   "severity": "high",
+   "related": [
+    "SERV-01",
+    "REQ-05",
+    "CUR-01",
+    "RLC-05"
+   ],
+   "signal_id": null,
+   "pack": "ba",
+   "file": "packs/ba/checks/consumers-and-use.yaml"
+  },
+  {
+   "id": "USE-02",
+   "title": "Self-service expectations not stated",
+   "kind": "delivery",
+   "concern": "consumers-and-use",
+   "question": "Does the business expect users to build their own reports and answer their own questions, and if so, which users, with what skills, on which data, with what training and support? If users say at go-live \"we thought we could build our own\", will that be in scope?",
+   "why": "The sponsor expected analysts to explore the data freely. The team built fixed reports only, with no documented model for users to build on, and the analysts went back to exporting to spreadsheets.",
+   "applies": {
+    "kind": [
+     "any"
+    ],
+    "components": [
+     "serving",
+     "modelling"
+    ],
+    "patterns": [
+     "any"
+    ]
+   },
+   "owner": "business-analyst",
+   "also": [
+    "business-owner",
+    "data-consumer"
+   ],
+   "evidence": {
+    "docs": [
+     "requirements",
+     "discovery"
+    ],
+    "looks_like": "A clear statement of who will only read reports and who will build their own, what data the builders may use, what training and documentation they will get, and who supports them."
+   },
+   "signals": [
+    "Words such as \"self-service\", \"explore\" or \"ad hoc\" appear with no named users or scope.",
+    "No training, documentation or support for business users is in the plan.",
+    "The out-of-scope list says nothing about self-service."
+   ],
+   "contradiction": "Compare the self-service promises in the discovery document with the plan and handover: self-service promised but no user documentation, training or support planned will not happen.",
+   "due": {
+    "plan": 3,
+    "designed": 4
+   },
+   "fail_fast": "Ask the sponsor to name three people who will build their own reports, and ask those three what they plan to build.",
+   "severity": "medium",
+   "related": [
+    "USE-01",
+    "SCOPE-01"
+   ],
+   "signal_id": null,
+   "pack": "ba",
+   "file": "packs/ba/checks/consumers-and-use.yaml"
+  },
+  {
+   "id": "CUR-01",
+   "title": "The current process and reports not written down",
+   "kind": "delivery",
+   "concern": "current-state",
+   "question": "Is the way the business produces this information today written down: which reports, spreadsheets, extracts and manual steps, who runs them, how often, and who reads them? If an old report keeps being used after go-live, will it be one we never knew existed?",
+   "why": "The project replaced the monthly sales pack. Nobody had mapped the twelve spreadsheets that fed it, and one of them carried a manual rebate adjustment, so the new numbers were wrong by exactly that amount and the old pack stayed in use.",
+   "applies": {
+    "kind": [
+     "any"
+    ],
+    "components": [
+     "modelling",
+     "serving"
+    ],
+    "patterns": [
+     "any"
+    ]
+   },
+   "owner": "business-analyst",
+   "also": [
+    "data-consumer",
+    "business-owner"
+   ],
+   "evidence": {
+    "docs": [
+     "discovery",
+     "requirements"
+    ],
+    "looks_like": "A current-state inventory: one row per report, spreadsheet or extract being replaced, with its producer, frequency, readers, the sources it pulls from and the manual steps in between."
+   },
+   "signals": [
+    "The discovery document describes the future solution but has no \"current state\" or \"as is\" section.",
+    "Reports to be replaced are mentioned by name only, with no producer, frequency or readers.",
+    "Phrases such as \"replaces existing reporting\" with no list of what that reporting is."
+   ],
+   "contradiction": "Compare the current-state inventory in the discovery document with the in-scope list: a report or spreadsheet in use today that is neither replaced nor declared out of scope will keep running beside the new system.",
+   "due": {
+    "plan": 3,
+    "designed": 4
+   },
+   "fail_fast": "Sit for one hour with the person who produces today's main report and write down every step, file and manual change they make.",
+   "severity": "high",
+   "related": [
+    "CUR-02",
+    "CUR-04",
+    "RLC-03"
+   ],
+   "signal_id": null,
+   "pack": "ba",
+   "file": "packs/ba/checks/current-state.yaml"
+  },
+  {
+   "id": "CUR-02",
+   "title": "The number the business trusts today not identified",
+   "kind": "delivery",
+   "concern": "current-state",
+   "question": "For each key figure, which report or person does the business trust today, and has the business agreed that the new system will be judged against it? When the new number differs from the old one, who will decide which is wrong?",
+   "why": "The new revenue figure was two per cent lower than finance's ledger. Nobody had agreed in advance that the ledger was the reference, so three weeks were lost arguing about whose number was right before anyone looked for the cause.",
+   "applies": {
+    "kind": [
+     "any"
+    ],
+    "components": [
+     "modelling",
+     "serving"
+    ],
+    "patterns": [
+     "any"
+    ]
+   },
+   "owner": "business-analyst",
+   "also": [
+    "business-owner",
+    "data-consumer",
+    "test-lead"
+   ],
+   "evidence": {
+    "docs": [
+     "requirements",
+     "test-strategy"
+    ],
+    "looks_like": "For each key figure, the trusted reference (report, ledger, application screen), who owns it, a sample value for a known period, and whether the business believes that reference is itself correct."
+   },
+   "signals": [
+    "No reference report or trusted figure is named anywhere in the requirements or test strategy.",
+    "The requirements say the new figures must be \"accurate\" or \"correct\" without saying compared with what.",
+    "The trusted figure is named but nobody has captured a value for a known period."
+   ],
+   "contradiction": "Compare the requirements with the test strategy: if the requirements name a trusted report but the reconciliation tests compare against something else, or nothing, acceptance will be argued, not tested.",
+   "due": {
+    "plan": 3,
+    "designed": 4,
+    "evidenced": 7
+   },
+   "fail_fast": "Ask the business owner for last month's value of the top three figures and where they got it, and store the screenshots with the requirements.",
+   "severity": "high",
+   "related": [
+    "REC-02",
+    "TEST-04",
+    "UAT-01"
+   ],
+   "signal_id": null,
+   "pack": "ba",
+   "file": "packs/ba/checks/current-state.yaml"
+  },
+  {
+   "id": "CUR-03",
+   "title": "Decisions the data will drive not named",
+   "kind": "delivery",
+   "concern": "current-state",
+   "question": "Which decisions will people make with this data, how often, and what do they do today instead? If the project delivers every table and report on time but nothing changes in the business, will it be because nobody said which decision it was for?",
+   "why": "The team built a full customer model because \"the business needs a single view of the customer\". The one decision it was actually needed for, which customers to call each Monday, required a field that was never captured.",
+   "applies": {
+    "kind": [
+     "any"
+    ],
+    "components": [
+     "any"
+    ],
+    "patterns": [
+     "any"
+    ]
+   },
+   "owner": "business-analyst",
+   "also": [
+    "business-owner",
+    "data-consumer"
+   ],
+   "evidence": {
+    "docs": [
+     "discovery",
+     "requirements"
+    ],
+    "looks_like": "A short list of decisions, each with who makes it, how often, what information they need to make it, what they use today, and what is painful about that."
+   },
+   "signals": [
+    "Requirements list data and reports but never the decision or action they support.",
+    "The problem statement is about technology (\"legacy reporting\", \"move to the cloud\") rather than a business pain.",
+    "Words such as \"insight\", \"visibility\" or \"single view\" appear without a named decision."
+   ],
+   "contradiction": "Compare the decisions in the discovery document with the freshness and grain in the requirements: a daily decision served by monthly data, or a decision about individual customers served by totals, means the two were not connected.",
+   "due": {
+    "plan": 1,
+    "designed": 3
+   },
+   "fail_fast": "Ask three intended users: \"What will you do differently on the day this is live?\" and write the answers against the requirements.",
+   "severity": "high",
+   "related": [
+    "REQ-07",
+    "REQ-05",
+    "DATA-04"
+   ],
+   "signal_id": null,
+   "pack": "ba",
+   "file": "packs/ba/checks/current-state.yaml"
+  },
+  {
+   "id": "CUR-04",
+   "title": "Manual adjustments hidden in today's numbers",
+   "kind": "delivery",
+   "concern": "current-state",
+   "question": "Do today's trusted figures include manual adjustments, hand-kept mappings, overrides or exclusions that live in someone's spreadsheet or head, and has each one been listed with a decision to automate it, keep it manual, or drop it? If the new numbers never match the old ones, will it be because of a correction nobody told us about?",
+   "why": "Each month an analyst removed two intercompany customers and reclassified a product line by hand before the board pack went out. The new system did neither, and it took a month of reconciliation to find out why.",
+   "applies": {
+    "kind": [
+     "any"
+    ],
+    "components": [
+     "transformation",
+     "modelling"
+    ],
+    "patterns": [
+     "any"
+    ]
+   },
+   "owner": "business-analyst",
+   "also": [
+    "data-consumer",
+    "technical-anchor"
+   ],
+   "evidence": {
+    "docs": [
+     "discovery",
+     "requirements"
+    ],
+    "looks_like": "A list of every manual adjustment, override, exclusion and hand-kept mapping in today's process, with its size, who makes it, why, and whether the new system will automate it, keep it as a governed manual input, or stop it."
+   },
+   "signals": [
+    "The current state is described as \"extracted from the source system\" with no manual steps.",
+    "Spreadsheets are mentioned as inputs to today's report with no description of what they change.",
+    "No requirement covers manual inputs, overrides or exclusions."
+   ],
+   "contradiction": "Compare the current-state description with the business rules or data model: an adjustment people make today that has no rule, no manual input and no \"dropped\" decision will show up as an unexplained difference.",
+   "due": {
+    "plan": 3,
+    "designed": 4
+   },
+   "fail_fast": "Take last month's trusted figure and the raw source total for the same period; ask the report owner to explain the difference line by line.",
+   "severity": "high",
+   "related": [
+    "CUR-01",
+    "CUR-02",
+    "RULE-01"
+   ],
+   "signal_id": null,
+   "pack": "ba",
+   "file": "packs/ba/checks/current-state.yaml"
+  },
+  {
+   "id": "OWN-01",
+   "title": "No named business owner for each data domain",
+   "kind": "delivery",
+   "concern": "data-ownership",
+   "question": "For each data domain the project uses (customer, product, finance, employee), is there a named business person who decides what the data means, what good quality is, and who may use it? When the team has a question about a field, who answers, and how long does it take?",
+   "why": "Product data had no business owner. Every question about categories went to the source system's technical team, who did not know, and the product hierarchy was argued about until the week before go-live.",
+   "applies": {
+    "kind": [
+     "any"
+    ],
+    "components": [
+     "any"
+    ],
+    "patterns": [
+     "any"
+    ]
+   },
+   "owner": "business-analyst",
+   "also": [
+    "business-owner",
+    "security"
+   ],
+   "evidence": {
+    "docs": [
+     "stakeholders",
+     "data-model"
+    ],
+    "looks_like": "A table of data domains, each with a named business owner, a day-to-day steward if different, what they decide, and their agreement to the role."
+   },
+   "signals": [
+    "Data owners are listed as teams or systems rather than people.",
+    "The technical owner of a source system is named as the owner of the business meaning of its data.",
+    "Some domains in scope have no owner, or the owner is \"to be confirmed\"."
+   ],
+   "contradiction": "Compare the data domains in the data model with the stakeholder map: a domain whose owner is not on the stakeholder map will not be consulted when its meaning is decided.",
+   "due": {
+    "plan": 3,
+    "designed": 4
+   },
+   "fail_fast": "List the domains and ask the sponsor to put one name against each in a ten-minute call, then ask each named person to confirm.",
+   "severity": "high",
+   "related": [
+    "STK-02",
+    "DATA-01",
+    "OWN-02"
+   ],
+   "signal_id": null,
+   "pack": "ba",
+   "file": "packs/ba/checks/data-ownership.yaml"
+  },
+  {
+   "id": "OWN-02",
+   "title": "Nobody approves changes to a definition",
+   "kind": "delivery",
+   "concern": "data-ownership",
+   "question": "After go-live, who may change a business definition or rule, how is the change requested, who approves it, and how are users told that past figures will move? When a manager asks the team to \"just exclude\" something, who has to say yes first?",
+   "why": "A regional director asked a developer to exclude one large customer from the margin report. The change went in quietly, the group margin moved, and finance found out when the board asked why.",
+   "applies": {
+    "kind": [
+     "any"
+    ],
+    "components": [
+     "modelling",
+     "serving",
+     "governance"
+    ],
+    "patterns": [
+     "any"
+    ]
+   },
+   "owner": "business-analyst",
+   "also": [
+    "business-owner",
+    "data-consumer",
+    "operations"
+   ],
+   "evidence": {
+    "docs": [
+     "decisions",
+     "runbook"
+    ],
+    "looks_like": "A definition change process: who can request, who approves (the definition's owner), how other users are consulted, how the change is versioned and dated, and how users are told."
+   },
+   "signals": [
+    "Definitions have owners but no process for changing them.",
+    "The support model handles technical changes but says nothing about changes to meaning.",
+    "Change requests to metrics go straight to developers."
+   ],
+   "contradiction": "Compare the definition owners in the data model with the support model's change process: if the support model lets the team change logic without the definition owner's approval, ownership exists only on paper.",
+   "due": {
+    "plan": 4,
+    "designed": 6
+   },
+   "fail_fast": "Ask the support lead: \"If a director asks you tomorrow to change how revenue is counted, what do you do?\"",
+   "severity": "medium",
+   "related": [
+    "REQ-03",
+    "SERV-03",
+    "MET-02",
+    "REQ-10"
+   ],
+   "signal_id": null,
+   "pack": "ba",
+   "file": "packs/ba/checks/data-ownership.yaml"
+  },
+  {
+   "id": "OWN-03",
+   "title": "Mappings and hierarchies with no business maintainer",
+   "kind": "delivery",
+   "concern": "data-ownership",
+   "question": "Who in the business maintains the mappings and hierarchies the reports depend on (product to category, store to region, account to reporting line, cost centre to department), how do they change them, and how quickly? When a new product or store appears, who notices it is unmapped?",
+   "why": "New products launched every month. The mapping to categories lived in a spreadsheet the analyst who left had maintained, so new products fell into \"unknown\" and the category report drifted away from reality.",
+   "applies": {
+    "kind": [
+     "any"
+    ],
+    "components": [
+     "transformation",
+     "modelling",
+     "governance"
+    ],
+    "patterns": [
+     "any"
+    ]
+   },
+   "owner": "business-analyst",
+   "also": [
+    "data-consumer",
+    "operations"
+   ],
+   "evidence": {
+    "docs": [
+     "requirements",
+     "runbook"
+    ],
+    "looks_like": "A list of business-maintained mappings and hierarchies, each with a named maintainer, where it is edited, how often it changes, and what happens to records that are not yet mapped."
+   },
+   "signals": [
+    "Mappings or hierarchies are described as \"reference data\" with no owner.",
+    "Mappings are kept in personal spreadsheets or e-mailed files.",
+    "Nothing says what happens to a new code that is not in the mapping."
+   ],
+   "contradiction": "Compare the reference data in the data model with the support model: a mapping the reports depend on that no one in the support model maintains will go stale.",
+   "due": {
+    "plan": 3,
+    "designed": 5,
+    "evidenced": 7
+   },
+   "fail_fast": "Count how many codes in last month's source data are missing from today's mapping, and ask who would fix them.",
+   "severity": "medium",
+   "related": [
+    "OWN-01",
+    "RULE-02",
+    "CUR-04"
+   ],
+   "signal_id": null,
+   "pack": "ba",
+   "file": "packs/ba/checks/data-ownership.yaml"
+  },
+  {
+   "id": "DATA-01",
+   "title": "Sources not named, each with an owner",
+   "kind": "delivery",
+   "concern": "data-requirements",
+   "question": "Is every source the requirements depend on named, with the system, the data needed from it, and a named person who owns it and can answer questions about it? If a source turns out to be unavailable in the build, will we find out then, or now?",
+   "why": "The requirements said \"customer and order data\". In the build the team learned that returns lived in a separate warehouse system nobody had listed, owned by a team that had no time for the project that quarter.",
+   "applies": {
+    "kind": [
+     "any"
+    ],
+    "components": [
+     "ingestion"
+    ],
+    "patterns": [
+     "any"
+    ]
+   },
+   "owner": "business-analyst",
+   "also": [
+    "source-owner",
+    "technical-anchor"
+   ],
+   "evidence": {
+    "docs": [
+     "requirements",
+     "discovery"
+    ],
+    "looks_like": "A source list: one row per source with the system, the business data it provides, the requirements that need it, the source owner's name, and whether access has been requested."
+   },
+   "signals": [
+    "Data needs are described as subjects (\"customer data\", \"sales data\") with no system named.",
+    "Sources are listed without an owner, or with a team name instead of a person.",
+    "A source appears in the architecture that is not in the requirements, or the reverse."
+   ],
+   "contradiction": "Compare the source list in the requirements with the sources drawn in the architecture: a source in one and not the other is either unneeded work or a missing dependency.",
+   "due": {
+    "plan": 3,
+    "designed": 4
+   },
+   "fail_fast": "For each requirement, write the source system it comes from; any requirement you cannot fill in is a gap to raise this week.",
+   "severity": "high",
+   "related": [
+    "REQ-04",
+    "OWN-01"
+   ],
+   "signal_id": null,
+   "pack": "ba",
+   "file": "packs/ba/checks/data-requirements.yaml"
+  },
+  {
+   "id": "DATA-02",
+   "title": "Grain the users need not compared with the grain the sources hold",
+   "kind": "delivery",
+   "concern": "data-requirements",
+   "question": "For each requirement, what level of detail do the users need (each transaction, each customer per day, each store per month), and does the source hold data at that level? If users ask to drill into a total after go-live, will the detail exist?",
+   "why": "Users needed sales by individual product. The source only kept daily totals by product group, which nobody checked until the first drill-down in user testing.",
+   "applies": {
+    "kind": [
+     "any"
+    ],
+    "components": [
+     "modelling",
+     "serving"
+    ],
+    "patterns": [
+     "any"
+    ]
+   },
+   "owner": "business-analyst",
+   "also": [
+    "data-consumer",
+    "technical-anchor"
+   ],
+   "evidence": {
+    "docs": [
+     "requirements",
+     "data-model"
+    ],
+    "looks_like": "For each key requirement, the grain needed in plain words (for example \"one row per order line per day\"), the grain available at the source, and how any gap was resolved."
+   },
+   "signals": [
+    "Requirements say \"by product\", \"by customer\" or \"detail\" without saying the lowest level needed.",
+    "Drill-down or \"detail\" is requested with no statement of how far down.",
+    "The data model's grain is finer or coarser than anything stated in the requirements."
+   ],
+   "contradiction": "Compare the grain in the requirements with the grain of the tables in the data model: a requirement needing more detail than its table holds cannot be met.",
+   "due": {
+    "plan": 3,
+    "designed": 4,
+    "evidenced": 7
+   },
+   "fail_fast": "Show users one real row from the source and ask: \"Is this the smallest thing you will ever need to see?\"",
+   "severity": "high",
+   "related": [
+    "DES-04",
+    "REQ-04"
+   ],
+   "signal_id": null,
+   "pack": "ba",
+   "file": "packs/ba/checks/data-requirements.yaml"
+  },
+  {
+   "id": "DATA-03",
+   "title": "History depth asked for without a reason",
+   "kind": "delivery",
+   "concern": "data-requirements",
+   "question": "How many years of history does the business need, for which data, and what use requires that depth (year-on-year comparison, trend models, regulation)? If the history load doubles the estimate, will we know which part of it the business could live without?",
+   "why": "The business asked for \"all history\". Ten years were loaded at great cost, the oldest seven had different product codes nobody could map, and the only use was a two-year comparison.",
+   "applies": {
+    "kind": [
+     "any"
+    ],
+    "components": [
+     "ingestion",
+     "modelling"
+    ],
+    "patterns": [
+     "any"
+    ]
+   },
+   "owner": "business-analyst",
+   "also": [
+    "business-owner",
+    "technical-anchor"
+   ],
+   "evidence": {
+    "docs": [
+     "requirements",
+     "discovery"
+    ],
+    "looks_like": "For each data area, the years of history needed, the use that needs them, whether old data must match today's definitions, and who will check the old numbers."
+   },
+   "signals": [
+    "History is requested as \"all\", \"full\" or \"as much as possible\".",
+    "A number of years is given with no reason.",
+    "Nobody is named to check that the loaded history matches what the business remembers."
+   ],
+   "contradiction": "Compare the history depth in the requirements with the history load in the estimate or plan: a different number of years, or none in the estimate, means the cost of history was never seen by the business.",
+   "due": {
+    "plan": 3,
+    "designed": 4
+   },
+   "fail_fast": "Ask: \"Which report or decision needs data older than two years?\" and price each extra year before agreeing.",
+   "severity": "medium",
+   "related": [
+    "HIST-01",
+    "EST-07",
+    "SCD-01"
+   ],
+   "signal_id": null,
+   "pack": "ba",
+   "file": "packs/ba/checks/data-requirements.yaml"
+  },
+  {
+   "id": "DATA-04",
+   "title": "Freshness not tied to a decision",
+   "kind": "delivery",
+   "concern": "data-requirements",
+   "question": "How fresh must the data be, as a time of day or a delay in minutes or hours, and which decision or action needs it that fresh? If the business later asks for faster data, will we know whether the decision really needs it?",
+   "why": "The sponsor asked for hourly data. The only decision it served was a weekly stock order, so the team built and paid for hourly loads that nobody looked at between Mondays.",
+   "applies": {
+    "kind": [
+     "any"
+    ],
+    "components": [
+     "any"
+    ],
+    "patterns": [
+     "any"
+    ]
+   },
+   "owner": "business-analyst",
+   "also": [
+    "business-owner",
+    "data-consumer",
+    "technical-anchor"
+   ],
+   "evidence": {
+    "docs": [
+     "requirements"
+    ],
+    "looks_like": "For each consumer or report, a freshness target such as \"ready by 7 a.m. local time on working days\" or \"within fifteen minutes of the sale\", paired with the decision that needs it and what happens if it is late."
+   },
+   "signals": [
+    "Freshness is stated as \"real-time\", \"up to date\" or \"latest\" with no number.",
+    "One freshness target is stated for everything, with no difference between consumers.",
+    "No reason or decision is given for the freshness asked for."
+   ],
+   "contradiction": "Compare the freshness in the requirements with the decisions in the discovery document: data needed faster than the decision it serves is cost with no benefit, and slower is a decision made on stale data.",
+   "due": {
+    "plan": 3,
+    "designed": 4,
+    "evidenced": 7
+   },
+   "fail_fast": "Ask the user: \"If this arrived at noon instead of 7 a.m., what would you do differently?\" and price the two options side by side.",
+   "severity": "high",
+   "related": [
+    "REQ-01",
+    "REQ-06",
+    "PERF-02",
+    "CUR-03"
+   ],
+   "signal_id": null,
+   "pack": "ba",
+   "file": "packs/ba/checks/data-requirements.yaml"
+  },
+  {
+   "id": "DATA-05",
+   "title": "No business rule for late and corrected data",
+   "kind": "delivery",
+   "concern": "data-requirements",
+   "question": "When data arrives late or a past figure is corrected, what should the business see: should last month change, which date decides the period (order, shipment, invoice or posting date), and when is a period closed and never restated? If a published figure changes after the board has seen it, has the business agreed that it may?",
+   "why": "Returns posted in March for February sales changed February's revenue after it had gone to the board. The finance director had assumed closed months never change, the team had assumed they always do, and neither was written down.",
+   "applies": {
+    "kind": [
+     "any"
+    ],
+    "components": [
+     "modelling",
+     "serving"
+    ],
+    "patterns": [
+     "any"
+    ]
+   },
+   "owner": "business-analyst",
+   "also": [
+    "business-owner",
+    "data-consumer",
+    "technical-anchor"
+   ],
+   "evidence": {
+    "docs": [
+     "requirements",
+     "decisions"
+    ],
+    "looks_like": "A short restatement policy: which date assigns a record to a period, how far back corrections may change published figures, when a period closes, and how users are told that a past figure changed."
+   },
+   "signals": [
+    "The requirements never mention late data, corrections, restatement, closing or period end.",
+    "The date that decides the reporting period is not stated for any measure.",
+    "Late and corrected data is marked as a technical matter only."
+   ],
+   "contradiction": "Compare the restatement policy in the requirements with the late-data handling in the architecture: if the architecture rebuilds past periods but the business expects closed periods to be frozen, or the reverse, one of them is wrong.",
+   "due": {
+    "plan": 3,
+    "designed": 4,
+    "evidenced": 7
+   },
+   "fail_fast": "Show the business owner one real correction from last month and ask which month it should change and whether anyone must be told.",
+   "severity": "high",
+   "related": [
+    "LATE-01",
+    "LATE-04",
+    "SCOPE-02"
+   ],
+   "signal_id": null,
+   "pack": "ba",
+   "file": "packs/ba/checks/data-requirements.yaml"
+  },
+  {
+   "id": "DATA-06",
+   "title": "No source of truth when systems disagree",
+   "kind": "delivery",
+   "concern": "data-requirements",
+   "question": "When two sources hold the same thing differently (a customer's address in the sales system and the billing system, a product's price in two catalogues), which one wins, for which fields, and who decided? When a user finds the two disagree after go-live, which written decision answers them?",
+   "why": "The sales and billing systems had different customer segments. The team picked one, the business assumed the other, and every segment report was disputed until the decision was made at steering level.",
+   "applies": {
+    "kind": [
+     "any"
+    ],
+    "components": [
+     "transformation",
+     "modelling"
+    ],
+    "patterns": [
+     "any"
+    ]
+   },
+   "owner": "business-analyst",
+   "also": [
+    "business-owner",
+    "source-owner",
+    "technical-anchor"
+   ],
+   "evidence": {
+    "docs": [
+     "decisions",
+     "data-model"
+    ],
+    "looks_like": "For each shared business entity, a recorded decision on which source wins for which fields, what happens when a record exists in only one, and who owns the decision."
+   },
+   "signals": [
+    "The same entity (customer, product, employee, site) comes from more than one source with no rule for which wins.",
+    "Phrases such as \"merge customer data\" or \"single customer view\" with no matching rule.",
+    "The decision log has no entry about sources of truth."
+   ],
+   "contradiction": "Compare the source list with the decision log: every entity supplied by two or more sources needs a decision recorded; any without one will be decided silently in code.",
+   "due": {
+    "plan": 3,
+    "designed": 4
+   },
+   "fail_fast": "Pull twenty customers that exist in both systems, show the differences to the business owner, and ask which column wins for each field.",
+   "severity": "high",
+   "related": [
+    "DATA-01",
+    "OWN-01",
+    "DUP-03"
+   ],
+   "signal_id": null,
+   "pack": "ba",
+   "file": "packs/ba/checks/data-requirements.yaml"
+  },
+  {
+   "id": "DATA-07",
+   "title": "As it was, or as it is now, not decided",
+   "kind": "delivery",
+   "concern": "data-requirements",
+   "question": "When something changes over time (a customer moves region, a product changes category, a salesperson changes team), should past figures be reported under the old value or the new one, and for which reports? When last year's numbers move because of a reorganisation, will the business call it a bug?",
+   "why": "After a sales reorganisation, last year's revenue by region changed overnight because history was shown under the new regions. Finance needed it as it was originally reported, and the model had to be rebuilt.",
+   "applies": {
+    "kind": [
+     "any"
+    ],
+    "components": [
+     "modelling",
+     "serving"
+    ],
+    "patterns": [
+     "any"
+    ]
+   },
+   "owner": "business-analyst",
+   "also": [
+    "data-consumer",
+    "technical-anchor"
+   ],
+   "evidence": {
+    "docs": [
+     "requirements",
+     "data-model"
+    ],
+    "looks_like": "For each attribute that can change (region, category, team, status), whether reports should show the value at the time, the current value, or both, with a worked example the business has agreed."
+   },
+   "signals": [
+    "The requirements never say whether history is shown \"as it was\" or \"as it is now\".",
+    "Hierarchies or organisation structures are in scope with no mention of reorganisations.",
+    "The data model keeps history of changes for attributes the requirements never ask about, or the reverse."
+   ],
+   "contradiction": "Compare the requirements with the data model: an attribute the business wants \"as it was\" that the model stores only as the latest value has lost its history the day it changes.",
+   "due": {
+    "plan": 3,
+    "designed": 4,
+    "evidenced": 7
+   },
+   "fail_fast": "Take one real customer who changed region last year and ask the users which region last year's sales should appear under.",
+   "severity": "medium",
+   "related": [
+    "SCD-01",
+    "SCD-04"
+   ],
+   "signal_id": null,
+   "pack": "ba",
+   "file": "packs/ba/checks/data-requirements.yaml"
+  },
+  {
+   "id": "MET-01",
+   "title": "Metric defined by name, not by formula",
+   "kind": "delivery",
+   "concern": "metrics-and-definitions",
+   "question": "Does every key metric have a complete definition: the formula, what is included and excluded, the grain, which date puts it in a period, the calendar used, the currency or unit and how amounts are converted? If two developers built it separately from the definition, would they get the same number?",
+   "why": "\"Net sales\" was defined as \"sales minus returns\". It did not say whether tax, discounts or shipping were included, or which exchange rate applied, so the number came out three different ways in three reports.",
+   "applies": {
+    "kind": [
+     "any"
+    ],
+    "components": [
+     "modelling",
+     "serving"
+    ],
+    "patterns": [
+     "any"
+    ]
+   },
+   "owner": "business-analyst",
+   "also": [
+    "data-consumer",
+    "technical-anchor",
+    "test-lead"
+   ],
+   "evidence": {
+    "docs": [
+     "data-model",
+     "requirements"
+    ],
+    "looks_like": "A definition card per metric: formula, inclusions and exclusions, grain, the date that decides the period, calendar (fiscal or calendar), currency or unit and conversion rule, a worked example with real numbers, an owner and a sign-off date."
+   },
+   "signals": [
+    "Metrics are listed by name with a one-line description and no formula.",
+    "Definitions never mention tax, discounts, returns, cancellations, test accounts or currency.",
+    "No metric has a worked example with numbers."
+   ],
+   "contradiction": "Compare the metric definitions in the data model with the calculations described in report specifications or test cases: a calculation that adds a filter or rule the definition does not have means the definition is incomplete.",
+   "due": {
+    "plan": 3,
+    "designed": 4,
+    "evidenced": 7
+   },
+   "fail_fast": "Give the definition of one key metric to two people separately, ask each to calculate it from the same sample, and compare.",
+   "severity": "high",
+   "related": [
+    "REQ-03",
+    "SERV-04",
+    "MET-02"
+   ],
+   "signal_id": null,
+   "pack": "ba",
+   "file": "packs/ba/checks/metrics-and-definitions.yaml"
+  },
+  {
+   "id": "MET-02",
+   "title": "Conflicting definitions across departments left hidden",
+   "kind": "delivery",
+   "concern": "metrics-and-definitions",
+   "question": "Have the departments that use the same term (customer, revenue, headcount, active) been asked for their definition, and are the differences written down and resolved, either into one definition or into clearly different names? When sales and finance show different numbers for the same word, has that argument already happened?",
+   "why": "Marketing counted an active customer as anyone who opened an email in ninety days; finance as anyone who paid in twelve months. The dashboard used finance's rule, marketing stopped trusting it, and built their own.",
+   "applies": {
+    "kind": [
+     "any"
+    ],
+    "components": [
+     "modelling",
+     "serving"
+    ],
+    "patterns": [
+     "any"
+    ]
+   },
+   "owner": "business-analyst",
+   "also": [
+    "business-owner",
+    "data-consumer"
+   ],
+   "evidence": {
+    "docs": [
+     "data-model",
+     "decisions"
+    ],
+    "looks_like": "For each shared term, the definition each department uses today, the differences, and the decision: one shared definition, or separate named measures (for example \"booked revenue\" and \"invoiced revenue\")."
+   },
+   "signals": [
+    "Only one department was consulted on definitions that several departments use.",
+    "The same word appears in requirements from different teams with no note on whether it means the same.",
+    "No decision log entry records a resolved definition conflict."
+   ],
+   "contradiction": "Compare the stakeholder map with the definition sign-offs: a department that uses a term but did not sign its definition has not agreed to it.",
+   "due": {
+    "plan": 3,
+    "designed": 4
+   },
+   "fail_fast": "Email the top five terms to one person in each department that uses them, ask for their definition in one sentence, and put the answers side by side.",
+   "severity": "high",
+   "related": [
+    "REQ-03",
+    "STK-04",
+    "OWN-02"
+   ],
+   "signal_id": null,
+   "pack": "ba",
+   "file": "packs/ba/checks/metrics-and-definitions.yaml"
+  },
+  {
+   "id": "MET-03",
+   "title": "No business glossary",
+   "kind": "delivery",
+   "concern": "metrics-and-definitions",
+   "question": "Is there one glossary of the business terms used in the requirements, reports and data model, each with a plain definition and an owner, kept where users and the team both look? When a new analyst asks what a term means, is there one place to point them?",
+   "why": "Three documents used \"order\", \"booking\" and \"sale\" for overlapping things. The developers treated them as the same, the users did not, and the confusion only came out in user testing.",
+   "applies": {
+    "kind": [
+     "any"
+    ],
+    "components": [
+     "modelling",
+     "serving",
+     "governance"
+    ],
+    "patterns": [
+     "any"
+    ]
+   },
+   "owner": "business-analyst",
+   "also": [
+    "data-consumer",
+    "technical-anchor"
+   ],
+   "evidence": {
+    "docs": [
+     "data-model",
+     "requirements"
+    ],
+    "looks_like": "A glossary listing each business term, its plain definition, synonyms people use, the owner, and the fields or metrics it maps to."
+   },
+   "signals": [
+    "Requirements use several words for what may be the same thing (order, booking, sale).",
+    "Abbreviations and internal jargon appear with no definition.",
+    "The data dictionary describes columns but not business terms."
+   ],
+   "contradiction": "Compare the words used in the requirements with the names in the data model: a business term with no match in the model, or a model name no business person would recognise, shows the two speak different languages.",
+   "due": {
+    "plan": 3,
+    "designed": 5
+   },
+   "fail_fast": "List every noun in the top ten requirements and ask the business owner which are the same thing.",
+   "severity": "medium",
+   "related": [
+    "MET-01",
+    "HAND-02"
+   ],
+   "signal_id": null,
+   "pack": "ba",
+   "file": "packs/ba/checks/metrics-and-definitions.yaml"
+  },
+  {
+   "id": "MET-04",
+   "title": "Totals that cannot simply be added up",
+   "kind": "delivery",
+   "concern": "metrics-and-definitions",
+   "question": "For each metric that is a count of distinct things, a ratio, an average, a percentage or a balance at a point in time, has the business said how it rolls up across days, regions and products? When a user adds up the regional figures and gets a different total, will the definition explain why?",
+   "why": "Daily unique customers were summed to give a monthly figure, counting a customer who bought on ten days ten times. Margin percentages were averaged instead of recalculated. Both errors reached the board pack.",
+   "applies": {
+    "kind": [
+     "any"
+    ],
+    "components": [
+     "modelling",
+     "serving"
+    ],
+    "patterns": [
+     "any"
+    ]
+   },
+   "owner": "business-analyst",
+   "also": [
+    "data-consumer",
+    "technical-anchor",
+    "test-lead"
+   ],
+   "evidence": {
+    "docs": [
+     "data-model",
+     "requirements"
+    ],
+    "looks_like": "Each metric marked as additive, partly additive (for example a stock balance that adds across stores but not across days) or not additive, with the rule for totals and a worked example."
+   },
+   "signals": [
+    "Ratios, averages, distinct counts or balances are defined with no rule for totals.",
+    "Requirements ask for the same metric \"by day, week and month\" with no word on how it rolls up.",
+    "Test cases check only the lowest level, not totals."
+   ],
+   "contradiction": "Compare the metric definitions with the report designs: a report that shows totals or subtotals for a metric with no roll-up rule will show a number nobody defined.",
+   "due": {
+    "plan": 3,
+    "designed": 4,
+    "evidenced": 7
+   },
+   "fail_fast": "For each ratio or distinct count, calculate the monthly total two ways on a real sample and show the business owner the difference.",
+   "severity": "medium",
+   "related": [
+    "MET-01"
+   ],
+   "signal_id": null,
+   "pack": "ba",
+   "file": "packs/ba/checks/metrics-and-definitions.yaml"
+  },
+  {
+   "id": "POL-01",
+   "title": "Use of personal data not confirmed as allowed",
+   "kind": "delivery",
+   "concern": "policy-needs",
+   "question": "For each use of personal data in the requirements, has the business confirmed with its privacy or legal team that the use is allowed: the purpose, any consent it depends on, and who may see it? If the privacy team stops the project a month before go-live, will it be over a use nobody asked them about?",
+   "why": "The marketing dashboard joined customer purchases to support-call notes. Customers had never been told their call notes would be used for marketing, and the privacy officer stopped the release in user testing.",
+   "applies": {
+    "kind": [
+     "any"
+    ],
+    "components": [
+     "any"
+    ],
+    "patterns": [
+     "any"
+    ]
+   },
+   "owner": "business-analyst",
+   "also": [
+    "security",
+    "business-owner"
+   ],
+   "evidence": {
+    "docs": [
+     "requirements",
+     "decisions"
+    ],
+    "looks_like": "A list of the personal data each requirement needs, the business purpose, the basis that allows it (consent, contract, legal duty), who may see it, and the privacy team's recorded answer."
+   },
+   "signals": [
+    "Requirements need customer, employee or patient data with no mention of purpose or permission.",
+    "The privacy or legal team is not on the stakeholder map.",
+    "Personal data is treated only as a security or masking question."
+   ],
+   "contradiction": "Compare the personal data named in the requirements with the stakeholder map and decision log: personal data in use with no privacy sign-off recorded is a go-live blocker waiting to be found.",
+   "due": {
+    "plan": 3,
+    "evidenced": 4
+   },
+   "fail_fast": "Send the privacy team a one-page list of the personal data and its purposes this week and ask for a yes, a no or a condition.",
+   "severity": "high",
+   "related": [
+    "SEC-01",
+    "SEC-05",
+    "STK-01"
+   ],
+   "signal_id": null,
+   "pack": "ba",
+   "file": "packs/ba/checks/policy-needs.yaml"
+  },
+  {
+   "id": "POL-02",
+   "title": "Retention needs not stated by the business",
+   "kind": "delivery",
+   "concern": "policy-needs",
+   "question": "For each kind of data, how long does the business need to keep it, how long does law or policy require it to be kept, and when must it be deleted? When a user asks for seven-year trends and policy says delete after three, who decides?",
+   "why": "The business asked for ten years of customer history. Company policy required customer data to be deleted three years after the relationship ended, and the history load had to be cut back after it was done.",
+   "applies": {
+    "kind": [
+     "any"
+    ],
+    "components": [
+     "governance",
+     "modelling"
+    ],
+    "patterns": [
+     "any"
+    ]
+   },
+   "owner": "business-analyst",
+   "also": [
+    "security",
+    "business-owner"
+   ],
+   "evidence": {
+    "docs": [
+     "requirements",
+     "decisions"
+    ],
+    "looks_like": "A retention table per data kind: the business need, the legal or policy minimum and maximum, the agreed period, and who signed it, including what happens to aggregated figures after detail is deleted."
+   },
+   "signals": [
+    "Retention is not mentioned in the requirements, or is \"to be agreed\".",
+    "The history requested is longer than any retention period stated.",
+    "No one from records management, legal or compliance is named."
+   ],
+   "contradiction": "Compare the history depth requested in the requirements with the retention periods: history the business wants beyond the period policy allows must be resolved before it is loaded.",
+   "due": {
+    "plan": 3,
+    "designed": 4
+   },
+   "fail_fast": "Ask the records or compliance owner for the retention rule for the two most sensitive data kinds, and compare it with the history asked for.",
+   "severity": "medium",
+   "related": [
+    "SEC-03",
+    "DATA-03"
+   ],
+   "signal_id": null,
+   "pack": "ba",
+   "file": "packs/ba/checks/policy-needs.yaml"
+  },
+  {
+   "id": "POL-03",
+   "title": "What must be proven to an auditor not stated",
+   "kind": "delivery",
+   "concern": "policy-needs",
+   "question": "Will auditors, regulators or internal control need to see how a reported figure was produced, reproduce a past figure exactly as it was reported, or see who changed what and when? Has the business written down those needs, so the design can meet them?",
+   "why": "A regulator asked the bank to reproduce a capital figure reported six months earlier. The data had been corrected since, nobody had kept what was reported, and the bank could not show where the number came from.",
+   "applies": {
+    "kind": [
+     "any"
+    ],
+    "components": [
+     "modelling",
+     "serving",
+     "governance"
+    ],
+    "patterns": [
+     "any"
+    ]
+   },
+   "owner": "business-analyst",
+   "also": [
+    "security",
+    "business-owner",
+    "technical-anchor"
+   ],
+   "evidence": {
+    "docs": [
+     "requirements"
+    ],
+    "looks_like": "A list of audit and control needs in business terms: which figures must be reproducible as reported and for how long, which changes need a record of who and when, and which reports need sign-off before release."
+   },
+   "signals": [
+    "Figures go to regulators, auditors or external parties but no audit need is stated.",
+    "The requirements never mention reproducing past figures, sign-off of published numbers, or change history.",
+    "Audit is mentioned only as access logging."
+   ],
+   "contradiction": "Compare the audit needs in the requirements with the restatement policy: if published figures may be restated but must also be reproducible as reported, the design has to keep both versions.",
+   "due": {
+    "plan": 3,
+    "designed": 4,
+    "evidenced": 7
+   },
+   "fail_fast": "Ask the finance or compliance owner: \"Which number from this system could an auditor ask us to reproduce in a year's time?\"",
+   "severity": "medium",
+   "related": [
+    "SEC-04",
+    "DATA-05"
+   ],
+   "signal_id": null,
+   "pack": "ba",
+   "file": "packs/ba/checks/policy-needs.yaml"
+  },
   {
    "id": "REQ-01",
    "title": "Vague words in the requirements",
@@ -540,6 +2078,159 @@
    "file": "packs/ba/checks/requirements.yaml"
   },
   {
+   "id": "REQ-08",
+   "title": "Everything is a \"must\"",
+   "kind": "delivery",
+   "concern": "requirements",
+   "question": "Are the requirements prioritised (for example must, should, could and won't), with real items in the \"won't\" list and fewer musts than the first release can deliver? If time runs out, has the business already said which requirements go first?",
+   "why": "Every one of sixty requirements was marked essential. When the build ran late the team cut by effort instead of value, dropped the one report the finance director actually used, and the release was rejected.",
+   "applies": {
+    "kind": [
+     "any"
+    ],
+    "components": [
+     "any"
+    ],
+    "patterns": [
+     "any"
+    ]
+   },
+   "owner": "business-analyst",
+   "also": [
+    "business-owner",
+    "project-manager"
+   ],
+   "evidence": {
+    "docs": [
+     "requirements",
+     "plan"
+    ],
+    "looks_like": "Each requirement with a priority agreed by the business owner, a \"won't this time\" list with real items in it, and the musts sized to fit the first release with room to spare."
+   },
+   "signals": [
+    "No priority column in the requirements, or every requirement has the same priority.",
+    "The \"won't\" or \"not this release\" list is empty.",
+    "Musts make up most of the requirements."
+   ],
+   "contradiction": "Compare the must-have requirements with the first release in the plan: musts that are not in the first release, or a first release full of shoulds and coulds, mean priority and plan disagree.",
+   "due": {
+    "plan": 3,
+    "designed": 4
+   },
+   "fail_fast": "Ask the business owner: \"If we could deliver only five of these, which five?\" and record the answer as the priority.",
+   "severity": "high",
+   "related": [
+    "SCOPE-05",
+    "SCOPE-01"
+   ],
+   "signal_id": null,
+   "pack": "ba",
+   "file": "packs/ba/checks/requirements.yaml"
+  },
+  {
+   "id": "REQ-09",
+   "title": "No trace from goal to requirement to test",
+   "kind": "delivery",
+   "concern": "requirements",
+   "question": "Can every requirement be traced back to a business goal or decision and forward to the data it needs, the thing that builds it and the test that proves it? When someone asks why a table exists, or whether a goal has been tested, can the team show it in minutes?",
+   "why": "A requirement for weekly churn by segment was dropped when the backlog was re-planned. Nothing linked it to the retention goal it served, so nobody noticed until the sponsor asked for the churn figure at closure.",
+   "applies": {
+    "kind": [
+     "any"
+    ],
+    "components": [
+     "any"
+    ],
+    "patterns": [
+     "any"
+    ]
+   },
+   "owner": "business-analyst",
+   "also": [
+    "test-lead",
+    "technical-anchor"
+   ],
+   "evidence": {
+    "docs": [
+     "requirements",
+     "test-strategy"
+    ],
+    "looks_like": "A simple trace table: goal, requirement, sources and fields, backlog item, test case, and status, kept up to date as items are added, changed or dropped."
+   },
+   "signals": [
+    "Requirements have no ids, or ids are not used in the backlog or test cases.",
+    "Goals and requirements live in separate documents with no link between them.",
+    "Test cases do not say which requirement they prove."
+   ],
+   "contradiction": "Compare the requirement ids in the requirements with those referenced in the test strategy: requirements with no test, and tests pointing at no requirement, show where the trace is broken.",
+   "due": {
+    "plan": 3,
+    "designed": 5,
+    "evidenced": 7
+   },
+   "fail_fast": "Pick the main goal and try to list, in ten minutes, every requirement and test that serves it.",
+   "severity": "medium",
+   "related": [
+    "REQ-02",
+    "REQ-07"
+   ],
+   "signal_id": null,
+   "pack": "ba",
+   "file": "packs/ba/checks/requirements.yaml"
+  },
+  {
+   "id": "REQ-10",
+   "title": "Requirements change without a version or a trail",
+   "kind": "delivery",
+   "concern": "requirements",
+   "question": "When a requirement, rule or definition changes, is the change versioned, dated, approved by its owner, and carried through to the data model, the backlog and the tests? If a tester tests against last month's version of a rule, will anyone know?",
+   "why": "The definition of an active customer changed twice in workshops. The data model held the first version, the tests the second, and the report the original, and user testing failed on all three.",
+   "applies": {
+    "kind": [
+     "any"
+    ],
+    "components": [
+     "any"
+    ],
+    "patterns": [
+     "any"
+    ]
+   },
+   "owner": "business-analyst",
+   "also": [
+    "test-lead",
+    "developer",
+    "project-manager"
+   ],
+   "evidence": {
+    "docs": [
+     "requirements",
+     "decisions"
+    ],
+    "looks_like": "Requirements with a version and date, a change history per requirement or rule, the approver of each change, and a note of which designs and tests were updated."
+   },
+   "signals": [
+    "The requirements document has no version, date or change history.",
+    "Definitions or rules differ between the requirements, the data model and the test cases.",
+    "Changes are agreed in meetings or chat and not reflected in the requirements."
+   ],
+   "contradiction": "Compare the rule or definition text in the requirements with the same rule in the data model and test cases: any difference means a change reached some documents and not others.",
+   "due": {
+    "plan": 3,
+    "designed": 5
+   },
+   "fail_fast": "Take the three most-discussed definitions and check that the requirements, data model and tests say the same thing today.",
+   "severity": "medium",
+   "related": [
+    "SCOPE-03",
+    "REQ-09",
+    "OWN-02"
+   ],
+   "signal_id": null,
+   "pack": "ba",
+   "file": "packs/ba/checks/requirements.yaml"
+  },
+  {
    "id": "SCOPE-01",
    "title": "Scope written only as \"in\"",
    "kind": "delivery",
@@ -737,6 +2428,421 @@
    "signal_id": null,
    "pack": "ba",
    "file": "packs/ba/checks/scope.yaml"
+  },
+  {
+   "id": "BEN-01",
+   "title": "Adoption never tracked",
+   "kind": "delivery",
+   "concern": "benefits",
+   "question": "After go-live, will anyone track who is using the new reports and data, compared with the old ones, and act when a user group does not move? Six months on, how will we know the people the project was built for are actually using it?",
+   "why": "The new dashboards went live on time and the project closed. Usage logs, read a year later, showed most managers had opened them once and gone back to spreadsheets exported from the old system.",
+   "applies": {
+    "kind": [
+     "any"
+    ],
+    "components": [
+     "serving"
+    ],
+    "patterns": [
+     "any"
+    ]
+   },
+   "owner": "business-owner",
+   "also": [
+    "project-manager",
+    "data-consumer"
+   ],
+   "evidence": {
+    "docs": [
+     "plan",
+     "status"
+    ],
+    "looks_like": "An adoption measure per user group (for example weekly active users of the new reports against use of the old ones), a target, a named person who reviews it monthly, and an action when a group lags."
+   },
+   "signals": [
+    "No adoption or usage measure in the plan or the benefits list.",
+    "The project closes on go-live with no review of usage afterwards.",
+    "Old reports keep running with no plan to compare their use with the new ones."
+   ],
+   "contradiction": "Compare the benefits in the business case with the measures planned after go-live: a benefit that depends on people using the new reports, with no usage measure, cannot be shown.",
+   "due": {
+    "plan": 4,
+    "evidenced": 10
+   },
+   "fail_fast": "Agree today which usage figure, read one month after go-live, would tell the sponsor adoption is failing.",
+   "severity": "medium",
+   "related": [
+    "HAND-05",
+    "RLC-03",
+    "RLC-02"
+   ],
+   "signal_id": null,
+   "pack": "pm",
+   "file": "packs/pm/checks/benefits.yaml"
+  },
+  {
+   "id": "BEN-02",
+   "title": "Benefits depend on business changes nobody owns",
+   "kind": "delivery",
+   "concern": "benefits",
+   "question": "For each promised benefit, is it written down what the business must change to get it (a process, a role, a meeting, a decision that now uses the new data), and who owns that change? If the data arrives perfectly and nothing improves, which business change did nobody make?",
+   "why": "The business case promised two days saved at each month-end. The data arrived early as designed, but the finance close process was never changed, so the team still waited for the old sign-off steps.",
+   "applies": {
+    "kind": [
+     "any"
+    ],
+    "components": [
+     "any"
+    ],
+    "patterns": [
+     "any"
+    ]
+   },
+   "owner": "business-owner",
+   "also": [
+    "project-manager",
+    "business-analyst"
+   ],
+   "evidence": {
+    "docs": [
+     "discovery",
+     "plan"
+    ],
+    "looks_like": "A benefits map linking each benefit to the data the project delivers and to the business change it needs, with an owner and date for each business change."
+   },
+   "signals": [
+    "Benefits are described as outcomes of the data alone, with no business change named.",
+    "Process or role changes are mentioned as \"the business will adapt\" with no owner.",
+    "No business change tasks appear in any plan."
+   ],
+   "contradiction": "Compare the benefits in the business case with the scope: a benefit that needs a process change that is outside scope and owned by nobody will not arrive.",
+   "due": {
+    "plan": 3,
+    "designed": 4,
+    "evidenced": 10
+   },
+   "fail_fast": "For the biggest benefit, ask the business owner which process changes on day one and who will change it.",
+   "severity": "medium",
+   "related": [
+    "HAND-05",
+    "REQ-07",
+    "STK-06"
+   ],
+   "signal_id": null,
+   "pack": "pm",
+   "file": "packs/pm/checks/benefits.yaml"
+  },
+  {
+   "id": "BUD-01",
+   "title": "A budget with no basis",
+   "kind": "delivery",
+   "concern": "budget",
+   "question": "Can every line of the budget be traced to something written down: the estimate range and its assumptions, day rates, environments, licences, running cost and contingency? If the budget runs out in month five, will anyone be able to say which assumption it was built on?",
+   "why": "The budget was the number the sponsor had left at year end. It matched the low end of the rough estimate, held no running cost and no history load, and was spent before the first report reached production.",
+   "applies": {
+    "kind": [
+     "any"
+    ],
+    "components": [
+     "any"
+    ],
+    "patterns": [
+     "any"
+    ]
+   },
+   "owner": "project-manager",
+   "also": [
+    "business-owner",
+    "technical-anchor"
+   ],
+   "evidence": {
+    "docs": [
+     "budget",
+     "estimate",
+     "plan"
+    ],
+    "looks_like": "A budget broken into people, environments, licences, external services, running cost during the project and contingency, each line pointing to the estimate or a quote, with the estimate's range shown."
+   },
+   "signals": [
+    "The budget is one number with no breakdown.",
+    "The budget matches the low end of the estimate range, or the rough estimate from before discovery.",
+    "No line for running cost, environments or licences while the project is being built."
+   ],
+   "contradiction": "Compare the budget with the estimate: a budget below the estimate's likely figure, or built from an earlier version of the estimate, is already overspent.",
+   "due": {
+    "plan": 2,
+    "designed": 4
+   },
+   "fail_fast": "Rebuild the budget from the current estimate's middle figure and put the gap, if any, in front of the sponsor.",
+   "severity": "high",
+   "related": [
+    "EST-01",
+    "EST-02",
+    "BUD-04"
+   ],
+   "signal_id": null,
+   "pack": "pm",
+   "file": "packs/pm/checks/budget.yaml"
+  },
+  {
+   "id": "BUD-02",
+   "title": "Spend not tracked against the plan",
+   "kind": "delivery",
+   "concern": "budget",
+   "question": "Is actual spend compared with planned spend at least monthly, with a forecast of the total at completion? If the money runs out early, will the status reports from three months before have shown it coming?",
+   "why": "Contractor invoices went straight to finance. The project manager saw the total only at quarter end, when seventy percent of the budget was gone and forty percent of the work was done.",
+   "applies": {
+    "kind": [
+     "any"
+    ],
+    "components": [
+     "any"
+    ],
+    "patterns": [
+     "any"
+    ]
+   },
+   "owner": "project-manager",
+   "also": [
+    "business-owner"
+   ],
+   "evidence": {
+    "docs": [
+     "budget",
+     "status",
+     "plan"
+    ],
+    "looks_like": "A monthly table of planned spend, actual spend, forecast to complete and forecast at completion, set against the share of work done, shown in the steering pack."
+   },
+   "signals": [
+    "Status reports mention dates and scope but never money.",
+    "Spend is reported as a total so far, with no plan to compare it with and no forecast.",
+    "The forecast at completion equals the budget in every report."
+   ],
+   "contradiction": "Compare spend in the status reports with progress against the estimate: money spent faster than work is finished, while the forecast total never changes, means the forecast is not real.",
+   "due": {
+    "plan": 4,
+    "evidenced": 6
+   },
+   "fail_fast": "Divide spend so far by the share of work done and compare the answer with the budget today.",
+   "severity": "high",
+   "related": [
+    "EST-06",
+    "PM-04"
+   ],
+   "signal_id": null,
+   "pack": "pm",
+   "file": "packs/pm/checks/budget.yaml"
+  },
+  {
+   "id": "BUD-03",
+   "title": "Nobody owns the running cost after go-live",
+   "kind": "delivery",
+   "concern": "budget",
+   "question": "Is the monthly cost of running the solution (compute, storage, licences, support) agreed with the person whose budget will pay it, for this year and next? When the first production bill arrives, whose cost centre is it charged to, and do they know?",
+   "why": "The project budget ended at go-live. The platform bill landed on the central data team, who had not planned for it, and they switched off the hourly refresh to stay within their own budget.",
+   "applies": {
+    "kind": [
+     "any"
+    ],
+    "components": [
+     "any"
+    ],
+    "patterns": [
+     "any"
+    ]
+   },
+   "owner": "business-owner",
+   "also": [
+    "project-manager",
+    "technical-anchor",
+    "platform-team"
+   ],
+   "evidence": {
+    "docs": [
+     "discovery",
+     "plan"
+    ],
+    "looks_like": "The running cost figure from the technical estimate, a named budget owner who has accepted it, the cost centre, and a forecast for the next two years that includes data growth."
+   },
+   "signals": [
+    "Running cost is described as \"business as usual\" or \"absorbed by the platform\".",
+    "The business case shows build cost only.",
+    "No named person has agreed to pay the running cost."
+   ],
+   "contradiction": "Compare the running cost estimate in the architecture or discovery document with the business case: a business case without that cost overstates the return.",
+   "due": {
+    "plan": 3,
+    "designed": 4,
+    "evidenced": 9
+   },
+   "fail_fast": "Send the running cost figure to the person expected to pay it and ask them to confirm it in writing.",
+   "severity": "high",
+   "related": [
+    "COST-01",
+    "COST-03",
+    "HAND-04"
+   ],
+   "signal_id": null,
+   "pack": "pm",
+   "file": "packs/pm/checks/budget.yaml"
+  },
+  {
+   "id": "BUD-04",
+   "title": "Contingency hidden or missing",
+   "kind": "delivery",
+   "concern": "budget",
+   "question": "Is contingency held as a separate, visible amount, sized to the riskiest assumptions, with a named person who can release it and a record of each use? When the data turns out worse than profiled, where will the money for fixing it come from?",
+   "why": "Every estimator padded their own numbers quietly. The padding was spent on gold-plating early on, and when the history load needed three extra weeks there was nothing left and no one could approve more.",
+   "applies": {
+    "kind": [
+     "any"
+    ],
+    "components": [
+     "any"
+    ],
+    "patterns": [
+     "any"
+    ]
+   },
+   "owner": "project-manager",
+   "also": [
+    "business-owner",
+    "technical-anchor"
+   ],
+   "evidence": {
+    "docs": [
+     "budget",
+     "estimate",
+     "raid"
+    ],
+    "looks_like": "A contingency line linked to the top risks and assumptions, an owner who approves its use, and a log of drawdowns showing what each one paid for."
+   },
+   "signals": [
+    "No contingency in the budget, or a flat percentage with no link to risks.",
+    "Contingency described as \"included in the estimates\".",
+    "The risk log has high risks with costly mitigations that no budget line pays for."
+   ],
+   "contradiction": "Compare the risk log with the budget: high risks whose mitigation costs money, with no contingency to cover them, are unfunded risks.",
+   "due": {
+    "plan": 3,
+    "designed": 4,
+    "evidenced": 6
+   },
+   "fail_fast": "Price the mitigation of the top three risks and compare the total with the contingency held.",
+   "severity": "medium",
+   "related": [
+    "BUD-01",
+    "PM-02",
+    "EST-03"
+   ],
+   "signal_id": null,
+   "pack": "pm",
+   "file": "packs/pm/checks/budget.yaml"
+  },
+  {
+   "id": "BUD-05",
+   "title": "Change requests with no cost",
+   "kind": "delivery",
+   "concern": "budget",
+   "question": "Does every change request show what it adds in build cost, running cost and time, before anyone decides? If the project overspends, how much of it will be changes that were approved without a price?",
+   "why": "The business asked for the report to refresh hourly instead of daily. It was agreed in a demo as a small change, and it tripled the monthly compute bill and added two weeks of testing nobody had priced.",
+   "applies": {
+    "kind": [
+     "any"
+    ],
+    "components": [
+     "any"
+    ],
+    "patterns": [
+     "any"
+    ]
+   },
+   "owner": "project-manager",
+   "also": [
+    "business-owner",
+    "technical-anchor"
+   ],
+   "evidence": {
+    "docs": [
+     "decisions",
+     "status"
+    ],
+    "looks_like": "A change log where each entry shows the build effort, the change to running cost, the effect on the date and the decider, with a running total of approved changes against contingency."
+   },
+   "signals": [
+    "Change records that state the request and the decision but not the cost.",
+    "Changes to freshness, history or volume approved without a running cost figure.",
+    "No running total of the cost of approved changes."
+   ],
+   "contradiction": "Compare the change log with the budget and forecast: changes approved since the baseline, with a forecast at completion that has not moved, means their cost was never added.",
+   "due": {
+    "plan": 4,
+    "evidenced": 6
+   },
+   "fail_fast": "Price the last three approved changes after the fact and add them to the forecast.",
+   "severity": "medium",
+   "related": [
+    "SCOPE-03",
+    "COST-01"
+   ],
+   "signal_id": null,
+   "pack": "pm",
+   "file": "packs/pm/checks/budget.yaml"
+  },
+  {
+   "id": "BUD-06",
+   "title": "Costs that sit in other teams' budgets",
+   "kind": "delivery",
+   "concern": "budget",
+   "question": "Have the costs that land outside the project been found and agreed: the source team's work on a new extract, a vendor's fee for an interface or bulk export, extra environments, and running the old system during a parallel run? Who will refuse to pay for something the project cannot go live without?",
+   "why": "The source vendor charged for every change to the extract, and the source team had no budget for the work. The project waited two months while the two managers argued over who would pay.",
+   "applies": {
+    "kind": [
+     "any"
+    ],
+    "components": [
+     "ingestion",
+     "platform"
+    ],
+    "patterns": [
+     "any"
+    ]
+   },
+   "owner": "project-manager",
+   "also": [
+    "source-owner",
+    "business-owner",
+    "platform-team"
+   ],
+   "evidence": {
+    "docs": [
+     "budget",
+     "plan",
+     "raid"
+    ],
+    "looks_like": "A list of costs the project causes in other teams or with vendors, with the amount, who pays, and the date each was agreed."
+   },
+   "signals": [
+    "Source changes, vendor interfaces or extra environments appear in the architecture with no cost or payer.",
+    "The old system's licence or support is due to end before the planned parallel run is over.",
+    "Phrases such as \"the source team will provide\" with no mention of their budget."
+   ],
+   "contradiction": "Compare the architecture's list of source changes and environments with the budget: each one that needs another team's work or a vendor's fee, with no agreed payer, is a stop waiting to happen.",
+   "due": {
+    "plan": 3,
+    "designed": 4
+   },
+   "fail_fast": "Ask each source owner and vendor whether the work the project needs from them is funded, and by whom.",
+   "severity": "medium",
+   "related": [
+    "VEN-01",
+    "VEN-03",
+    "PM-15"
+   ],
+   "signal_id": null,
+   "pack": "pm",
+   "file": "packs/pm/checks/budget.yaml"
   },
   {
    "id": "COM-01",
@@ -1033,6 +3139,57 @@
    "file": "packs/pm/checks/communication.yaml"
   },
   {
+   "id": "COM-07",
+   "title": "Steering packs that ask for nothing",
+   "kind": "delivery",
+   "concern": "communication",
+   "question": "Does each steering pack open with the decisions and help the project needs from that meeting (a date, a budget release, a source team pushed, a definition settled), each with options and a deadline? After the next steering meeting, which blocker will still be blocked because we only reported progress?",
+   "why": "Steering packs ran to twenty slides of activity. The one line that mattered, that a source team had not started its extract change, sat on slide fourteen, and nobody in the room acted on it for three meetings.",
+   "applies": {
+    "kind": [
+     "any"
+    ],
+    "components": [
+     "any"
+    ],
+    "patterns": [
+     "any"
+    ]
+   },
+   "owner": "project-manager",
+   "also": [
+    "technical-anchor",
+    "business-owner"
+   ],
+   "evidence": {
+    "docs": [
+     "status",
+     "decisions"
+    ],
+    "looks_like": "A first page listing the decisions and help needed, each with options, a recommendation and a deadline, and notes from the meeting recording what was decided."
+   },
+   "signals": [
+    "Steering packs contain progress and activity but no \"decisions needed\" section.",
+    "The same blocker appears in several packs with no request attached.",
+    "Steering notes record no decisions."
+   ],
+   "contradiction": "Compare open issues and decisions in the RAID log with the steering packs: an issue that needs steering action but never appears as a request in the pack is being reported, not escalated.",
+   "due": {
+    "plan": 4,
+    "evidenced": 6
+   },
+   "fail_fast": "Put \"decisions we need from you today\" as the first slide of the next steering pack.",
+   "severity": "medium",
+   "related": [
+    "GOV-01",
+    "PM-08",
+    "COM-01"
+   ],
+   "signal_id": null,
+   "pack": "pm",
+   "file": "packs/pm/checks/communication.yaml"
+  },
+  {
    "id": "EST-06",
    "title": "Never corrected against actual progress",
    "kind": "delivery",
@@ -1080,6 +3237,315 @@
    "signal_id": null,
    "pack": "pm",
    "file": "packs/pm/checks/estimation.yaml"
+  },
+  {
+   "id": "GOV-01",
+   "title": "A steering group that cannot decide",
+   "kind": "delivery",
+   "concern": "governance",
+   "question": "Does the steering group include people who can decide on money, scope and dates, plus the owners of the data and the platform the project depends on, and is it written down what it decides and how often it meets? When the project needs a yes on extra budget or a later date, will the people in the room be able to give it?",
+   "why": "The steering group was the project team's managers. When the source team refused to change their extract, nobody in the room had authority over them, and the issue went round the meeting for two months.",
+   "applies": {
+    "kind": [
+     "any"
+    ],
+    "components": [
+     "any"
+    ],
+    "patterns": [
+     "any"
+    ]
+   },
+   "owner": "project-manager",
+   "also": [
+    "business-owner"
+   ],
+   "evidence": {
+    "docs": [
+     "stakeholders",
+     "status"
+    ],
+    "looks_like": "Short terms of reference: members by name, what the group decides (budget, scope, dates, go-live), how often it meets, and attendance records showing the deciders actually came."
+   },
+   "signals": [
+    "No steering group or terms of reference is written down.",
+    "Members are all from the delivery side, with no data owner, source owner or budget holder.",
+    "Steering notes record updates but no decisions."
+   ],
+   "contradiction": "Compare the steering membership with the RAID log's biggest dependencies and issues: an issue owned by a team nobody on the steering group can direct will not be solved there.",
+   "due": {
+    "plan": 3,
+    "evidenced": 4
+   },
+   "fail_fast": "Take the top open issue to the next steering meeting and see whether anyone there can decide it.",
+   "severity": "high",
+   "related": [
+    "STK-02",
+    "GOV-03"
+   ],
+   "signal_id": null,
+   "pack": "pm",
+   "file": "packs/pm/checks/governance.yaml"
+  },
+  {
+   "id": "GOV-02",
+   "title": "Stage gates with no exit criteria",
+   "kind": "delivery",
+   "concern": "governance",
+   "question": "Do discovery sign-off, production sign-off and project sign-off each have written exit criteria and the evidence each needs (for example reconciled numbers, clean runs, an accepted support model, measured benefits), agreed before the gate? At each gate, are we deciding on evidence or on the calendar?",
+   "why": "Production sign-off was a meeting on the planned date. It was signed with reconciliation still failing for two regions, and the project team was released, so the differences were never explained.",
+   "applies": {
+    "kind": [
+     "any"
+    ],
+    "components": [
+     "any"
+    ],
+    "patterns": [
+     "any"
+    ]
+   },
+   "owner": "project-manager",
+   "also": [
+    "business-owner",
+    "technical-anchor",
+    "operations"
+   ],
+   "evidence": {
+    "docs": [
+     "plan",
+     "decisions"
+    ],
+    "looks_like": "For each gate, a short list of exit criteria with the document or test result that proves each one, who signs, and the possible outcomes (go, go with conditions, stop)."
+   },
+   "signals": [
+    "Gates appear in the plan as dates only.",
+    "Production or project sign-off has no criteria, or criteria such as \"all work complete\".",
+    "Sign-off records do not mention which criteria were met."
+   ],
+   "contradiction": "Compare each gate's sign-off record with its exit criteria and the evidence available on that date: a gate signed while a criterion was unmet was passed on the date, not the evidence.",
+   "due": {
+    "plan": 3,
+    "designed": 4,
+    "evidenced": 9,
+    "proven": 10
+   },
+   "fail_fast": "Write the production sign-off criteria now and check which of them the project could meet today.",
+   "severity": "high",
+   "related": [
+    "PM-09",
+    "HAND-06",
+    "REC-04"
+   ],
+   "signal_id": null,
+   "pack": "pm",
+   "file": "packs/pm/checks/governance.yaml"
+  },
+  {
+   "id": "GOV-03",
+   "title": "Escalation with no time limits",
+   "kind": "delivery",
+   "concern": "governance",
+   "question": "Is there a written escalation path for blockers, saying how long a problem may stay at each level before it goes to the next, up to someone who can direct other teams? How many days can a blocked access request or a source team's refusal sit before the sponsor hears about it?",
+   "why": "A firewall change was blocked for seven weeks. The team kept chasing it politely, nobody had said when to escalate, and the sponsor learned of it when the date slipped.",
+   "applies": {
+    "kind": [
+     "any"
+    ],
+    "components": [
+     "any"
+    ],
+    "patterns": [
+     "any"
+    ]
+   },
+   "owner": "project-manager",
+   "also": [
+    "business-owner",
+    "technical-anchor"
+   ],
+   "evidence": {
+    "docs": [
+     "stakeholders",
+     "raid"
+    ],
+    "looks_like": "An escalation path with levels, named people and time limits (for example three working days at team level, a week at project manager level, then the steering group), and issues in the RAID log showing when they were escalated."
+   },
+   "signals": [
+    "Escalation described as \"raise with management\" with no names or times.",
+    "Issues in the RAID log open for weeks with no record of escalation.",
+    "Dependencies on other teams have slipped more than once with no escalation."
+   ],
+   "contradiction": "Compare the age of open issues in the RAID log with the escalation time limits: an issue older than its limit that was never escalated shows the path is not used.",
+   "due": {
+    "plan": 3,
+    "evidenced": 5
+   },
+   "fail_fast": "List every issue open longer than two weeks and escalate each one by Friday.",
+   "severity": "medium",
+   "related": [
+    "COM-04",
+    "PM-10",
+    "GOV-01"
+   ],
+   "signal_id": null,
+   "pack": "pm",
+   "file": "packs/pm/checks/governance.yaml"
+  },
+  {
+   "id": "GOV-04",
+   "title": "Approval boards and their calendars not on the plan",
+   "kind": "delivery",
+   "concern": "governance",
+   "question": "Are the outside approvals the project needs (architecture review, security review, privacy assessment, data sharing agreement, change board) listed with their meeting dates, what they need submitted and how long they take? Which board meets monthly and has not yet heard of us?",
+   "why": "The privacy assessment had to be approved before personal data could be copied to the new platform. The board met monthly, sent the first submission back, and the project lost two months it had not planned for.",
+   "applies": {
+    "kind": [
+     "any"
+    ],
+    "components": [
+     "any"
+    ],
+    "patterns": [
+     "any"
+    ]
+   },
+   "owner": "project-manager",
+   "also": [
+    "security",
+    "architect",
+    "technical-anchor"
+   ],
+   "evidence": {
+    "docs": [
+     "plan",
+     "raid"
+    ],
+    "looks_like": "A list of approvals with the board, its meeting calendar, the submission deadline, what it needs, the usual number of rounds, and the plan tasks that wait on it."
+   },
+   "signals": [
+    "No approvals or review boards appear in the plan.",
+    "Personal or sensitive data is in scope but no privacy assessment or data sharing agreement is mentioned.",
+    "Approvals are planned in the same week the work that needs them starts."
+   ],
+   "contradiction": "Compare the architecture's personal data flows and platform changes with the plan's approvals: each one that needs a board's approval, with no slot booked, is an unplanned wait.",
+   "due": {
+    "plan": 3,
+    "designed": 4,
+    "evidenced": 6
+   },
+   "fail_fast": "Ask security and the architecture board which approvals this project needs and the next date each one meets.",
+   "severity": "high",
+   "related": [
+    "SEC-01",
+    "SEC-05",
+    "PM-01",
+    "STK-01"
+   ],
+   "signal_id": null,
+   "pack": "pm",
+   "file": "packs/pm/checks/governance.yaml"
+  },
+  {
+   "id": "GOV-05",
+   "title": "Conditions from a gate never closed",
+   "kind": "delivery",
+   "concern": "governance",
+   "question": "When a gate is passed \"with conditions\", is each condition written down with an owner and a date, and checked at the next gate? Which condition from discovery sign-off is still open, and does anyone remember it?",
+   "why": "Discovery was approved on condition that the source owner confirmed delete handling. Nobody tracked the condition, it was never confirmed, and deleted orders were still counted in production.",
+   "applies": {
+    "kind": [
+     "any"
+    ],
+    "components": [
+     "any"
+    ],
+    "patterns": [
+     "any"
+    ]
+   },
+   "owner": "project-manager",
+   "also": [
+    "business-owner",
+    "technical-anchor"
+   ],
+   "evidence": {
+    "docs": [
+     "decisions",
+     "raid"
+    ],
+    "looks_like": "Each gate condition recorded as an action in the RAID log with owner and date, and the next gate's pack showing the state of every earlier condition."
+   },
+   "signals": [
+    "Sign-off records say \"approved with conditions\" or \"subject to\" with no list of conditions.",
+    "Conditions from an earlier gate are not mentioned in later status reports or gate packs."
+   ],
+   "contradiction": "Compare the conditions in each sign-off record with the RAID log: a condition that never became a tracked action has been forgotten.",
+   "due": {
+    "plan": 4,
+    "evidenced": 9
+   },
+   "fail_fast": "Read the last sign-off record and list every condition with its owner and current state.",
+   "severity": "medium",
+   "related": [
+    "GOV-02",
+    "STK-05",
+    "COM-03"
+   ],
+   "signal_id": null,
+   "pack": "pm",
+   "file": "packs/pm/checks/governance.yaml"
+  },
+  {
+   "id": "GOV-06",
+   "title": "Lessons captured only at the end",
+   "kind": "delivery",
+   "concern": "governance",
+   "question": "Are lessons gathered at each gate and after each MVP, with an action that changes how the next stage is run? If the same data surprise hits MVP 2 that hit MVP 1, will anyone have written down how to avoid it?",
+   "why": "The first MVP lost three weeks to late source access. The lessons review was held at project closure, so MVP 2 and MVP 3 lost the same three weeks for the same reason.",
+   "applies": {
+    "kind": [
+     "any"
+    ],
+    "components": [
+     "any"
+    ],
+    "patterns": [
+     "any"
+    ]
+   },
+   "owner": "project-manager",
+   "also": [
+    "technical-anchor",
+    "business-analyst"
+   ],
+   "evidence": {
+    "docs": [
+     "status",
+     "plan"
+    ],
+    "looks_like": "A short lessons list after each gate and MVP: what happened, what we will do differently, the owner of that change, and evidence in the next stage's plan that it was done."
+   },
+   "signals": [
+    "The only lessons review in the plan is at project closure.",
+    "The same kind of issue appears in the RAID log for more than one MVP.",
+    "Lessons are listed with no action or owner."
+   ],
+   "contradiction": "Compare the lessons from one stage with the plan for the next: a lesson with no matching change in the next plan has not been learned.",
+   "due": {
+    "plan": 4,
+    "evidenced": 6,
+    "proven": 10
+   },
+   "fail_fast": "Spend fifteen minutes at the next retrospective on one question: what will we change for the next MVP?",
+   "severity": "low",
+   "related": [
+    "PM-02",
+    "EST-06"
+   ],
+   "signal_id": null,
+   "pack": "pm",
+   "file": "packs/pm/checks/governance.yaml"
   },
   {
    "id": "HAND-04",
@@ -1682,6 +4148,907 @@
    "file": "packs/pm/checks/project-management.yaml"
   },
   {
+   "id": "PM-11",
+   "title": "History load not on the plan as real tasks",
+   "kind": "delivery",
+   "concern": "project-management",
+   "question": "Is the history load on the plan as its own tasks, with the elapsed time it needs (source extract windows, several trial runs, checking the old numbers), not folded into \"build\"? If go-live slips, will it be because the history load turned out to be a project of its own?",
+   "why": "The plan gave the history load two days before go-live. The source could only be read at night, the first run found years with a different code list, and the full load took five weekends.",
+   "applies": {
+    "kind": [
+     "any"
+    ],
+    "components": [
+     "ingestion"
+    ],
+    "patterns": [
+     "history-load"
+    ]
+   },
+   "owner": "project-manager",
+   "also": [
+    "technical-anchor",
+    "source-owner"
+   ],
+   "evidence": {
+    "docs": [
+     "plan",
+     "deployment"
+    ],
+    "looks_like": "Plan tasks for the history extract, at least one full trial run, checking the old periods with the business and the final load, each with elapsed time, source windows and an owner."
+   },
+   "signals": [
+    "The history load appears only in the architecture, not in the plan.",
+    "The plan has one task, or a few days, for loading many years of history.",
+    "No trial run of the history load is planned before the cut-over."
+   ],
+   "contradiction": "Compare the history load approach in the architecture or deployment plan with the plan's tasks: an approach that needs night windows and several runs, given a couple of days in the plan, will slip.",
+   "due": {
+    "plan": 3,
+    "designed": 4,
+    "evidenced": 7
+   },
+   "fail_fast": "Time a full extract of one year of history from the source now and multiply by the years in scope.",
+   "severity": "high",
+   "related": [
+    "HIST-01",
+    "HIST-02",
+    "EST-07"
+   ],
+   "signal_id": null,
+   "pack": "pm",
+   "file": "packs/pm/checks/project-management.yaml"
+  },
+  {
+   "id": "PM-12",
+   "title": "Data fixes with no owner and no time",
+   "kind": "delivery",
+   "concern": "project-management",
+   "question": "When profiling or testing finds bad data at the source (missing keys, wrong codes, duplicate customers), is it agreed who fixes it, where (at the source, by the business, or in the pipeline), and is that time on someone's plan? Whose plan holds the weeks of cleansing that the profile is already hinting at?",
+   "why": "Profiling showed that a fifth of customers had no region. Everyone assumed someone else would fix it; the business had no time booked, and user acceptance failed on regional totals six weeks before go-live.",
+   "applies": {
+    "kind": [
+     "any"
+    ],
+    "components": [
+     "ingestion",
+     "transformation"
+    ],
+    "patterns": [
+     "any"
+    ]
+   },
+   "owner": "project-manager",
+   "also": [
+    "business-owner",
+    "source-owner",
+    "technical-anchor"
+   ],
+   "evidence": {
+    "docs": [
+     "plan",
+     "raid"
+    ],
+    "looks_like": "A data issues list from profiling, each with the decision on where it is fixed, an owner, the effort, and matching tasks in the project plan or the source team's plan."
+   },
+   "signals": [
+    "The data profile lists quality problems that appear nowhere in the plan or RAID log.",
+    "Fixes are assigned to \"the business\" or \"the source\" with no name or date.",
+    "No time for data fixing appears in the plan."
+   ],
+   "contradiction": "Compare the data profile or data quality findings with the plan: each problem that needs fixing, with no task and owner, is work that will appear in user acceptance instead.",
+   "due": {
+    "plan": 3,
+    "designed": 4,
+    "evidenced": 7
+   },
+   "fail_fast": "Take the top five data problems from the profile and get a named owner and a date for each this week.",
+   "severity": "high",
+   "related": [
+    "DQ-05",
+    "DQ-01",
+    "EST-07"
+   ],
+   "signal_id": null,
+   "pack": "pm",
+   "file": "packs/pm/checks/project-management.yaml"
+  },
+  {
+   "id": "PM-13",
+   "title": "Reconciliation and user acceptance planned as one pass",
+   "kind": "delivery",
+   "concern": "project-management",
+   "question": "Does the plan allow for more than one cycle of reconciliation and user acceptance (test, find differences, explain or fix, test again), with business time booked for each cycle? If the first round finds the numbers do not match, is there any time left to fix them?",
+   "why": "One week of user acceptance was planned. The first day showed revenue three percent off the ledger, the explanation took two weeks, and there was no second test window before the go-live date.",
+   "applies": {
+    "kind": [
+     "any"
+    ],
+    "components": [
+     "modelling",
+     "serving"
+    ],
+    "patterns": [
+     "any"
+    ]
+   },
+   "owner": "project-manager",
+   "also": [
+    "test-lead",
+    "business-owner",
+    "technical-anchor"
+   ],
+   "evidence": {
+    "docs": [
+     "plan",
+     "test-strategy"
+    ],
+    "looks_like": "At least two reconciliation and acceptance cycles on the plan, with time between them to explain and fix differences, and business testers booked for each."
+   },
+   "signals": [
+    "The plan has a single user acceptance window.",
+    "Reconciliation is not a task in the plan, or sits inside \"testing\".",
+    "No time between the end of user acceptance and go-live."
+   ],
+   "contradiction": "Compare the test strategy's reconciliation approach with the plan: a strategy that compares every layer with trusted figures, given one short window, will run out of time on the first difference.",
+   "due": {
+    "plan": 4,
+    "designed": 6,
+    "evidenced": 7
+   },
+   "fail_fast": "Reconcile one month of one key number against the business's trusted figure now and time how long it takes.",
+   "severity": "high",
+   "related": [
+    "REC-02",
+    "REC-03",
+    "TEST-04",
+    "RES-04"
+   ],
+   "signal_id": null,
+   "pack": "pm",
+   "file": "packs/pm/checks/project-management.yaml"
+  },
+  {
+   "id": "PM-14",
+   "title": "Cut-over weekend not planned",
+   "kind": "delivery",
+   "concern": "project-management",
+   "question": "Is there an hour-by-hour cut-over plan covering the business freeze, the final loads, the checks before users are let in, the point after which there is no going back, the rollback steps, and who is on call? At three in the morning on cut-over night, if the final load fails, who decides what happens next?",
+   "why": "Cut-over was \"the weekend after UAT\". The final history load overran by ten hours, nobody had agreed a point to stop, and on Monday half the users saw new numbers while the rest still had the old reports.",
+   "applies": {
+    "kind": [
+     "any"
+    ],
+    "components": [
+     "any"
+    ],
+    "patterns": [
+     "any"
+    ]
+   },
+   "owner": "project-manager",
+   "also": [
+    "technical-anchor",
+    "release-devops",
+    "operations",
+    "business-owner"
+   ],
+   "evidence": {
+    "docs": [
+     "deployment",
+     "plan"
+    ],
+    "looks_like": "A cut-over runbook with timed steps and owners, the business freeze window, checks before opening to users, a go-back deadline and rollback steps, a call list, and at least one rehearsal."
+   },
+   "signals": [
+    "No cut-over plan, or one line saying \"deploy to production\".",
+    "No business freeze, rollback window or decision point is mentioned.",
+    "No rehearsal of the cut-over is planned."
+   ],
+   "contradiction": "Compare the cut-over plan's timings with the history load and final load run times measured in test: a window shorter than the measured loads will overrun.",
+   "due": {
+    "plan": 4,
+    "designed": 7,
+    "evidenced": 8
+   },
+   "fail_fast": "Write the cut-over as timed steps on one page and add up the hours against the window you have.",
+   "severity": "high",
+   "related": [
+    "REL-07",
+    "HIST-03",
+    "RLC-01"
+   ],
+   "signal_id": null,
+   "pack": "pm",
+   "file": "packs/pm/checks/project-management.yaml"
+  },
+  {
+   "id": "PM-15",
+   "title": "No parallel run period",
+   "kind": "delivery",
+   "concern": "project-management",
+   "question": "Where the new solution replaces an existing report or feed, is there a period when both run side by side, with a named person comparing them, a length that covers at least one month-end, and criteria for ending it? When the new number and the old number differ in week one, who decides which is right?",
+   "why": "The old report was switched off on go-live day. In the first month-end the new figures differed from what finance expected, there was nothing left to compare against, and trust in the new report never recovered.",
+   "applies": {
+    "kind": [
+     "any"
+    ],
+    "components": [
+     "serving",
+     "modelling"
+    ],
+    "patterns": [
+     "any"
+    ]
+   },
+   "owner": "project-manager",
+   "also": [
+    "business-owner",
+    "data-consumer",
+    "technical-anchor"
+   ],
+   "evidence": {
+    "docs": [
+     "plan",
+     "deployment"
+    ],
+    "looks_like": "A parallel run on the plan with dates covering a month-end, a person who compares old and new, a tolerance, a decision owner for differences and written exit criteria."
+   },
+   "signals": [
+    "The old system or report is switched off on the go-live date.",
+    "Parallel running is mentioned with no length, owner or exit criteria.",
+    "The parallel run ends before the first month-end or quarter-end."
+   ],
+   "contradiction": "Compare the plan's parallel run dates with the business calendar: a parallel run that ends before the first month-end tests the easy days only.",
+   "due": {
+    "plan": 4,
+    "designed": 7,
+    "evidenced": 9
+   },
+   "fail_fast": "Ask the business owner which month-end they would want to see matched before switching off the old report.",
+   "severity": "medium",
+   "related": [
+    "REC-04",
+    "RLC-03",
+    "BUD-06"
+   ],
+   "signal_id": null,
+   "pack": "pm",
+   "file": "packs/pm/checks/project-management.yaml"
+  },
+  {
+   "id": "PM-16",
+   "title": "Team rolled off before the first month-end",
+   "kind": "delivery",
+   "concern": "project-management",
+   "question": "Does the plan and budget keep the people who built the solution available through early-life support, including the first month-end, quarter-end or other peak that the data will meet? When the first month-end load breaks, are the developers who wrote it still on the project?",
+   "why": "The developers moved to a new project the Monday after go-live. The first month-end load hit late corrections the tests never had, and support spent four days rebuilding knowledge the team could have given in an hour.",
+   "applies": {
+    "kind": [
+     "any"
+    ],
+    "components": [
+     "any"
+    ],
+    "patterns": [
+     "any"
+    ]
+   },
+   "owner": "project-manager",
+   "also": [
+    "technical-anchor",
+    "operations",
+    "business-owner"
+   ],
+   "evidence": {
+    "docs": [
+     "plan",
+     "runbook"
+    ],
+    "looks_like": "Named people booked for early-life support, an end date after the first month-end or other peak, and the exit criteria for handing over fully to support."
+   },
+   "signals": [
+    "The plan and budget end on the go-live date.",
+    "Early-life support is mentioned but nobody is named or funded for it.",
+    "Team members are already booked on other projects from go-live."
+   ],
+   "contradiction": "Compare the plan's end date and staffing with the support model's early-life support period: a support period that outlasts the team's booking has nobody to do it.",
+   "due": {
+    "plan": 4,
+    "designed": 7,
+    "evidenced": 9
+   },
+   "fail_fast": "Check each developer's next booking date against the first month-end after go-live.",
+   "severity": "medium",
+   "related": [
+    "HAND-04",
+    "HAND-06",
+    "OPS-05"
+   ],
+   "signal_id": null,
+   "pack": "pm",
+   "file": "packs/pm/checks/project-management.yaml"
+  },
+  {
+   "id": "PM-17",
+   "title": "Buffers not where data surprises cluster",
+   "kind": "delivery",
+   "concern": "project-management",
+   "question": "Does the plan hold explicit buffer time after the points where data projects usually find surprises: the first real extract, the first full load, the history load and the first reconciliation? Where in this plan would a two-week surprise from the data fit without moving go-live?",
+   "why": "Every task was planned back to back with no slack. The first full load showed that keys were not unique, and with nowhere to absorb the fix, every later date moved by the same three weeks.",
+   "applies": {
+    "kind": [
+     "any"
+    ],
+    "components": [
+     "any"
+    ],
+    "patterns": [
+     "any"
+    ]
+   },
+   "owner": "project-manager",
+   "also": [
+    "technical-anchor"
+   ],
+   "evidence": {
+    "docs": [
+     "plan",
+     "raid"
+    ],
+    "looks_like": "Named buffer tasks after the first real loads, the history load and reconciliation, sized to the risks in the RAID log, with a rule for who may use them."
+   },
+   "signals": [
+    "No buffer appears in the plan, or one buffer sits at the very end.",
+    "Tasks after the first full load and reconciliation are planned with no gap before go-live.",
+    "The RAID log has data risks with no time set aside for them."
+   ],
+   "contradiction": "Compare the data risks in the RAID log with the plan: a high data risk that hits in the middle of the plan, with no buffer after it, will move every later date.",
+   "due": {
+    "plan": 4,
+    "evidenced": 6
+   },
+   "fail_fast": "Ask where a two-week slip after the first full load would land, and whether the go-live date survives it.",
+   "severity": "medium",
+   "related": [
+    "PM-02",
+    "BUD-04",
+    "EST-02"
+   ],
+   "signal_id": null,
+   "pack": "pm",
+   "file": "packs/pm/checks/project-management.yaml"
+  },
+  {
+   "id": "PM-18",
+   "title": "The business calendar ignored",
+   "kind": "delivery",
+   "concern": "project-management",
+   "question": "Has the plan been checked against the business and data calendar: month-end and year-end close, audit, peak trading, source system change freezes and the platform's own release windows? Which key date in our plan falls in a week when the business or a source team cannot help us?",
+   "why": "Go-live was set for the first week of January. Finance was closing the year, the source system was frozen for its own year-end, and the release had to wait until February.",
+   "applies": {
+    "kind": [
+     "any"
+    ],
+    "components": [
+     "any"
+    ],
+    "patterns": [
+     "any"
+    ]
+   },
+   "owner": "project-manager",
+   "also": [
+    "business-owner",
+    "source-owner",
+    "platform-team"
+   ],
+   "evidence": {
+    "docs": [
+     "plan",
+     "raid"
+    ],
+    "looks_like": "Business close periods, peak periods and change freezes marked on the plan, with no testing, cut-over or go-live inside them unless agreed."
+   },
+   "signals": [
+    "The plan shows no business calendar, freezes or close periods.",
+    "Go-live, cut-over or user acceptance falls in a month-end, year-end or known freeze."
+   ],
+   "contradiction": "Compare the plan's key dates with source teams' and the platform's change freezes: a release planned inside a freeze will not be allowed to happen.",
+   "due": {
+    "plan": 3,
+    "designed": 4
+   },
+   "fail_fast": "Ask finance, the source owners and the platform team for their freeze and close dates for the next year.",
+   "severity": "medium",
+   "related": [
+    "PM-01",
+    "RES-04",
+    "RLC-04"
+   ],
+   "signal_id": null,
+   "pack": "pm",
+   "file": "packs/pm/checks/project-management.yaml"
+  },
+  {
+   "id": "RLC-01",
+   "title": "Go or no-go decided on the day, not agreed in advance",
+   "kind": "delivery",
+   "concern": "release-coordination",
+   "question": "Are the go-live criteria (reconciled numbers within tolerance, no open critical defects, support ready, users trained, rollback rehearsed) written down and agreed with the business owner before the go or no-go meeting? If the history load finishes with two regions unreconciled, do we already know whether we go?",
+   "why": "With no agreed criteria, the go or no-go meeting became a debate. The sponsor wanted the date, the test lead wanted another week, and they went live with known differences that took three months to explain away.",
+   "applies": {
+    "kind": [
+     "any"
+    ],
+    "components": [
+     "any"
+    ],
+    "patterns": [
+     "any"
+    ]
+   },
+   "owner": "project-manager",
+   "also": [
+    "business-owner",
+    "technical-anchor",
+    "test-lead",
+    "operations"
+   ],
+   "evidence": {
+    "docs": [
+     "deployment",
+     "decisions"
+    ],
+    "looks_like": "A go or no-go checklist agreed weeks before cut-over, with each criterion, the evidence for it, who confirms it, and what happens if it fails (delay, go with a workaround, or partial release)."
+   },
+   "signals": [
+    "No go-live criteria are written, or they say \"UAT signed off\".",
+    "The go or no-go decision has no named decider.",
+    "Criteria do not mention reconciliation, support readiness or rollback."
+   ],
+   "contradiction": "Compare the go-live criteria with the test results and defect list on the decision date: a go decision taken while a criterion was unmet means the criteria were not the real basis.",
+   "due": {
+    "plan": 4,
+    "designed": 7,
+    "evidenced": 8
+   },
+   "fail_fast": "Draft the go-live checklist now and ask the business owner which line they would refuse to go without.",
+   "severity": "high",
+   "related": [
+    "GOV-02",
+    "PM-14",
+    "REC-03"
+   ],
+   "signal_id": null,
+   "pack": "pm",
+   "file": "packs/pm/checks/release-coordination.yaml"
+  },
+  {
+   "id": "RLC-02",
+   "title": "Users not ready on go-live day",
+   "kind": "delivery",
+   "concern": "release-coordination",
+   "question": "Are the users ready: told what is changing and when, trained on the new reports and what the numbers now mean, and pointed at where to ask for help, with the service desk briefed? On the first Monday, will users know why their numbers look different from last week?",
+   "why": "The new sales report used the agreed definition of revenue, which excluded returns. Nobody told the regional managers, who saw lower figures, assumed the report was broken, and kept using their old spreadsheets.",
+   "applies": {
+    "kind": [
+     "any"
+    ],
+    "components": [
+     "serving",
+     "modelling"
+    ],
+    "patterns": [
+     "any"
+    ]
+   },
+   "owner": "project-manager",
+   "also": [
+    "business-owner",
+    "business-analyst",
+    "data-consumer"
+   ],
+   "evidence": {
+    "docs": [
+     "plan",
+     "stakeholders"
+    ],
+    "looks_like": "A business readiness plan: user groups, messages and dates, training sessions with attendance, a short note on changed definitions and why numbers differ, and a briefed service desk."
+   },
+   "signals": [
+    "No training, user communication or service desk briefing is in the plan.",
+    "Definitions changed during the project but no user-facing explanation exists.",
+    "The only user communication is a go-live announcement."
+   ],
+   "contradiction": "Compare definitions that changed in the decision log or data model with the user communications: a changed definition users were never told about will be reported as a defect.",
+   "due": {
+    "plan": 4,
+    "designed": 7,
+    "evidenced": 8
+   },
+   "fail_fast": "Ask three future users what will change for them on go-live day, and note what they do not know.",
+   "severity": "medium",
+   "related": [
+    "COM-02",
+    "REQ-03",
+    "STK-03"
+   ],
+   "signal_id": null,
+   "pack": "pm",
+   "file": "packs/pm/checks/release-coordination.yaml"
+  },
+  {
+   "id": "RLC-03",
+   "title": "Old reports and feeds never switched off",
+   "kind": "delivery",
+   "concern": "release-coordination",
+   "question": "Is there a list of the old reports, extracts and spreadsheets the new solution replaces, each with an owner who agrees to switch it off and a date? A year after go-live, how many people will still be using the old numbers, and paying to run them?",
+   "why": "The old reports were left running \"just in case\". Two years later both sets were still in use, gave different answers in board meetings, and the cost of the old system was never saved.",
+   "applies": {
+    "kind": [
+     "any"
+    ],
+    "components": [
+     "serving"
+    ],
+    "patterns": [
+     "any"
+    ]
+   },
+   "owner": "project-manager",
+   "also": [
+    "business-owner",
+    "data-consumer",
+    "operations"
+   ],
+   "evidence": {
+    "docs": [
+     "plan",
+     "deployment"
+    ],
+    "looks_like": "A switch-off list naming each old report or feed, its users, its owner, the switch-off date after the parallel run, and confirmation that it was done."
+   },
+   "signals": [
+    "The plan has no switch-off or decommissioning tasks.",
+    "Benefits depend on retiring an old system, but no retirement date exists.",
+    "Old reports are listed as \"to be reviewed after go-live\"."
+   ],
+   "contradiction": "Compare the benefits in the business case with the switch-off list: savings that depend on retiring the old system, with no switch-off date, will not arrive.",
+   "due": {
+    "plan": 4,
+    "designed": 7,
+    "evidenced": 9,
+    "proven": 10
+   },
+   "fail_fast": "List every old report the new one replaces and ask each owner for a switch-off date.",
+   "severity": "medium",
+   "related": [
+    "PM-15",
+    "BEN-01",
+    "HAND-05"
+   ],
+   "signal_id": null,
+   "pack": "pm",
+   "file": "packs/pm/checks/release-coordination.yaml"
+  },
+  {
+   "id": "RLC-04",
+   "title": "Clashes with other releases and platform changes",
+   "kind": "delivery",
+   "concern": "release-coordination",
+   "question": "Has the release been checked against other changes in the same window: source system upgrades, platform upgrades, other projects changing shared tables, network or identity changes? Which other team's release could break ours the same weekend?",
+   "why": "The project went live the same weekend the source system was upgraded. Two columns changed type, the first production loads failed, and nobody could tell which release had caused it.",
+   "applies": {
+    "kind": [
+     "any"
+    ],
+    "components": [
+     "any"
+    ],
+    "patterns": [
+     "any"
+    ]
+   },
+   "owner": "technical-anchor",
+   "also": [
+    "project-manager",
+    "release-devops",
+    "platform-team",
+    "source-owner"
+   ],
+   "evidence": {
+    "docs": [
+     "deployment",
+     "raid"
+    ],
+    "looks_like": "The release date checked against the change calendar for sources, the platform and shared data, with clashes recorded as dependencies or risks and agreed with the other teams."
+   },
+   "signals": [
+    "No mention of the change calendar or other releases in the deployment plan.",
+    "A shared platform or source upgrade is known but not on the RAID log.",
+    "Other projects write to tables this project reads, with no coordination recorded."
+   ],
+   "contradiction": "Compare the go-live date in the deployment plan with source and platform release dates in the RAID log or change calendar: two changes to the same system in one window will hide each other's faults.",
+   "due": {
+    "plan": 4,
+    "evidenced": 8
+   },
+   "fail_fast": "Ask the change board for every change planned to the sources and platform in the go-live week.",
+   "severity": "medium",
+   "related": [
+    "PM-18",
+    "SCH-03",
+    "REL-07"
+   ],
+   "signal_id": null,
+   "pack": "pm",
+   "file": "packs/pm/checks/release-coordination.yaml"
+  },
+  {
+   "id": "RLC-05",
+   "title": "Consumers outside the steering group not told",
+   "kind": "delivery",
+   "concern": "release-coordination",
+   "question": "Have all consumers of the data being replaced or changed been found and told, including other teams' extracts, downstream systems and spreadsheets fed from the old source, not only the users in the steering group? Who will discover our go-live because their own report broke?",
+   "why": "The old warehouse table was replaced. A pricing team nobody had met read it every night for their own model, and their prices were wrong for three days before anyone linked it to the release.",
+   "applies": {
+    "kind": [
+     "any"
+    ],
+    "components": [
+     "serving",
+     "modelling"
+    ],
+    "patterns": [
+     "any"
+    ]
+   },
+   "owner": "project-manager",
+   "also": [
+    "technical-anchor",
+    "data-consumer",
+    "operations"
+   ],
+   "evidence": {
+    "docs": [
+     "stakeholders",
+     "deployment"
+    ],
+    "looks_like": "A consumer list built from access logs and lineage, not only interviews, each consumer told the change and the date, and their confirmation recorded."
+   },
+   "signals": [
+    "The consumer list comes only from the steering group and requirements workshops.",
+    "No one has checked who reads the tables or feeds being replaced.",
+    "No notice period for consumers is in the deployment plan."
+   ],
+   "contradiction": "Compare the consumers in the stakeholder map with the readers found in access logs or lineage: a reader who is not on the map has not been told.",
+   "due": {
+    "plan": 4,
+    "evidenced": 8
+   },
+   "fail_fast": "Pull the last ninety days of reads on the tables being replaced and contact every reader not on the map.",
+   "severity": "high",
+   "related": [
+    "STK-01",
+    "SERV-03",
+    "SERV-01"
+   ],
+   "signal_id": null,
+   "pack": "pm",
+   "file": "packs/pm/checks/release-coordination.yaml"
+  },
+  {
+   "id": "RES-01",
+   "title": "Capacity counted in people, not in real hours",
+   "kind": "delivery",
+   "concern": "resourcing",
+   "question": "Does the plan use each person's real availability: their share of time on this project, planned leave, public holidays, other commitments and support duties? If the team delivers two thirds of what was planned, will the missing third be leave and part-time allocations nobody subtracted?",
+   "why": "The plan assumed five full-time developers. Two were shared with production support, one had three weeks of leave in the summer, and the real capacity was barely three people, so the first MVP slipped a month.",
+   "applies": {
+    "kind": [
+     "any"
+    ],
+    "components": [
+     "any"
+    ],
+    "patterns": [
+     "any"
+    ]
+   },
+   "owner": "project-manager",
+   "also": [
+    "technical-anchor"
+   ],
+   "evidence": {
+    "docs": [
+     "plan",
+     "estimate"
+    ],
+    "looks_like": "A team table with each named person, their percentage on the project, known leave and the weeks they are needed, with the total compared against the effort in the estimate."
+   },
+   "signals": [
+    "The plan lists roles or head counts with no names or percentages.",
+    "No mention of leave, holidays or support duties.",
+    "The same person is allocated full time on this project and another one."
+   ],
+   "contradiction": "Compare the estimate's effort with the plan's available hours: if effort divided by real capacity gives a later date than the plan shows, the plan assumes people who do not exist.",
+   "due": {
+    "plan": 3,
+    "designed": 4,
+    "evidenced": 6
+   },
+   "fail_fast": "Add up each person's real available days for the next eight weeks and compare them with the planned work.",
+   "severity": "high",
+   "related": [
+    "PM-06",
+    "PM-07",
+    "EST-03"
+   ],
+   "signal_id": null,
+   "pack": "pm",
+   "file": "packs/pm/checks/resourcing.yaml"
+  },
+  {
+   "id": "RES-02",
+   "title": "New joiners assumed productive on day one",
+   "kind": "delivery",
+   "concern": "resourcing",
+   "question": "Does the plan allow for the time a new person needs before they are useful: laptop, accounts, access to sources and environments, security training and learning the domain? When a developer joins in week six, in which week will they first deliver?",
+   "why": "Two contractors joined to catch up the plan. Their access to the source data took four weeks to approve, so they were paid for a month of reading documents while the slip grew.",
+   "applies": {
+    "kind": [
+     "any"
+    ],
+    "components": [
+     "any"
+    ],
+    "patterns": [
+     "any"
+    ]
+   },
+   "owner": "project-manager",
+   "also": [
+    "technical-anchor",
+    "platform-team",
+    "security"
+   ],
+   "evidence": {
+    "docs": [
+     "plan",
+     "raid"
+    ],
+    "looks_like": "An onboarding checklist with the lead time of each item, requests raised before the start date, and the plan showing reduced output for each new person's first weeks."
+   },
+   "signals": [
+    "People are added to the plan at full output from their first week.",
+    "No onboarding checklist or access lead times are written down.",
+    "Recovery plans rely on adding people late in the build."
+   ],
+   "contradiction": "Compare the plan's joining dates with the access request lead times in the RAID log: a person planned to deliver before their access can arrive will sit idle.",
+   "due": {
+    "plan": 4,
+    "evidenced": 6
+   },
+   "fail_fast": "Ask the most recent joiner how many days passed before they could query real data, and use that number.",
+   "severity": "medium",
+   "related": [
+    "PM-10",
+    "ENV-02",
+    "RES-01"
+   ],
+   "signal_id": null,
+   "pack": "pm",
+   "file": "packs/pm/checks/resourcing.yaml"
+  },
+  {
+   "id": "RES-03",
+   "title": "Source experts' time never booked",
+   "kind": "delivery",
+   "concern": "resourcing",
+   "question": "Is the time the project needs from source system experts (to explain tables, deletes and odd values, to review mappings and to fix extracts) agreed with their manager, in hours per week and by date? When the team needs an answer about the source, how long will it wait?",
+   "why": "The only person who understood the source's status codes worked on that system's own release. She gave the project an hour a week when she could, and every mapping question waited ten days for an answer.",
+   "applies": {
+    "kind": [
+     "any"
+    ],
+    "components": [
+     "ingestion",
+     "transformation"
+    ],
+    "patterns": [
+     "any"
+    ]
+   },
+   "owner": "project-manager",
+   "also": [
+    "source-owner",
+    "technical-anchor",
+    "business-analyst"
+   ],
+   "evidence": {
+    "docs": [
+     "plan",
+     "stakeholders"
+    ],
+    "looks_like": "Named source experts with agreed hours per week through discovery, build and test, confirmed by their line manager, and a deputy for each."
+   },
+   "signals": [
+    "Source experts are named in the stakeholder map with no time commitment.",
+    "Open questions about source data stay open across several status reports.",
+    "The plan relies on \"input from the source team\" without names or dates."
+   ],
+   "contradiction": "Compare the number of sources in the architecture with the expert time booked in the plan: a source with no booked expert will be understood by guessing.",
+   "due": {
+    "plan": 3,
+    "evidenced": 5
+   },
+   "fail_fast": "Ask each source expert's manager to confirm, in writing, the hours per week they will give the project.",
+   "severity": "high",
+   "related": [
+    "PM-06",
+    "REQ-04",
+    "DQ-05"
+   ],
+   "signal_id": null,
+   "pack": "pm",
+   "file": "packs/pm/checks/resourcing.yaml"
+  },
+  {
+   "id": "RES-04",
+   "title": "Business testers and sign-off people not booked",
+   "kind": "delivery",
+   "concern": "resourcing",
+   "question": "Are the business users who will test, reconcile numbers and sign off named, with their days booked and clear of month-end, year-end and their own peak periods? If user acceptance slips, will it be because the testers were closing the books that week?",
+   "why": "User acceptance was planned for the last week of the quarter. Every finance tester was on the quarter close, the test window passed with a handful of cases run, and go-live moved by six weeks.",
+   "applies": {
+    "kind": [
+     "any"
+    ],
+    "components": [
+     "modelling",
+     "serving"
+    ],
+    "patterns": [
+     "any"
+    ]
+   },
+   "owner": "project-manager",
+   "also": [
+    "business-owner",
+    "test-lead",
+    "data-consumer"
+   ],
+   "evidence": {
+    "docs": [
+     "plan",
+     "test-strategy"
+    ],
+    "looks_like": "Named testers and approvers, the days each has agreed to give, their managers' agreement, and a test window checked against the business calendar."
+   },
+   "signals": [
+    "The test strategy says \"business users\" without names.",
+    "User acceptance dates fall in a month-end, quarter-end or year-end period.",
+    "No business manager has agreed to release testers."
+   ],
+   "contradiction": "Compare the plan's user acceptance window with the business calendar or the testers' own commitments: a window that overlaps their busiest week will not get the testing it needs.",
+   "due": {
+    "plan": 4,
+    "designed": 6,
+    "evidenced": 7
+   },
+   "fail_fast": "Ask each named tester's manager to put the test days in their calendar now.",
+   "severity": "high",
+   "related": [
+    "TEST-04",
+    "COM-05",
+    "PM-18"
+   ],
+   "signal_id": null,
+   "pack": "pm",
+   "file": "packs/pm/checks/resourcing.yaml"
+  },
+  {
    "id": "SCOPE-03",
    "title": "Scope creep with no change process",
    "kind": "delivery",
@@ -2073,6 +5440,271 @@
    "signal_id": null,
    "pack": "pm",
    "file": "packs/pm/checks/stakeholders.yaml"
+  },
+  {
+   "id": "STK-07",
+   "title": "Sponsor or owner changes and nobody re-confirms",
+   "kind": "delivery",
+   "concern": "stakeholders",
+   "question": "When the sponsor, business owner or a key data owner changes during the project, is the new person taken through the scope, definitions, decisions, budget and dates, and asked to confirm them in writing? If a reorganisation replaces our sponsor next month, which agreed decision is the new one most likely to reopen?",
+   "why": "The business owner moved roles after discovery sign-off. Her successor had never seen the definitions, did not accept the agreed treatment of returns, and two months of modelling were redone.",
+   "applies": {
+    "kind": [
+     "any"
+    ],
+    "components": [
+     "any"
+    ],
+    "patterns": [
+     "any"
+    ]
+   },
+   "owner": "project-manager",
+   "also": [
+    "business-owner",
+    "business-analyst"
+   ],
+   "evidence": {
+    "docs": [
+     "stakeholders",
+     "decisions"
+    ],
+    "looks_like": "A record of each change in key stakeholders, the briefing given to the new person, and their written confirmation (or the decisions they reopened, handled as change requests)."
+   },
+   "signals": [
+    "Names in recent status reports or meeting notes differ from those on the stakeholder map or sign-off record.",
+    "A new sponsor or owner appears with no record of a handover briefing.",
+    "Signed decisions are being questioned again in meeting notes after a change of people."
+   ],
+   "contradiction": "Compare the signatories on the discovery sign-off with the people now named as sponsor and owners: a decider who did not sign has not yet agreed.",
+   "due": {
+    "plan": 4,
+    "evidenced": 6
+   },
+   "fail_fast": "Check whether everyone who signed discovery still holds the same role, and brief anyone new this week.",
+   "severity": "medium",
+   "related": [
+    "STK-02",
+    "STK-05",
+    "PM-03"
+   ],
+   "signal_id": null,
+   "pack": "pm",
+   "file": "packs/pm/checks/stakeholders.yaml"
+  },
+  {
+   "id": "VEN-01",
+   "title": "Source-side changes not on the source team's plan",
+   "kind": "delivery",
+   "concern": "vendors-and-third-parties",
+   "question": "For each change the project needs from a source (a new extract, a new field, change tracking switched on, a service account, a firewall rule), is it on the source team's or vendor's own plan, with a release date, a named contact and an escalation route? If the source team's next release slot is in four months, when will we find out?",
+   "why": "The project needed change tracking switched on in the source database. The source team agreed in a meeting, but their releases were quarterly and the next slot was full, so the build waited three months.",
+   "applies": {
+    "kind": [
+     "any"
+    ],
+    "components": [
+     "ingestion"
+    ],
+    "patterns": [
+     "any"
+    ]
+   },
+   "owner": "project-manager",
+   "also": [
+    "source-owner",
+    "technical-anchor"
+   ],
+   "evidence": {
+    "docs": [
+     "raid",
+     "plan"
+    ],
+    "looks_like": "A list of source-side changes, each with the item reference on the source team's own plan, the release date they committed to, a named contact and the person to escalate to."
+   },
+   "signals": [
+    "Source changes appear in the architecture but not as dependencies in the RAID log.",
+    "Dependencies on source teams have no date, or a date the source team has not confirmed.",
+    "No mention of the source team's release calendar or change freezes."
+   ],
+   "contradiction": "Compare the architecture's needs from each source with the RAID log's dependencies: a change the design needs that is not on the source team's plan is a date nobody has promised.",
+   "due": {
+    "plan": 3,
+    "designed": 4,
+    "evidenced": 5
+   },
+   "fail_fast": "Ask each source team for the reference number of the project's request on their own plan, and its release date.",
+   "severity": "high",
+   "related": [
+    "PM-01",
+    "HIST-02",
+    "SCH-03"
+   ],
+   "signal_id": null,
+   "pack": "pm",
+   "file": "packs/pm/checks/vendors-and-third-parties.yaml"
+  },
+  {
+   "id": "VEN-02",
+   "title": "No agreement on how data is delivered",
+   "kind": "delivery",
+   "concern": "vendors-and-third-parties",
+   "question": "Is there a written agreement with each source team or external supplier on what they deliver: by what time, in what format, how complete, how a late or broken delivery is reported and fixed, and in which support hours? When the file is late at 6 a.m., what does the agreement say happens?",
+   "why": "An external partner sent a daily file \"in the morning\". Some days it came at nine, some days at two, and the reports promised for eight o'clock were wrong half the week with nothing in writing to point to.",
+   "applies": {
+    "kind": [
+     "any"
+    ],
+    "components": [
+     "ingestion"
+    ],
+    "patterns": [
+     "file",
+     "api",
+     "database",
+     "cdc"
+    ]
+   },
+   "owner": "project-manager",
+   "also": [
+    "source-owner",
+    "technical-anchor",
+    "operations"
+   ],
+   "evidence": {
+    "docs": [
+     "stakeholders",
+     "runbook"
+    ],
+    "looks_like": "A delivery agreement or contract schedule per source: delivery time, format, completeness check, notice of change, support hours, contact and escalation, and what happens when it is missed."
+   },
+   "signals": [
+    "Source delivery times written as \"daily\" or \"overnight\" with no clock time.",
+    "No support hours or contacts for external sources.",
+    "Freshness promised to users is tighter than anything a source has agreed to."
+   ],
+   "contradiction": "Compare the freshness promised to consumers with the delivery times agreed with sources: a report promised at 8 a.m. from a source that only promises \"the morning\" cannot keep its promise.",
+   "due": {
+    "plan": 4,
+    "designed": 6,
+    "evidenced": 8
+   },
+   "fail_fast": "Ask each source owner to state the latest time they will deliver and what they do when they cannot.",
+   "severity": "high",
+   "related": [
+    "SERV-01",
+    "SCH-03",
+    "PERF-02",
+    "DQ-04"
+   ],
+   "signal_id": null,
+   "pack": "pm",
+   "file": "packs/pm/checks/vendors-and-third-parties.yaml"
+  },
+  {
+   "id": "VEN-03",
+   "title": "Licences and contract terms for getting the data",
+   "kind": "delivery",
+   "concern": "vendors-and-third-parties",
+   "question": "Do the contracts with source system vendors allow the project to extract the data in the way and volume the design needs, and are the licences for every tool and user covered? Which clause will we discover the week before go-live?",
+   "why": "The design pulled history through the vendor's interface. The contract capped calls per day and charged for bulk export, which nobody had read, so the history load needed a new commercial agreement.",
+   "applies": {
+    "kind": [
+     "any"
+    ],
+    "components": [
+     "ingestion",
+     "serving",
+     "platform"
+    ],
+    "patterns": [
+     "any"
+    ]
+   },
+   "owner": "project-manager",
+   "also": [
+    "source-owner",
+    "business-owner",
+    "security"
+   ],
+   "evidence": {
+    "docs": [
+     "raid",
+     "architecture"
+    ],
+    "looks_like": "A note per vendor source and tool of the contract terms checked (extract rights, call limits, export fees, data use), the licence count needed against the count owned, and who checked it."
+   },
+   "signals": [
+    "Vendor-hosted sources in the architecture with no mention of contract terms or limits.",
+    "Licences for report users or tools are not mentioned in the budget.",
+    "The number of users planned is larger than the licences held, or the count is unknown."
+   ],
+   "contradiction": "Compare the history load and refresh approach in the architecture with the vendor's stated limits: a design that needs more calls or bulk export than the contract allows will be stopped.",
+   "due": {
+    "plan": 3,
+    "evidenced": 4
+   },
+   "fail_fast": "Send the vendor the planned extract approach and volumes and ask them to confirm it is allowed at no extra cost.",
+   "severity": "medium",
+   "related": [
+    "BUD-06",
+    "HIST-02"
+   ],
+   "signal_id": null,
+   "pack": "pm",
+   "file": "packs/pm/checks/vendors-and-third-parties.yaml"
+  },
+  {
+   "id": "VEN-04",
+   "title": "Supplier work with no acceptance or handover terms",
+   "kind": "delivery",
+   "concern": "vendors-and-third-parties",
+   "question": "If an outside supplier builds part of the solution, does their contract say what \"done\" means (tested, reconciled, documented), how it is accepted, who fixes defects after go-live and for how long, and what knowledge they must hand over? When the supplier's contract ends at go-live, who fixes the first broken load?",
+   "why": "The supplier was paid on delivery of the pipelines. Their contract ended at go-live, the first month-end load failed, and the internal team had no documentation and no right to ask the supplier back.",
+   "applies": {
+    "kind": [
+     "any"
+    ],
+    "components": [
+     "any"
+    ],
+    "patterns": [
+     "any"
+    ]
+   },
+   "owner": "project-manager",
+   "also": [
+    "technical-anchor",
+    "operations"
+   ],
+   "evidence": {
+    "docs": [
+     "plan",
+     "runbook"
+    ],
+    "looks_like": "A statement of work with acceptance criteria tied to tests and reconciliation, a warranty period that covers the first month-end, and handover deliverables with dates."
+   },
+   "signals": [
+    "Supplier deliverables are described as code or pipelines, with no tests or documents.",
+    "The supplier's contract ends on or before the go-live date.",
+    "No warranty or defect-fix period is mentioned."
+   ],
+   "contradiction": "Compare the supplier's end date with the plan's early-life support period: a supplier who leaves before support ends leaves the defects behind.",
+   "due": {
+    "plan": 3,
+    "designed": 4,
+    "evidenced": 9
+   },
+   "fail_fast": "Read the supplier's acceptance and end-date clauses against the go-live and month-end dates this week.",
+   "severity": "medium",
+   "related": [
+    "HAND-03",
+    "HAND-06",
+    "PM-16"
+   ],
+   "signal_id": null,
+   "pack": "pm",
+   "file": "packs/pm/checks/vendors-and-third-parties.yaml"
   },
   {
    "id": "COST-01",

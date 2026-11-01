@@ -1,0 +1,136 @@
+# Delivery checks: vendors and third parties. Internal source teams, source system vendors and delivery
+# suppliers each have their own priorities, release calendars and contracts. These checks treat them as
+# dependencies with dates and terms, not as people who will help when asked.
+
+- id: VEN-01
+  title: Source-side changes not on the source team's plan
+  kind: delivery
+  concern: vendors-and-third-parties
+  question: >-
+    For each change the project needs from a source (a new extract, a new field, change tracking switched on,
+    a service account, a firewall rule), is it on the source team's or vendor's own plan, with a release date,
+    a named contact and an escalation route? If the source team's next release slot is in four months, when
+    will we find out?
+  why: >-
+    The project needed change tracking switched on in the source database. The source team agreed in a
+    meeting, but their releases were quarterly and the next slot was full, so the build waited three months.
+  applies: {kind: [any], components: [ingestion], patterns: [any]}
+  owner: project-manager
+  also: [source-owner, technical-anchor]
+  evidence:
+    docs: [raid, plan]
+    looks_like: >-
+      A list of source-side changes, each with the item reference on the source team's own plan, the release
+      date they committed to, a named contact and the person to escalate to.
+  signals:
+    - Source changes appear in the architecture but not as dependencies in the RAID log.
+    - Dependencies on source teams have no date, or a date the source team has not confirmed.
+    - No mention of the source team's release calendar or change freezes.
+  contradiction: >-
+    Compare the architecture's needs from each source with the RAID log's dependencies: a change the design
+    needs that is not on the source team's plan is a date nobody has promised.
+  due: {plan: 3, designed: 4, evidenced: 5}
+  fail_fast: >-
+    Ask each source team for the reference number of the project's request on their own plan, and its release date.
+  severity: high
+  related: [PM-01, HIST-02, SCH-03]
+  signal_id: null
+
+- id: VEN-02
+  title: No agreement on how data is delivered
+  kind: delivery
+  concern: vendors-and-third-parties
+  question: >-
+    Is there a written agreement with each source team or external supplier on what they deliver: by what
+    time, in what format, how complete, how a late or broken delivery is reported and fixed, and in which
+    support hours? When the file is late at 6 a.m., what does the agreement say happens?
+  why: >-
+    An external partner sent a daily file "in the morning". Some days it came at nine, some days at two, and
+    the reports promised for eight o'clock were wrong half the week with nothing in writing to point to.
+  applies: {kind: [any], components: [ingestion], patterns: [file, api, database, cdc]}
+  owner: project-manager
+  also: [source-owner, technical-anchor, operations]
+  evidence:
+    docs: [stakeholders, runbook]
+    looks_like: >-
+      A delivery agreement or contract schedule per source: delivery time, format, completeness check, notice
+      of change, support hours, contact and escalation, and what happens when it is missed.
+  signals:
+    - Source delivery times written as "daily" or "overnight" with no clock time.
+    - No support hours or contacts for external sources.
+    - Freshness promised to users is tighter than anything a source has agreed to.
+  contradiction: >-
+    Compare the freshness promised to consumers with the delivery times agreed with sources: a report
+    promised at 8 a.m. from a source that only promises "the morning" cannot keep its promise.
+  due: {plan: 4, designed: 6, evidenced: 8}
+  fail_fast: >-
+    Ask each source owner to state the latest time they will deliver and what they do when they cannot.
+  severity: high
+  related: [SERV-01, SCH-03, PERF-02, DQ-04]
+  signal_id: null
+
+- id: VEN-03
+  title: Licences and contract terms for getting the data
+  kind: delivery
+  concern: vendors-and-third-parties
+  question: >-
+    Do the contracts with source system vendors allow the project to extract the data in the way and volume
+    the design needs, and are the licences for every tool and user covered? Which clause will we discover the
+    week before go-live?
+  why: >-
+    The design pulled history through the vendor's interface. The contract capped calls per day and charged
+    for bulk export, which nobody had read, so the history load needed a new commercial agreement.
+  applies: {kind: [any], components: [ingestion, serving, platform], patterns: [any]}
+  owner: project-manager
+  also: [source-owner, business-owner, security]
+  evidence:
+    docs: [raid, architecture]
+    looks_like: >-
+      A note per vendor source and tool of the contract terms checked (extract rights, call limits, export
+      fees, data use), the licence count needed against the count owned, and who checked it.
+  signals:
+    - Vendor-hosted sources in the architecture with no mention of contract terms or limits.
+    - Licences for report users or tools are not mentioned in the budget.
+    - The number of users planned is larger than the licences held, or the count is unknown.
+  contradiction: >-
+    Compare the history load and refresh approach in the architecture with the vendor's stated limits: a
+    design that needs more calls or bulk export than the contract allows will be stopped.
+  due: {plan: 3, evidenced: 4}
+  fail_fast: >-
+    Send the vendor the planned extract approach and volumes and ask them to confirm it is allowed at no extra cost.
+  severity: medium
+  related: [BUD-06, HIST-02]
+  signal_id: null
+
+- id: VEN-04
+  title: Supplier work with no acceptance or handover terms
+  kind: delivery
+  concern: vendors-and-third-parties
+  question: >-
+    If an outside supplier builds part of the solution, does their contract say what "done" means (tested,
+    reconciled, documented), how it is accepted, who fixes defects after go-live and for how long, and what
+    knowledge they must hand over? When the supplier's contract ends at go-live, who fixes the first broken load?
+  why: >-
+    The supplier was paid on delivery of the pipelines. Their contract ended at go-live, the first month-end
+    load failed, and the internal team had no documentation and no right to ask the supplier back.
+  applies: {kind: [any], components: [any], patterns: [any]}
+  owner: project-manager
+  also: [technical-anchor, operations]
+  evidence:
+    docs: [plan, runbook]
+    looks_like: >-
+      A statement of work with acceptance criteria tied to tests and reconciliation, a warranty period that
+      covers the first month-end, and handover deliverables with dates.
+  signals:
+    - Supplier deliverables are described as code or pipelines, with no tests or documents.
+    - The supplier's contract ends on or before the go-live date.
+    - No warranty or defect-fix period is mentioned.
+  contradiction: >-
+    Compare the supplier's end date with the plan's early-life support period: a supplier who leaves before
+    support ends leaves the defects behind.
+  due: {plan: 3, designed: 4, evidenced: 9}
+  fail_fast: >-
+    Read the supplier's acceptance and end-date clauses against the go-live and month-end dates this week.
+  severity: medium
+  related: [HAND-03, HAND-06, PM-16]
+  signal_id: null

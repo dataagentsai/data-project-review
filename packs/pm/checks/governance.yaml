@@ -1,0 +1,199 @@
+# Delivery checks: governance. Who steers the project, which gates it passes and on what evidence, how a
+# blocker climbs to someone who can remove it, which outside boards must approve it, and whether lessons are
+# learned while they can still help. Decision ownership for individual decisions is STK-02.
+
+- id: GOV-01
+  title: A steering group that cannot decide
+  kind: delivery
+  concern: governance
+  question: >-
+    Does the steering group include people who can decide on money, scope and dates, plus the owners of the
+    data and the platform the project depends on, and is it written down what it decides and how often it
+    meets? When the project needs a yes on extra budget or a later date, will the people in the room be able to give it?
+  why: >-
+    The steering group was the project team's managers. When the source team refused to change their extract,
+    nobody in the room had authority over them, and the issue went round the meeting for two months.
+  applies: {kind: [any], components: [any], patterns: [any]}
+  owner: project-manager
+  also: [business-owner]
+  evidence:
+    docs: [stakeholders, status]
+    looks_like: >-
+      Short terms of reference: members by name, what the group decides (budget, scope, dates, go-live), how
+      often it meets, and attendance records showing the deciders actually came.
+  signals:
+    - No steering group or terms of reference is written down.
+    - Members are all from the delivery side, with no data owner, source owner or budget holder.
+    - Steering notes record updates but no decisions.
+  contradiction: >-
+    Compare the steering membership with the RAID log's biggest dependencies and issues: an issue owned by a
+    team nobody on the steering group can direct will not be solved there.
+  due: {plan: 3, evidenced: 4}
+  fail_fast: >-
+    Take the top open issue to the next steering meeting and see whether anyone there can decide it.
+  severity: high
+  related: [STK-02, GOV-03]
+  signal_id: null
+
+- id: GOV-02
+  title: Stage gates with no exit criteria
+  kind: delivery
+  concern: governance
+  question: >-
+    Do discovery sign-off, production sign-off and project sign-off each have written exit criteria and the
+    evidence each needs (for example reconciled numbers, clean runs, an accepted support model, measured
+    benefits), agreed before the gate? At each gate, are we deciding on evidence or on the calendar?
+  why: >-
+    Production sign-off was a meeting on the planned date. It was signed with reconciliation still failing for
+    two regions, and the project team was released, so the differences were never explained.
+  applies: {kind: [any], components: [any], patterns: [any]}
+  owner: project-manager
+  also: [business-owner, technical-anchor, operations]
+  evidence:
+    docs: [plan, decisions]
+    looks_like: >-
+      For each gate, a short list of exit criteria with the document or test result that proves each one,
+      who signs, and the possible outcomes (go, go with conditions, stop).
+  signals:
+    - Gates appear in the plan as dates only.
+    - Production or project sign-off has no criteria, or criteria such as "all work complete".
+    - Sign-off records do not mention which criteria were met.
+  contradiction: >-
+    Compare each gate's sign-off record with its exit criteria and the evidence available on that date: a gate
+    signed while a criterion was unmet was passed on the date, not the evidence.
+  due: {plan: 3, designed: 4, evidenced: 9, proven: 10}
+  fail_fast: >-
+    Write the production sign-off criteria now and check which of them the project could meet today.
+  severity: high
+  related: [PM-09, HAND-06, REC-04]
+  signal_id: null
+
+- id: GOV-03
+  title: Escalation with no time limits
+  kind: delivery
+  concern: governance
+  question: >-
+    Is there a written escalation path for blockers, saying how long a problem may stay at each level before it
+    goes to the next, up to someone who can direct other teams? How many days can a blocked access request or a
+    source team's refusal sit before the sponsor hears about it?
+  why: >-
+    A firewall change was blocked for seven weeks. The team kept chasing it politely, nobody had said when to
+    escalate, and the sponsor learned of it when the date slipped.
+  applies: {kind: [any], components: [any], patterns: [any]}
+  owner: project-manager
+  also: [business-owner, technical-anchor]
+  evidence:
+    docs: [stakeholders, raid]
+    looks_like: >-
+      An escalation path with levels, named people and time limits (for example three working days at team
+      level, a week at project manager level, then the steering group), and issues in the RAID log showing when
+      they were escalated.
+  signals:
+    - Escalation described as "raise with management" with no names or times.
+    - Issues in the RAID log open for weeks with no record of escalation.
+    - Dependencies on other teams have slipped more than once with no escalation.
+  contradiction: >-
+    Compare the age of open issues in the RAID log with the escalation time limits: an issue older than its
+    limit that was never escalated shows the path is not used.
+  due: {plan: 3, evidenced: 5}
+  fail_fast: >-
+    List every issue open longer than two weeks and escalate each one by Friday.
+  severity: medium
+  related: [COM-04, PM-10, GOV-01]
+  signal_id: null
+
+- id: GOV-04
+  title: Approval boards and their calendars not on the plan
+  kind: delivery
+  concern: governance
+  question: >-
+    Are the outside approvals the project needs (architecture review, security review, privacy assessment,
+    data sharing agreement, change board) listed with their meeting dates, what they need submitted and how long
+    they take? Which board meets monthly and has not yet heard of us?
+  why: >-
+    The privacy assessment had to be approved before personal data could be copied to the new platform. The
+    board met monthly, sent the first submission back, and the project lost two months it had not planned for.
+  applies: {kind: [any], components: [any], patterns: [any]}
+  owner: project-manager
+  also: [security, architect, technical-anchor]
+  evidence:
+    docs: [plan, raid]
+    looks_like: >-
+      A list of approvals with the board, its meeting calendar, the submission deadline, what it needs, the
+      usual number of rounds, and the plan tasks that wait on it.
+  signals:
+    - No approvals or review boards appear in the plan.
+    - Personal or sensitive data is in scope but no privacy assessment or data sharing agreement is mentioned.
+    - Approvals are planned in the same week the work that needs them starts.
+  contradiction: >-
+    Compare the architecture's personal data flows and platform changes with the plan's approvals: each one
+    that needs a board's approval, with no slot booked, is an unplanned wait.
+  due: {plan: 3, designed: 4, evidenced: 6}
+  fail_fast: >-
+    Ask security and the architecture board which approvals this project needs and the next date each one meets.
+  severity: high
+  related: [SEC-01, SEC-05, PM-01, STK-01]
+  signal_id: null
+
+- id: GOV-05
+  title: Conditions from a gate never closed
+  kind: delivery
+  concern: governance
+  question: >-
+    When a gate is passed "with conditions", is each condition written down with an owner and a date, and
+    checked at the next gate? Which condition from discovery sign-off is still open, and does anyone remember it?
+  why: >-
+    Discovery was approved on condition that the source owner confirmed delete handling. Nobody tracked the
+    condition, it was never confirmed, and deleted orders were still counted in production.
+  applies: {kind: [any], components: [any], patterns: [any]}
+  owner: project-manager
+  also: [business-owner, technical-anchor]
+  evidence:
+    docs: [decisions, raid]
+    looks_like: >-
+      Each gate condition recorded as an action in the RAID log with owner and date, and the next gate's pack
+      showing the state of every earlier condition.
+  signals:
+    - Sign-off records say "approved with conditions" or "subject to" with no list of conditions.
+    - Conditions from an earlier gate are not mentioned in later status reports or gate packs.
+  contradiction: >-
+    Compare the conditions in each sign-off record with the RAID log: a condition that never became a tracked
+    action has been forgotten.
+  due: {plan: 4, evidenced: 9}
+  fail_fast: >-
+    Read the last sign-off record and list every condition with its owner and current state.
+  severity: medium
+  related: [GOV-02, STK-05, COM-03]
+  signal_id: null
+
+- id: GOV-06
+  title: Lessons captured only at the end
+  kind: delivery
+  concern: governance
+  question: >-
+    Are lessons gathered at each gate and after each MVP, with an action that changes how the next stage is
+    run? If the same data surprise hits MVP 2 that hit MVP 1, will anyone have written down how to avoid it?
+  why: >-
+    The first MVP lost three weeks to late source access. The lessons review was held at project closure, so
+    MVP 2 and MVP 3 lost the same three weeks for the same reason.
+  applies: {kind: [any], components: [any], patterns: [any]}
+  owner: project-manager
+  also: [technical-anchor, business-analyst]
+  evidence:
+    docs: [status, plan]
+    looks_like: >-
+      A short lessons list after each gate and MVP: what happened, what we will do differently, the owner of
+      that change, and evidence in the next stage's plan that it was done.
+  signals:
+    - The only lessons review in the plan is at project closure.
+    - The same kind of issue appears in the RAID log for more than one MVP.
+    - Lessons are listed with no action or owner.
+  contradiction: >-
+    Compare the lessons from one stage with the plan for the next: a lesson with no matching change in the next
+    plan has not been learned.
+  due: {plan: 4, evidenced: 6, proven: 10}
+  fail_fast: >-
+    Spend fifteen minutes at the next retrospective on one question: what will we change for the next MVP?
+  severity: low
+  related: [PM-02, EST-06]
+  signal_id: null

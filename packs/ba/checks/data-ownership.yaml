@@ -1,0 +1,102 @@
+# Delivery checks: data ownership and stewardship.
+# Every data domain, definition and mapping needs a named business person who answers for it and approves changes.
+
+- id: OWN-01
+  title: No named business owner for each data domain
+  kind: delivery
+  concern: data-ownership
+  question: >-
+    For each data domain the project uses (customer, product, finance, employee), is there a named business
+    person who decides what the data means, what good quality is, and who may use it? When the team has a
+    question about a field, who answers, and how long does it take?
+  why: >-
+    Product data had no business owner. Every question about categories went to the source system's
+    technical team, who did not know, and the product hierarchy was argued about until the week before go-live.
+  applies: {kind: [any], components: [any], patterns: [any]}
+  owner: business-analyst
+  also: [business-owner, security]
+  evidence:
+    docs: [stakeholders, data-model]
+    looks_like: >-
+      A table of data domains, each with a named business owner, a day-to-day steward if different, what
+      they decide, and their agreement to the role.
+  signals:
+    - Data owners are listed as teams or systems rather than people.
+    - The technical owner of a source system is named as the owner of the business meaning of its data.
+    - Some domains in scope have no owner, or the owner is "to be confirmed".
+  contradiction: >-
+    Compare the data domains in the data model with the stakeholder map: a domain whose owner is not on the
+    stakeholder map will not be consulted when its meaning is decided.
+  due: {plan: 3, designed: 4}
+  fail_fast: >-
+    List the domains and ask the sponsor to put one name against each in a ten-minute call, then ask each
+    named person to confirm.
+  severity: high
+  related: [STK-02, DATA-01, OWN-02]
+  signal_id: null
+
+- id: OWN-02
+  title: Nobody approves changes to a definition
+  kind: delivery
+  concern: data-ownership
+  question: >-
+    After go-live, who may change a business definition or rule, how is the change requested, who approves
+    it, and how are users told that past figures will move? When a manager asks the team to "just exclude"
+    something, who has to say yes first?
+  why: >-
+    A regional director asked a developer to exclude one large customer from the margin report. The change
+    went in quietly, the group margin moved, and finance found out when the board asked why.
+  applies: {kind: [any], components: [modelling, serving, governance], patterns: [any]}
+  owner: business-analyst
+  also: [business-owner, data-consumer, operations]
+  evidence:
+    docs: [decisions, runbook]
+    looks_like: >-
+      A definition change process: who can request, who approves (the definition's owner), how other users
+      are consulted, how the change is versioned and dated, and how users are told.
+  signals:
+    - Definitions have owners but no process for changing them.
+    - The support model handles technical changes but says nothing about changes to meaning.
+    - Change requests to metrics go straight to developers.
+  contradiction: >-
+    Compare the definition owners in the data model with the support model's change process: if the support
+    model lets the team change logic without the definition owner's approval, ownership exists only on paper.
+  due: {plan: 4, designed: 6}
+  fail_fast: >-
+    Ask the support lead: "If a director asks you tomorrow to change how revenue is counted, what do you do?"
+  severity: medium
+  related: [REQ-03, SERV-03, MET-02, REQ-10]
+  signal_id: null
+
+- id: OWN-03
+  title: Mappings and hierarchies with no business maintainer
+  kind: delivery
+  concern: data-ownership
+  question: >-
+    Who in the business maintains the mappings and hierarchies the reports depend on (product to category,
+    store to region, account to reporting line, cost centre to department), how do they change them, and how
+    quickly? When a new product or store appears, who notices it is unmapped?
+  why: >-
+    New products launched every month. The mapping to categories lived in a spreadsheet the analyst who left
+    had maintained, so new products fell into "unknown" and the category report drifted away from reality.
+  applies: {kind: [any], components: [transformation, modelling, governance], patterns: [any]}
+  owner: business-analyst
+  also: [data-consumer, operations]
+  evidence:
+    docs: [requirements, runbook]
+    looks_like: >-
+      A list of business-maintained mappings and hierarchies, each with a named maintainer, where it is
+      edited, how often it changes, and what happens to records that are not yet mapped.
+  signals:
+    - Mappings or hierarchies are described as "reference data" with no owner.
+    - Mappings are kept in personal spreadsheets or e-mailed files.
+    - Nothing says what happens to a new code that is not in the mapping.
+  contradiction: >-
+    Compare the reference data in the data model with the support model: a mapping the reports depend on that
+    no one in the support model maintains will go stale.
+  due: {plan: 3, designed: 5, evidenced: 7}
+  fail_fast: >-
+    Count how many codes in last month's source data are missing from today's mapping, and ask who would fix them.
+  severity: medium
+  related: [OWN-01, RULE-02, CUR-04]
+  signal_id: null

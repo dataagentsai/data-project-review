@@ -1,0 +1,71 @@
+# Delivery checks: consumers and use.
+# Who will use the data, through which channel, and what they expect to do with it themselves.
+# SERV-01 (tech) is the contract with each consumer; these checks make sure every consumer is found first.
+
+- id: USE-01
+  title: Not every consumer and channel named
+  kind: delivery
+  concern: consumers-and-use
+  question: >-
+    Is every consumer of the output named, with the channel they use (dashboard, scheduled extract, file to a
+    partner, application interface, machine learning model, AI assistant answering questions) and what each
+    needs from it? Who will turn up at go-live asking where their feed is?
+  why: >-
+    The project built dashboards for the sales team. Two weeks before go-live the pricing team said their
+    model read a nightly extract from the old system, which nobody had listed, and the cut-over was postponed.
+  applies: {kind: [any], components: [serving], patterns: [any]}
+  owner: business-analyst
+  also: [data-consumer, technical-anchor]
+  evidence:
+    docs: [requirements, stakeholders]
+    looks_like: >-
+      A consumer list: one row per consumer or channel with who they are, how they receive the data, what
+      data and grain they need, how fresh, and any needs such as languages, accessibility or mobile use.
+  signals:
+    - Requirements describe only dashboards or reports, with no extracts, interfaces, models or assistants.
+    - Downstream systems that read today's data are not listed.
+    - Consumers are named as "the business" or "users" without groups.
+  contradiction: >-
+    Compare the consumer list in the requirements with the outputs drawn in the architecture: an output with
+    no named consumer is unowned work, and a consumer with no output will be missed at go-live.
+  due: {plan: 3, designed: 4}
+  fail_fast: >-
+    Ask the source and current-report owners for the list of everyone who receives or queries today's data,
+    and check each one against the requirements.
+  severity: high
+  related: [SERV-01, REQ-05, CUR-01, RLC-05]
+  signal_id: null
+
+- id: USE-02
+  title: Self-service expectations not stated
+  kind: delivery
+  concern: consumers-and-use
+  question: >-
+    Does the business expect users to build their own reports and answer their own questions, and if so,
+    which users, with what skills, on which data, with what training and support? If users say at go-live
+    "we thought we could build our own", will that be in scope?
+  why: >-
+    The sponsor expected analysts to explore the data freely. The team built fixed reports only, with no
+    documented model for users to build on, and the analysts went back to exporting to spreadsheets.
+  applies: {kind: [any], components: [serving, modelling], patterns: [any]}
+  owner: business-analyst
+  also: [business-owner, data-consumer]
+  evidence:
+    docs: [requirements, discovery]
+    looks_like: >-
+      A clear statement of who will only read reports and who will build their own, what data the builders
+      may use, what training and documentation they will get, and who supports them.
+  signals:
+    - Words such as "self-service", "explore" or "ad hoc" appear with no named users or scope.
+    - No training, documentation or support for business users is in the plan.
+    - The out-of-scope list says nothing about self-service.
+  contradiction: >-
+    Compare the self-service promises in the discovery document with the plan and handover: self-service
+    promised but no user documentation, training or support planned will not happen.
+  due: {plan: 3, designed: 4}
+  fail_fast: >-
+    Ask the sponsor to name three people who will build their own reports, and ask those three what they
+    plan to build.
+  severity: medium
+  related: [USE-01, SCOPE-01]
+  signal_id: null

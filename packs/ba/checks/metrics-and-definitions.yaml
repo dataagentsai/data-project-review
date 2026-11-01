@@ -1,0 +1,142 @@
+# Delivery checks: metrics and definitions.
+# REQ-03 asks that definitions are agreed and signed. These checks ask whether each definition is complete
+# enough to build and test, whether departments disagree, and whether the words are kept in one glossary.
+
+- id: MET-01
+  title: Metric defined by name, not by formula
+  kind: delivery
+  concern: metrics-and-definitions
+  question: >-
+    Does every key metric have a complete definition: the formula, what is included and excluded, the grain,
+    which date puts it in a period, the calendar used, the currency or unit and how amounts are converted?
+    If two developers built it separately from the definition, would they get the same number?
+  why: >-
+    "Net sales" was defined as "sales minus returns". It did not say whether tax, discounts or shipping were
+    included, or which exchange rate applied, so the number came out three different ways in three reports.
+  applies: {kind: [any], components: [modelling, serving], patterns: [any]}
+  owner: business-analyst
+  also: [data-consumer, technical-anchor, test-lead]
+  evidence:
+    docs: [data-model, requirements]
+    looks_like: >-
+      A definition card per metric: formula, inclusions and exclusions, grain, the date that decides the
+      period, calendar (fiscal or calendar), currency or unit and conversion rule, a worked example with real
+      numbers, an owner and a sign-off date.
+  signals:
+    - Metrics are listed by name with a one-line description and no formula.
+    - Definitions never mention tax, discounts, returns, cancellations, test accounts or currency.
+    - No metric has a worked example with numbers.
+  contradiction: >-
+    Compare the metric definitions in the data model with the calculations described in report
+    specifications or test cases: a calculation that adds a filter or rule the definition does not have
+    means the definition is incomplete.
+  due: {plan: 3, designed: 4, evidenced: 7}
+  fail_fast: >-
+    Give the definition of one key metric to two people separately, ask each to calculate it from the same
+    sample, and compare.
+  severity: high
+  related: [REQ-03, SERV-04, MET-02]
+  signal_id: null
+
+- id: MET-02
+  title: Conflicting definitions across departments left hidden
+  kind: delivery
+  concern: metrics-and-definitions
+  question: >-
+    Have the departments that use the same term (customer, revenue, headcount, active) been asked for their
+    definition, and are the differences written down and resolved, either into one definition or into
+    clearly different names? When sales and finance show different numbers for the same word, has that
+    argument already happened?
+  why: >-
+    Marketing counted an active customer as anyone who opened an email in ninety days; finance as anyone who
+    paid in twelve months. The dashboard used finance's rule, marketing stopped trusting it, and built
+    their own.
+  applies: {kind: [any], components: [modelling, serving], patterns: [any]}
+  owner: business-analyst
+  also: [business-owner, data-consumer]
+  evidence:
+    docs: [data-model, decisions]
+    looks_like: >-
+      For each shared term, the definition each department uses today, the differences, and the decision:
+      one shared definition, or separate named measures (for example "booked revenue" and "invoiced revenue").
+  signals:
+    - Only one department was consulted on definitions that several departments use.
+    - The same word appears in requirements from different teams with no note on whether it means the same.
+    - No decision log entry records a resolved definition conflict.
+  contradiction: >-
+    Compare the stakeholder map with the definition sign-offs: a department that uses a term but did not
+    sign its definition has not agreed to it.
+  due: {plan: 3, designed: 4}
+  fail_fast: >-
+    Email the top five terms to one person in each department that uses them, ask for their definition in
+    one sentence, and put the answers side by side.
+  severity: high
+  related: [REQ-03, STK-04, OWN-02]
+  signal_id: null
+
+- id: MET-03
+  title: No business glossary
+  kind: delivery
+  concern: metrics-and-definitions
+  question: >-
+    Is there one glossary of the business terms used in the requirements, reports and data model, each with
+    a plain definition and an owner, kept where users and the team both look? When a new analyst asks what a
+    term means, is there one place to point them?
+  why: >-
+    Three documents used "order", "booking" and "sale" for overlapping things. The developers treated them as
+    the same, the users did not, and the confusion only came out in user testing.
+  applies: {kind: [any], components: [modelling, serving, governance], patterns: [any]}
+  owner: business-analyst
+  also: [data-consumer, technical-anchor]
+  evidence:
+    docs: [data-model, requirements]
+    looks_like: >-
+      A glossary listing each business term, its plain definition, synonyms people use, the owner, and the
+      fields or metrics it maps to.
+  signals:
+    - Requirements use several words for what may be the same thing (order, booking, sale).
+    - Abbreviations and internal jargon appear with no definition.
+    - The data dictionary describes columns but not business terms.
+  contradiction: >-
+    Compare the words used in the requirements with the names in the data model: a business term with no
+    match in the model, or a model name no business person would recognise, shows the two speak different languages.
+  due: {plan: 3, designed: 5}
+  fail_fast: >-
+    List every noun in the top ten requirements and ask the business owner which are the same thing.
+  severity: medium
+  related: [MET-01, HAND-02]
+  signal_id: null
+
+- id: MET-04
+  title: Totals that cannot simply be added up
+  kind: delivery
+  concern: metrics-and-definitions
+  question: >-
+    For each metric that is a count of distinct things, a ratio, an average, a percentage or a balance at a
+    point in time, has the business said how it rolls up across days, regions and products? When a user adds
+    up the regional figures and gets a different total, will the definition explain why?
+  why: >-
+    Daily unique customers were summed to give a monthly figure, counting a customer who bought on ten days
+    ten times. Margin percentages were averaged instead of recalculated. Both errors reached the board pack.
+  applies: {kind: [any], components: [modelling, serving], patterns: [any]}
+  owner: business-analyst
+  also: [data-consumer, technical-anchor, test-lead]
+  evidence:
+    docs: [data-model, requirements]
+    looks_like: >-
+      Each metric marked as additive, partly additive (for example a stock balance that adds across stores
+      but not across days) or not additive, with the rule for totals and a worked example.
+  signals:
+    - Ratios, averages, distinct counts or balances are defined with no rule for totals.
+    - Requirements ask for the same metric "by day, week and month" with no word on how it rolls up.
+    - Test cases check only the lowest level, not totals.
+  contradiction: >-
+    Compare the metric definitions with the report designs: a report that shows totals or subtotals for a
+    metric with no roll-up rule will show a number nobody defined.
+  due: {plan: 3, designed: 4, evidenced: 7}
+  fail_fast: >-
+    For each ratio or distinct count, calculate the monthly total two ways on a real sample and show the
+    business owner the difference.
+  severity: medium
+  related: [MET-01]
+  signal_id: null

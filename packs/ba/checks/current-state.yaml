@@ -1,0 +1,146 @@
+# Delivery checks: current state and the problem.
+# Before designing the new numbers, know how the business gets the numbers today and what it does with them.
+
+- id: CUR-01
+  title: The current process and reports not written down
+  kind: delivery
+  concern: current-state
+  question: >-
+    Is the way the business produces this information today written down: which reports, spreadsheets,
+    extracts and manual steps, who runs them, how often, and who reads them? If an old report keeps being
+    used after go-live, will it be one we never knew existed?
+  why: >-
+    The project replaced the monthly sales pack. Nobody had mapped the twelve spreadsheets that fed it, and
+    one of them carried a manual rebate adjustment, so the new numbers were wrong by exactly that amount and
+    the old pack stayed in use.
+  applies: {kind: [any], components: [modelling, serving], patterns: [any]}
+  owner: business-analyst
+  also: [data-consumer, business-owner]
+  evidence:
+    docs: [discovery, requirements]
+    looks_like: >-
+      A current-state inventory: one row per report, spreadsheet or extract being replaced, with its
+      producer, frequency, readers, the sources it pulls from and the manual steps in between.
+  signals:
+    - The discovery document describes the future solution but has no "current state" or "as is" section.
+    - Reports to be replaced are mentioned by name only, with no producer, frequency or readers.
+    - Phrases such as "replaces existing reporting" with no list of what that reporting is.
+  contradiction: >-
+    Compare the current-state inventory in the discovery document with the in-scope list: a report or
+    spreadsheet in use today that is neither replaced nor declared out of scope will keep running beside
+    the new system.
+  due: {plan: 3, designed: 4}
+  fail_fast: >-
+    Sit for one hour with the person who produces today's main report and write down every step, file and
+    manual change they make.
+  severity: high
+  related: [CUR-02, CUR-04, RLC-03]
+  signal_id: null
+
+- id: CUR-02
+  title: The number the business trusts today not identified
+  kind: delivery
+  concern: current-state
+  question: >-
+    For each key figure, which report or person does the business trust today, and has the business agreed
+    that the new system will be judged against it? When the new number differs from the old one, who will
+    decide which is wrong?
+  why: >-
+    The new revenue figure was two per cent lower than finance's ledger. Nobody had agreed in advance that
+    the ledger was the reference, so three weeks were lost arguing about whose number was right before
+    anyone looked for the cause.
+  applies: {kind: [any], components: [modelling, serving], patterns: [any]}
+  owner: business-analyst
+  also: [business-owner, data-consumer, test-lead]
+  evidence:
+    docs: [requirements, test-strategy]
+    looks_like: >-
+      For each key figure, the trusted reference (report, ledger, application screen), who owns it, a sample
+      value for a known period, and whether the business believes that reference is itself correct.
+  signals:
+    - No reference report or trusted figure is named anywhere in the requirements or test strategy.
+    - The requirements say the new figures must be "accurate" or "correct" without saying compared with what.
+    - The trusted figure is named but nobody has captured a value for a known period.
+  contradiction: >-
+    Compare the requirements with the test strategy: if the requirements name a trusted report but the
+    reconciliation tests compare against something else, or nothing, acceptance will be argued, not tested.
+  due: {plan: 3, designed: 4, evidenced: 7}
+  fail_fast: >-
+    Ask the business owner for last month's value of the top three figures and where they got it, and store
+    the screenshots with the requirements.
+  severity: high
+  related: [REC-02, TEST-04, UAT-01]
+  signal_id: null
+
+- id: CUR-03
+  title: Decisions the data will drive not named
+  kind: delivery
+  concern: current-state
+  question: >-
+    Which decisions will people make with this data, how often, and what do they do today instead? If the
+    project delivers every table and report on time but nothing changes in the business, will it be because
+    nobody said which decision it was for?
+  why: >-
+    The team built a full customer model because "the business needs a single view of the customer". The
+    one decision it was actually needed for, which customers to call each Monday, required a field that was
+    never captured.
+  applies: {kind: [any], components: [any], patterns: [any]}
+  owner: business-analyst
+  also: [business-owner, data-consumer]
+  evidence:
+    docs: [discovery, requirements]
+    looks_like: >-
+      A short list of decisions, each with who makes it, how often, what information they need to make it,
+      what they use today, and what is painful about that.
+  signals:
+    - Requirements list data and reports but never the decision or action they support.
+    - The problem statement is about technology ("legacy reporting", "move to the cloud") rather than a
+      business pain.
+    - Words such as "insight", "visibility" or "single view" appear without a named decision.
+  contradiction: >-
+    Compare the decisions in the discovery document with the freshness and grain in the requirements: a
+    daily decision served by monthly data, or a decision about individual customers served by totals, means
+    the two were not connected.
+  due: {plan: 1, designed: 3}
+  fail_fast: >-
+    Ask three intended users: "What will you do differently on the day this is live?" and write the answers
+    against the requirements.
+  severity: high
+  related: [REQ-07, REQ-05, DATA-04]
+  signal_id: null
+
+- id: CUR-04
+  title: Manual adjustments hidden in today's numbers
+  kind: delivery
+  concern: current-state
+  question: >-
+    Do today's trusted figures include manual adjustments, hand-kept mappings, overrides or exclusions that
+    live in someone's spreadsheet or head, and has each one been listed with a decision to automate it,
+    keep it manual, or drop it? If the new numbers never match the old ones, will it be because of a
+    correction nobody told us about?
+  why: >-
+    Each month an analyst removed two intercompany customers and reclassified a product line by hand before
+    the board pack went out. The new system did neither, and it took a month of reconciliation to find out why.
+  applies: {kind: [any], components: [transformation, modelling], patterns: [any]}
+  owner: business-analyst
+  also: [data-consumer, technical-anchor]
+  evidence:
+    docs: [discovery, requirements]
+    looks_like: >-
+      A list of every manual adjustment, override, exclusion and hand-kept mapping in today's process, with
+      its size, who makes it, why, and whether the new system will automate it, keep it as a governed manual
+      input, or stop it.
+  signals:
+    - The current state is described as "extracted from the source system" with no manual steps.
+    - Spreadsheets are mentioned as inputs to today's report with no description of what they change.
+    - No requirement covers manual inputs, overrides or exclusions.
+  contradiction: >-
+    Compare the current-state description with the business rules or data model: an adjustment people make
+    today that has no rule, no manual input and no "dropped" decision will show up as an unexplained difference.
+  due: {plan: 3, designed: 4}
+  fail_fast: >-
+    Take last month's trusted figure and the raw source total for the same period; ask the report owner to
+    explain the difference line by line.
+  severity: high
+  related: [CUR-01, CUR-02, RULE-01]
+  signal_id: null

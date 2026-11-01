@@ -1,0 +1,199 @@
+# Delivery checks: budget. The money side of the project: what the budget is based on, how spend is
+# tracked, who owns the running cost, the contingency, and what each change costs. Tech owns the effort
+# estimate (EST-*) and the running cost figures (COST-*); these checks own what the project does with them.
+
+- id: BUD-01
+  title: A budget with no basis
+  kind: delivery
+  concern: budget
+  question: >-
+    Can every line of the budget be traced to something written down: the estimate range and its assumptions,
+    day rates, environments, licences, running cost and contingency? If the budget runs out in month five,
+    will anyone be able to say which assumption it was built on?
+  why: >-
+    The budget was the number the sponsor had left at year end. It matched the low end of the rough estimate,
+    held no running cost and no history load, and was spent before the first report reached production.
+  applies: {kind: [any], components: [any], patterns: [any]}
+  owner: project-manager
+  also: [business-owner, technical-anchor]
+  evidence:
+    docs: [budget, estimate, plan]
+    looks_like: >-
+      A budget broken into people, environments, licences, external services, running cost during the
+      project and contingency, each line pointing to the estimate or a quote, with the estimate's range shown.
+  signals:
+    - The budget is one number with no breakdown.
+    - The budget matches the low end of the estimate range, or the rough estimate from before discovery.
+    - No line for running cost, environments or licences while the project is being built.
+  contradiction: >-
+    Compare the budget with the estimate: a budget below the estimate's likely figure, or built from an
+    earlier version of the estimate, is already overspent.
+  due: {plan: 2, designed: 4}
+  fail_fast: >-
+    Rebuild the budget from the current estimate's middle figure and put the gap, if any, in front of the sponsor.
+  severity: high
+  related: [EST-01, EST-02, BUD-04]
+  signal_id: null
+
+- id: BUD-02
+  title: Spend not tracked against the plan
+  kind: delivery
+  concern: budget
+  question: >-
+    Is actual spend compared with planned spend at least monthly, with a forecast of the total at completion?
+    If the money runs out early, will the status reports from three months before have shown it coming?
+  why: >-
+    Contractor invoices went straight to finance. The project manager saw the total only at quarter end,
+    when seventy percent of the budget was gone and forty percent of the work was done.
+  applies: {kind: [any], components: [any], patterns: [any]}
+  owner: project-manager
+  also: [business-owner]
+  evidence:
+    docs: [budget, status, plan]
+    looks_like: >-
+      A monthly table of planned spend, actual spend, forecast to complete and forecast at completion, set
+      against the share of work done, shown in the steering pack.
+  signals:
+    - Status reports mention dates and scope but never money.
+    - Spend is reported as a total so far, with no plan to compare it with and no forecast.
+    - The forecast at completion equals the budget in every report.
+  contradiction: >-
+    Compare spend in the status reports with progress against the estimate: money spent faster than work is
+    finished, while the forecast total never changes, means the forecast is not real.
+  due: {plan: 4, evidenced: 6}
+  fail_fast: >-
+    Divide spend so far by the share of work done and compare the answer with the budget today.
+  severity: high
+  related: [EST-06, PM-04]
+  signal_id: null
+
+- id: BUD-03
+  title: Nobody owns the running cost after go-live
+  kind: delivery
+  concern: budget
+  question: >-
+    Is the monthly cost of running the solution (compute, storage, licences, support) agreed with the person
+    whose budget will pay it, for this year and next? When the first production bill arrives, whose cost
+    centre is it charged to, and do they know?
+  why: >-
+    The project budget ended at go-live. The platform bill landed on the central data team, who had not
+    planned for it, and they switched off the hourly refresh to stay within their own budget.
+  applies: {kind: [any], components: [any], patterns: [any]}
+  owner: business-owner
+  also: [project-manager, technical-anchor, platform-team]
+  evidence:
+    docs: [discovery, plan]
+    looks_like: >-
+      The running cost figure from the technical estimate, a named budget owner who has accepted it, the
+      cost centre, and a forecast for the next two years that includes data growth.
+  signals:
+    - Running cost is described as "business as usual" or "absorbed by the platform".
+    - The business case shows build cost only.
+    - No named person has agreed to pay the running cost.
+  contradiction: >-
+    Compare the running cost estimate in the architecture or discovery document with the business case: a
+    business case without that cost overstates the return.
+  due: {plan: 3, designed: 4, evidenced: 9}
+  fail_fast: >-
+    Send the running cost figure to the person expected to pay it and ask them to confirm it in writing.
+  severity: high
+  related: [COST-01, COST-03, HAND-04]
+  signal_id: null
+
+- id: BUD-04
+  title: Contingency hidden or missing
+  kind: delivery
+  concern: budget
+  question: >-
+    Is contingency held as a separate, visible amount, sized to the riskiest assumptions, with a named person
+    who can release it and a record of each use? When the data turns out worse than profiled, where will the
+    money for fixing it come from?
+  why: >-
+    Every estimator padded their own numbers quietly. The padding was spent on gold-plating early on, and when
+    the history load needed three extra weeks there was nothing left and no one could approve more.
+  applies: {kind: [any], components: [any], patterns: [any]}
+  owner: project-manager
+  also: [business-owner, technical-anchor]
+  evidence:
+    docs: [budget, estimate, raid]
+    looks_like: >-
+      A contingency line linked to the top risks and assumptions, an owner who approves its use, and a log of
+      drawdowns showing what each one paid for.
+  signals:
+    - No contingency in the budget, or a flat percentage with no link to risks.
+    - Contingency described as "included in the estimates".
+    - The risk log has high risks with costly mitigations that no budget line pays for.
+  contradiction: >-
+    Compare the risk log with the budget: high risks whose mitigation costs money, with no contingency to
+    cover them, are unfunded risks.
+  due: {plan: 3, designed: 4, evidenced: 6}
+  fail_fast: >-
+    Price the mitigation of the top three risks and compare the total with the contingency held.
+  severity: medium
+  related: [BUD-01, PM-02, EST-03]
+  signal_id: null
+
+- id: BUD-05
+  title: Change requests with no cost
+  kind: delivery
+  concern: budget
+  question: >-
+    Does every change request show what it adds in build cost, running cost and time, before anyone decides?
+    If the project overspends, how much of it will be changes that were approved without a price?
+  why: >-
+    The business asked for the report to refresh hourly instead of daily. It was agreed in a demo as a small
+    change, and it tripled the monthly compute bill and added two weeks of testing nobody had priced.
+  applies: {kind: [any], components: [any], patterns: [any]}
+  owner: project-manager
+  also: [business-owner, technical-anchor]
+  evidence:
+    docs: [decisions, status]
+    looks_like: >-
+      A change log where each entry shows the build effort, the change to running cost, the effect on the
+      date and the decider, with a running total of approved changes against contingency.
+  signals:
+    - Change records that state the request and the decision but not the cost.
+    - Changes to freshness, history or volume approved without a running cost figure.
+    - No running total of the cost of approved changes.
+  contradiction: >-
+    Compare the change log with the budget and forecast: changes approved since the baseline, with a forecast
+    at completion that has not moved, means their cost was never added.
+  due: {plan: 4, evidenced: 6}
+  fail_fast: >-
+    Price the last three approved changes after the fact and add them to the forecast.
+  severity: medium
+  related: [SCOPE-03, COST-01]
+  signal_id: null
+
+- id: BUD-06
+  title: Costs that sit in other teams' budgets
+  kind: delivery
+  concern: budget
+  question: >-
+    Have the costs that land outside the project been found and agreed: the source team's work on a new
+    extract, a vendor's fee for an interface or bulk export, extra environments, and running the old system
+    during a parallel run? Who will refuse to pay for something the project cannot go live without?
+  why: >-
+    The source vendor charged for every change to the extract, and the source team had no budget for the
+    work. The project waited two months while the two managers argued over who would pay.
+  applies: {kind: [any], components: [ingestion, platform], patterns: [any]}
+  owner: project-manager
+  also: [source-owner, business-owner, platform-team]
+  evidence:
+    docs: [budget, plan, raid]
+    looks_like: >-
+      A list of costs the project causes in other teams or with vendors, with the amount, who pays, and the
+      date each was agreed.
+  signals:
+    - Source changes, vendor interfaces or extra environments appear in the architecture with no cost or payer.
+    - The old system's licence or support is due to end before the planned parallel run is over.
+    - Phrases such as "the source team will provide" with no mention of their budget.
+  contradiction: >-
+    Compare the architecture's list of source changes and environments with the budget: each one that needs
+    another team's work or a vendor's fee, with no agreed payer, is a stop waiting to happen.
+  due: {plan: 3, designed: 4}
+  fail_fast: >-
+    Ask each source owner and vendor whether the work the project needs from them is funded, and by whom.
+  severity: medium
+  related: [VEN-01, VEN-03, PM-15]
+  signal_id: null

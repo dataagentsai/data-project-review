@@ -83,5 +83,5 @@ some by vague words, some only visible when two documents disagree) and a few th
 must not flag. Claude reviews it blind; `scripts/score.py` reports how many gaps it caught and how many false
 alarms it raised. See `tests/RESULTS.md`.
 
-Status: v0.2, a working draft. Checks: BA 11, PM 27, Tech 91, Databricks 12; the BA and PM packs are being
-filled out next.
+Status: v0.3, a working draft. Checks: BA 43, PM 64, Tech 91, Databricks 12 (210). Next: the seam checks between
+disciplines in the conductor, then a second blind run and the first real project.

@@ -1,0 +1,244 @@
+# Delivery checks: data requirements.
+# The business side of what data is needed: which sources, at what grain, how much history, how fresh,
+# which system wins, and what happens when data is late or corrected. Tech checks cover how it is built.
+
+- id: DATA-01
+  title: Sources not named, each with an owner
+  kind: delivery
+  concern: data-requirements
+  question: >-
+    Is every source the requirements depend on named, with the system, the data needed from it, and a named
+    person who owns it and can answer questions about it? If a source turns out to be unavailable in the
+    build, will we find out then, or now?
+  why: >-
+    The requirements said "customer and order data". In the build the team learned that returns lived in a
+    separate warehouse system nobody had listed, owned by a team that had no time for the project that quarter.
+  applies: {kind: [any], components: [ingestion], patterns: [any]}
+  owner: business-analyst
+  also: [source-owner, technical-anchor]
+  evidence:
+    docs: [requirements, discovery]
+    looks_like: >-
+      A source list: one row per source with the system, the business data it provides, the requirements
+      that need it, the source owner's name, and whether access has been requested.
+  signals:
+    - Data needs are described as subjects ("customer data", "sales data") with no system named.
+    - Sources are listed without an owner, or with a team name instead of a person.
+    - A source appears in the architecture that is not in the requirements, or the reverse.
+  contradiction: >-
+    Compare the source list in the requirements with the sources drawn in the architecture: a source in one
+    and not the other is either unneeded work or a missing dependency.
+  due: {plan: 3, designed: 4}
+  fail_fast: >-
+    For each requirement, write the source system it comes from; any requirement you cannot fill in is a
+    gap to raise this week.
+  severity: high
+  related: [REQ-04, OWN-01]
+  signal_id: null
+
+- id: DATA-02
+  title: Grain the users need not compared with the grain the sources hold
+  kind: delivery
+  concern: data-requirements
+  question: >-
+    For each requirement, what level of detail do the users need (each transaction, each customer per day,
+    each store per month), and does the source hold data at that level? If users ask to drill into a total
+    after go-live, will the detail exist?
+  why: >-
+    Users needed sales by individual product. The source only kept daily totals by product group, which
+    nobody checked until the first drill-down in user testing.
+  applies: {kind: [any], components: [modelling, serving], patterns: [any]}
+  owner: business-analyst
+  also: [data-consumer, technical-anchor]
+  evidence:
+    docs: [requirements, data-model]
+    looks_like: >-
+      For each key requirement, the grain needed in plain words (for example "one row per order line per
+      day"), the grain available at the source, and how any gap was resolved.
+  signals:
+    - Requirements say "by product", "by customer" or "detail" without saying the lowest level needed.
+    - Drill-down or "detail" is requested with no statement of how far down.
+    - The data model's grain is finer or coarser than anything stated in the requirements.
+  contradiction: >-
+    Compare the grain in the requirements with the grain of the tables in the data model: a requirement
+    needing more detail than its table holds cannot be met.
+  due: {plan: 3, designed: 4, evidenced: 7}
+  fail_fast: >-
+    Show users one real row from the source and ask: "Is this the smallest thing you will ever need to see?"
+  severity: high
+  related: [DES-04, REQ-04]
+  signal_id: null
+
+- id: DATA-03
+  title: History depth asked for without a reason
+  kind: delivery
+  concern: data-requirements
+  question: >-
+    How many years of history does the business need, for which data, and what use requires that depth
+    (year-on-year comparison, trend models, regulation)? If the history load doubles the estimate, will we
+    know which part of it the business could live without?
+  why: >-
+    The business asked for "all history". Ten years were loaded at great cost, the oldest seven had
+    different product codes nobody could map, and the only use was a two-year comparison.
+  applies: {kind: [any], components: [ingestion, modelling], patterns: [any]}
+  owner: business-analyst
+  also: [business-owner, technical-anchor]
+  evidence:
+    docs: [requirements, discovery]
+    looks_like: >-
+      For each data area, the years of history needed, the use that needs them, whether old data must match
+      today's definitions, and who will check the old numbers.
+  signals:
+    - History is requested as "all", "full" or "as much as possible".
+    - A number of years is given with no reason.
+    - Nobody is named to check that the loaded history matches what the business remembers.
+  contradiction: >-
+    Compare the history depth in the requirements with the history load in the estimate or plan: a
+    different number of years, or none in the estimate, means the cost of history was never seen by the business.
+  due: {plan: 3, designed: 4}
+  fail_fast: >-
+    Ask: "Which report or decision needs data older than two years?" and price each extra year before agreeing.
+  severity: medium
+  related: [HIST-01, EST-07, SCD-01]
+  signal_id: null
+
+- id: DATA-04
+  title: Freshness not tied to a decision
+  kind: delivery
+  concern: data-requirements
+  question: >-
+    How fresh must the data be, as a time of day or a delay in minutes or hours, and which decision or
+    action needs it that fresh? If the business later asks for faster data, will we know whether the
+    decision really needs it?
+  why: >-
+    The sponsor asked for hourly data. The only decision it served was a weekly stock order, so the team
+    built and paid for hourly loads that nobody looked at between Mondays.
+  applies: {kind: [any], components: [any], patterns: [any]}
+  owner: business-analyst
+  also: [business-owner, data-consumer, technical-anchor]
+  evidence:
+    docs: [requirements]
+    looks_like: >-
+      For each consumer or report, a freshness target such as "ready by 7 a.m. local time on working days"
+      or "within fifteen minutes of the sale", paired with the decision that needs it and what happens if it
+      is late.
+  signals:
+    - Freshness is stated as "real-time", "up to date" or "latest" with no number.
+    - One freshness target is stated for everything, with no difference between consumers.
+    - No reason or decision is given for the freshness asked for.
+  contradiction: >-
+    Compare the freshness in the requirements with the decisions in the discovery document: data needed
+    faster than the decision it serves is cost with no benefit, and slower is a decision made on stale data.
+  due: {plan: 3, designed: 4, evidenced: 7}
+  fail_fast: >-
+    Ask the user: "If this arrived at noon instead of 7 a.m., what would you do differently?" and price the
+    two options side by side.
+  severity: high
+  related: [REQ-01, REQ-06, PERF-02, CUR-03]
+  signal_id: null
+
+- id: DATA-05
+  title: No business rule for late and corrected data
+  kind: delivery
+  concern: data-requirements
+  question: >-
+    When data arrives late or a past figure is corrected, what should the business see: should last month
+    change, which date decides the period (order, shipment, invoice or posting date), and when is a period
+    closed and never restated? If a published figure changes after the board has seen it, has the business
+    agreed that it may?
+  why: >-
+    Returns posted in March for February sales changed February's revenue after it had gone to the board.
+    The finance director had assumed closed months never change, the team had assumed they always do, and
+    neither was written down.
+  applies: {kind: [any], components: [modelling, serving], patterns: [any]}
+  owner: business-analyst
+  also: [business-owner, data-consumer, technical-anchor]
+  evidence:
+    docs: [requirements, decisions]
+    looks_like: >-
+      A short restatement policy: which date assigns a record to a period, how far back corrections may
+      change published figures, when a period closes, and how users are told that a past figure changed.
+  signals:
+    - The requirements never mention late data, corrections, restatement, closing or period end.
+    - The date that decides the reporting period is not stated for any measure.
+    - Late and corrected data is marked as a technical matter only.
+  contradiction: >-
+    Compare the restatement policy in the requirements with the late-data handling in the architecture: if
+    the architecture rebuilds past periods but the business expects closed periods to be frozen, or the
+    reverse, one of them is wrong.
+  due: {plan: 3, designed: 4, evidenced: 7}
+  fail_fast: >-
+    Show the business owner one real correction from last month and ask which month it should change and
+    whether anyone must be told.
+  severity: high
+  related: [LATE-01, LATE-04, SCOPE-02]
+  signal_id: null
+
+- id: DATA-06
+  title: No source of truth when systems disagree
+  kind: delivery
+  concern: data-requirements
+  question: >-
+    When two sources hold the same thing differently (a customer's address in the sales system and the
+    billing system, a product's price in two catalogues), which one wins, for which fields, and who decided?
+    When a user finds the two disagree after go-live, which written decision answers them?
+  why: >-
+    The sales and billing systems had different customer segments. The team picked one, the business
+    assumed the other, and every segment report was disputed until the decision was made at steering level.
+  applies: {kind: [any], components: [transformation, modelling], patterns: [any]}
+  owner: business-analyst
+  also: [business-owner, source-owner, technical-anchor]
+  evidence:
+    docs: [decisions, data-model]
+    looks_like: >-
+      For each shared business entity, a recorded decision on which source wins for which fields, what
+      happens when a record exists in only one, and who owns the decision.
+  signals:
+    - The same entity (customer, product, employee, site) comes from more than one source with no rule
+      for which wins.
+    - Phrases such as "merge customer data" or "single customer view" with no matching rule.
+    - The decision log has no entry about sources of truth.
+  contradiction: >-
+    Compare the source list with the decision log: every entity supplied by two or more sources needs a
+    decision recorded; any without one will be decided silently in code.
+  due: {plan: 3, designed: 4}
+  fail_fast: >-
+    Pull twenty customers that exist in both systems, show the differences to the business owner, and ask
+    which column wins for each field.
+  severity: high
+  related: [DATA-01, OWN-01, DUP-03]
+  signal_id: null
+
+- id: DATA-07
+  title: As it was, or as it is now, not decided
+  kind: delivery
+  concern: data-requirements
+  question: >-
+    When something changes over time (a customer moves region, a product changes category, a salesperson
+    changes team), should past figures be reported under the old value or the new one, and for which
+    reports? When last year's numbers move because of a reorganisation, will the business call it a bug?
+  why: >-
+    After a sales reorganisation, last year's revenue by region changed overnight because history was shown
+    under the new regions. Finance needed it as it was originally reported, and the model had to be rebuilt.
+  applies: {kind: [any], components: [modelling, serving], patterns: [any]}
+  owner: business-analyst
+  also: [data-consumer, technical-anchor]
+  evidence:
+    docs: [requirements, data-model]
+    looks_like: >-
+      For each attribute that can change (region, category, team, status), whether reports should show the
+      value at the time, the current value, or both, with a worked example the business has agreed.
+  signals:
+    - The requirements never say whether history is shown "as it was" or "as it is now".
+    - Hierarchies or organisation structures are in scope with no mention of reorganisations.
+    - The data model keeps history of changes for attributes the requirements never ask about, or the reverse.
+  contradiction: >-
+    Compare the requirements with the data model: an attribute the business wants "as it was" that the model
+    stores only as the latest value has lost its history the day it changes.
+  due: {plan: 3, designed: 4, evidenced: 7}
+  fail_fast: >-
+    Take one real customer who changed region last year and ask the users which region last year's sales
+    should appear under.
+  severity: medium
+  related: [SCD-01, SCD-04]
+  signal_id: null

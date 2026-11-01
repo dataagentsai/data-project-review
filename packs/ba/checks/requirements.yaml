@@ -230,3 +230,104 @@
   severity: medium
   related: [HAND-05]
   signal_id: null
+
+- id: REQ-08
+  title: Everything is a "must"
+  kind: delivery
+  concern: requirements
+  question: >-
+    Are the requirements prioritised (for example must, should, could and won't), with real items in the
+    "won't" list and fewer musts than the first release can deliver? If time runs out, has the business
+    already said which requirements go first?
+  why: >-
+    Every one of sixty requirements was marked essential. When the build ran late the team cut by effort
+    instead of value, dropped the one report the finance director actually used, and the release was rejected.
+  applies: {kind: [any], components: [any], patterns: [any]}
+  owner: business-analyst
+  also: [business-owner, project-manager]
+  evidence:
+    docs: [requirements, plan]
+    looks_like: >-
+      Each requirement with a priority agreed by the business owner, a "won't this time" list with real
+      items in it, and the musts sized to fit the first release with room to spare.
+  signals:
+    - No priority column in the requirements, or every requirement has the same priority.
+    - The "won't" or "not this release" list is empty.
+    - Musts make up most of the requirements.
+  contradiction: >-
+    Compare the must-have requirements with the first release in the plan: musts that are not in the first
+    release, or a first release full of shoulds and coulds, mean priority and plan disagree.
+  due: {plan: 3, designed: 4}
+  fail_fast: >-
+    Ask the business owner: "If we could deliver only five of these, which five?" and record the answer as
+    the priority.
+  severity: high
+  related: [SCOPE-05, SCOPE-01]
+  signal_id: null
+
+- id: REQ-09
+  title: No trace from goal to requirement to test
+  kind: delivery
+  concern: requirements
+  question: >-
+    Can every requirement be traced back to a business goal or decision and forward to the data it needs,
+    the thing that builds it and the test that proves it? When someone asks why a table exists, or whether a
+    goal has been tested, can the team show it in minutes?
+  why: >-
+    A requirement for weekly churn by segment was dropped when the backlog was re-planned. Nothing linked it
+    to the retention goal it served, so nobody noticed until the sponsor asked for the churn figure at closure.
+  applies: {kind: [any], components: [any], patterns: [any]}
+  owner: business-analyst
+  also: [test-lead, technical-anchor]
+  evidence:
+    docs: [requirements, test-strategy]
+    looks_like: >-
+      A simple trace table: goal, requirement, sources and fields, backlog item, test case, and status, kept
+      up to date as items are added, changed or dropped.
+  signals:
+    - Requirements have no ids, or ids are not used in the backlog or test cases.
+    - Goals and requirements live in separate documents with no link between them.
+    - Test cases do not say which requirement they prove.
+  contradiction: >-
+    Compare the requirement ids in the requirements with those referenced in the test strategy: requirements
+    with no test, and tests pointing at no requirement, show where the trace is broken.
+  due: {plan: 3, designed: 5, evidenced: 7}
+  fail_fast: >-
+    Pick the main goal and try to list, in ten minutes, every requirement and test that serves it.
+  severity: medium
+  related: [REQ-02, REQ-07]
+  signal_id: null
+
+- id: REQ-10
+  title: Requirements change without a version or a trail
+  kind: delivery
+  concern: requirements
+  question: >-
+    When a requirement, rule or definition changes, is the change versioned, dated, approved by its owner,
+    and carried through to the data model, the backlog and the tests? If a tester tests against last
+    month's version of a rule, will anyone know?
+  why: >-
+    The definition of an active customer changed twice in workshops. The data model held the first version,
+    the tests the second, and the report the original, and user testing failed on all three.
+  applies: {kind: [any], components: [any], patterns: [any]}
+  owner: business-analyst
+  also: [test-lead, developer, project-manager]
+  evidence:
+    docs: [requirements, decisions]
+    looks_like: >-
+      Requirements with a version and date, a change history per requirement or rule, the approver of each
+      change, and a note of which designs and tests were updated.
+  signals:
+    - The requirements document has no version, date or change history.
+    - Definitions or rules differ between the requirements, the data model and the test cases.
+    - Changes are agreed in meetings or chat and not reflected in the requirements.
+  contradiction: >-
+    Compare the rule or definition text in the requirements with the same rule in the data model and test
+    cases: any difference means a change reached some documents and not others.
+  due: {plan: 3, designed: 5}
+  fail_fast: >-
+    Take the three most-discussed definitions and check that the requirements, data model and tests say the
+    same thing today.
+  severity: medium
+  related: [SCOPE-03, REQ-09, OWN-02]
+  signal_id: null
