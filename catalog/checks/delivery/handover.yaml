@@ -1,0 +1,192 @@
+# Delivery checks: handover.
+
+- id: HAND-01
+  title: Runbook missing or written at the end
+  kind: delivery
+  concern: handover
+  question: >-
+    Is there a runbook that operations have read and used: what runs when, how to tell it failed, how to
+    rerun safely, and who to call? If a load fails on the first night after the team has gone, can operations fix it?
+  why: >-
+    The runbook was written in the last week and never tried. On the first failure operations reran the
+    whole load, which doubled a month of figures.
+  applies: {kind: [any], components: [any], patterns: [any]}
+  owner: technical-anchor
+  also: [operations]
+  evidence:
+    docs: [runbook]
+    looks_like: >-
+      A runbook started in build and finished before deploy, covering schedule, monitoring, alerts, common
+      failures with fixes, safe rerun steps and contacts, used in at least one failure drill.
+  signals:
+    - No runbook or operations guide among the documents.
+    - The runbook is planned only for the last week before go-live.
+    - The runbook has headings but sections marked "to be completed".
+  contradiction: >-
+    Compare the runbook with the architecture: jobs, sources or failure points in the architecture that the
+    runbook does not mention will be unsupported.
+  due: {plan: 4, designed: 6, evidenced: 8, proven: 9}
+  fail_fast: >-
+    Break one job in the test environment and ask operations to recover it using only the runbook.
+  severity: high
+  related: [HAND-03, HAND-04]
+  signal_id: missing-doc-type
+
+- id: HAND-02
+  title: Decision log and data dictionary not ready to hand over
+  kind: delivery
+  concern: handover
+  question: >-
+    Will the support team receive a current decision log and data dictionary that explain why things are
+    the way they are? When someone asks "why does this table work like this?" after the team has left, where is the answer?
+  why: >-
+    The support team "fixed" a rule that looked wrong. It had been agreed with finance a year before, but
+    the decision was only in an old e-mail thread, and the change broke month-end reporting.
+  applies: {kind: [any], components: [any], patterns: [any]}
+  owner: technical-anchor
+  also: [project-manager, operations]
+  evidence:
+    docs: [decisions, data-model]
+    looks_like: >-
+      A decision log and a data dictionary that match what is in production, reviewed as part of project closure.
+  signals:
+    - The decision log stops well before the end of build.
+    - The data dictionary does not cover tables or rules added during build.
+    - Handover lists code and access but not decisions or definitions.
+  contradiction: >-
+    Compare the data dictionary with the delivered data model or test results: rules in production that are
+    not in the dictionary are unexplained.
+  due: {plan: 4, evidenced: 9, proven: 10}
+  fail_fast: >-
+    Ask someone outside the team to explain one business rule using only the handed-over documents.
+  severity: medium
+  related: [PM-03, HAND-03]
+  signal_id: null
+
+- id: HAND-03
+  title: Knowledge transfer never tested
+  kind: delivery
+  concern: handover
+  question: >-
+    Has the support team made at least one real change and one real recovery while the project team
+    watched? If the project team left tomorrow, could the support team run and change this system?
+  why: >-
+    Knowledge transfer was two presentation sessions. The first change request after closure took the
+    support team a month, and the project team had to be called back.
+  applies: {kind: [any], components: [any], patterns: [any]}
+  owner: technical-anchor
+  also: [operations, project-manager]
+  evidence:
+    docs: [plan, runbook]
+    looks_like: >-
+      Planned handover sessions with hands-on tasks, and a record of a change and a recovery done by the
+      support team themselves.
+  signals:
+    - Knowledge transfer is a single line or a few presentation sessions in the plan.
+    - The support team is not named, or joins only at the end.
+    - No hands-on tasks are planned for the support team.
+  contradiction: >-
+    Compare the plan's handover time with the size of the system in the architecture: a short handover for
+    a large system means much will not transfer.
+  due: {plan: 4, evidenced: 9, proven: 10}
+  fail_fast: >-
+    Ask the support team to make one small real change this sprint, with the project team only watching.
+  severity: high
+  related: [PM-06, HAND-01]
+  signal_id: null
+
+- id: HAND-04
+  title: Support model not agreed
+  kind: delivery
+  concern: handover
+  question: >-
+    Is it agreed who supports the system after go-live, in which hours, how fast they respond, how long the
+    project team stays during the early weeks, and who pays? On the first weekend in production, who answers a failure?
+  why: >-
+    The project assumed the central support team would take over; the support team assumed the project
+    would. After go-live a failed weekend load went unnoticed until Monday morning.
+  applies: {kind: [any], components: [any], patterns: [any]}
+  owner: project-manager
+  also: [operations, business-owner, technical-anchor]
+  evidence:
+    docs: [runbook, plan]
+    looks_like: >-
+      A signed support model: support team, hours, response times, escalation, early-life support period,
+      and the criteria for ending it.
+  signals:
+    - No support model, or one that says "business as usual support".
+    - The support team has not been asked to accept the system.
+    - Support hours do not match the freshness promised to users.
+  contradiction: >-
+    Compare the support model with the non-functional requirements: data promised by 7 a.m. but support
+    starting at 9 a.m. means nobody fixes a night failure in time.
+  due: {plan: 4, designed: 6, evidenced: 9}
+  fail_fast: >-
+    Ask the support team lead whether they have agreed to take this system, and on what terms.
+  severity: high
+  related: [REQ-06, HAND-01, COM-04]
+  signal_id: null
+
+- id: HAND-05
+  title: Benefits never measured
+  kind: delivery
+  concern: handover
+  question: >-
+    Is there a plan to measure, after go-live, the benefits promised at the start, against the baseline
+    taken before? A year after closure, can anyone prove the project was worth its cost?
+  why: >-
+    The business case promised hours saved each month. Nobody measured hours before or after, so the
+    project could not show any return and the platform's next phase was refused.
+  applies: {kind: [any], components: [any], patterns: [any]}
+  owner: business-owner
+  also: [project-manager, business-analyst]
+  evidence:
+    docs: [discovery, status]
+    looks_like: >-
+      A benefits list with baseline values, the date and method of measurement after go-live, and an owner
+      who will report the result.
+  signals:
+    - The business case or goals have no baseline figures.
+    - No benefits review is planned after go-live.
+    - The project closure report does not mention benefits.
+  contradiction: >-
+    Compare the goals in the discovery document with the closure or status reports: goals that are never
+    reported on were never measured.
+  due: {plan: 3, evidenced: 10}
+  fail_fast: >-
+    Record today's value of each promised benefit, so there is something to compare against later.
+  severity: medium
+  related: [REQ-07]
+  signal_id: null
+
+- id: HAND-06
+  title: No exit criteria for early-life support
+  kind: delivery
+  concern: handover
+  question: >-
+    Are there written criteria for ending the early weeks of close support after go-live (for example a
+    number of clean runs, reconciled loads and no critical defects)? How will we know the system is ready
+    to be left alone, rather than the team simply running out of time?
+  why: >-
+    The project team left after two weeks because the budget ended. Month-end processing, which had never
+    run in production, failed the following week with nobody who knew the system.
+  applies: {kind: [any], components: [any], patterns: [any]}
+  owner: technical-anchor
+  also: [operations, project-manager]
+  evidence:
+    docs: [deployment, plan]
+    looks_like: >-
+      Written exit criteria for early-life support, covering at least one full business cycle, reconciled
+      production loads and agreed defect levels.
+  signals:
+    - The plan ends at go-live, or has a fixed support period with no criteria.
+    - Period-end or yearly processes are not mentioned in the early-life support period.
+  contradiction: >-
+    Compare the plan's early-life support period with the business calendar in the requirements: if the
+    period ends before a month-end or other key cycle has run, the riskiest run happens unsupported.
+  due: {plan: 4, designed: 8, evidenced: 9}
+  fail_fast: >-
+    Ask: "Which business cycle has not yet run in production?" and keep support in place until it has.
+  severity: medium
+  related: [HAND-04]
+  signal_id: null

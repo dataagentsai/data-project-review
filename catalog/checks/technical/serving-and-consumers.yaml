@@ -1,0 +1,144 @@
+# Technical checks: contracts with consumers, grain, freshness promises
+
+- id: SERV-01
+  title: A contract with each consumer
+  kind: technical
+  concern: serving-and-consumers
+  question: >-
+    For each consumer (report, extract, application, model), is there an agreed contract: the
+    tables or fields they use, their meaning, grain, freshness and how they will receive it?
+  why: >-
+    A downstream team built a pricing model on an internal staging table; a routine refactor
+    renamed it and the pricing model failed on a sale day.
+  applies:
+    kind: [any]
+    components: [serving, modelling]
+    patterns: [any]
+  owner: technical-anchor
+  also: [data-consumer, business-analyst]
+  evidence:
+    docs: [requirements, data-model, architecture]
+    looks_like: >-
+      A list of consumers and, for each, the published interface, its fields and meaning, grain,
+      freshness promise and a named contact.
+  signals:
+    - Consumers are listed by name only, with no interface or freshness.
+  due: {plan: 3, designed: 5, evidenced: 7, proven: 9}
+  fail_fast: >-
+    Ask the main consumer which exact fields they will read; check each is in the data model with
+    a definition.
+  severity: high
+  related: [SERV-03, DES-04, SERV-04]
+  signal_id: null
+
+- id: SERV-02
+  title: Consumers can tell whether data is complete
+  kind: technical
+  concern: serving-and-consumers
+  question: >-
+    Can a consumer see when the data was last refreshed and whether today's load is complete,
+    before they rely on it?
+  why: >-
+    The load failed overnight but the dashboard looked normal; the sales director presented
+    yesterday's numbers as today's to the board.
+  applies:
+    kind: [any]
+    components: [serving]
+    patterns: [any]
+  owner: technical-anchor
+  also: [data-consumer, operations]
+  evidence:
+    docs: [architecture, requirements]
+    looks_like: >-
+      A visible "data as of" time on reports, a completeness flag or status table, and a way to
+      warn consumers when a load is late.
+  due: {plan: 4, designed: 5, evidenced: 7, proven: 9}
+  fail_fast: >-
+    Stop the load in test and look at the report as a user would; can you tell it is stale?
+  severity: medium
+  related: [ORCH-01, PERF-02, OPS-01]
+  signal_id: null
+
+- id: SERV-03
+  title: Changes to what consumers use are announced
+  kind: technical
+  concern: serving-and-consumers
+  question: >-
+    How are breaking changes to published tables or interfaces versioned and announced, so
+    consumers have time to adapt?
+  why: >-
+    A column was renamed for consistency in a minor release; three reports and a partner extract
+    broke the next morning.
+  applies:
+    kind: [any]
+    components: [serving, modelling]
+    patterns: [any]
+  owner: technical-anchor
+  also: [data-consumer, release-devops]
+  evidence:
+    docs: [architecture, deployment]
+    looks_like: >-
+      A rule separating published interfaces from internal tables, a versioning or deprecation
+      approach with a notice period, and a list of who to tell.
+  due: {plan: 4, designed: 5, evidenced: 9}
+  fail_fast: >-
+    Find out how the team would learn which consumers use a given column today.
+  severity: medium
+  related: [SERV-01, SCH-03]
+  signal_id: null
+
+- id: SERV-04
+  title: Business definitions live in one place
+  kind: technical
+  concern: serving-and-consumers
+  question: >-
+    Is each business measure (revenue, active customer) defined and calculated once, in a shared
+    model, rather than separately in each report?
+  why: >-
+    Three dashboards calculated margin three ways; the leadership meeting spent an hour arguing
+    about which number was right instead of deciding anything.
+  applies:
+    kind: [any]
+    components: [modelling, serving]
+    patterns: [any]
+  owner: business-analyst
+  also: [technical-anchor, data-consumer]
+  evidence:
+    docs: [data-model, requirements]
+    looks_like: >-
+      A definitions list with the owner of each measure, implemented once in a shared model or
+      semantic layer that reports reuse.
+  due: {plan: 3, designed: 5, evidenced: 7}
+  fail_fast: >-
+    Ask two consumers to write down how they calculate the top measure; compare the answers.
+  severity: high
+  related: [REC-02, SERV-01, SCD-04]
+  signal_id: null
+
+- id: SERV-05
+  title: Consumer queries fast enough under real load
+  kind: technical
+  concern: serving-and-consumers
+  question: >-
+    Will reports, interfaces and extracts respond fast enough when the expected number of users
+    or calls hit them at the same time?
+  why: >-
+    The dashboard was quick in testing with one user; on Monday morning two hundred managers opened
+    it at once and it took two minutes per page.
+  applies:
+    kind: [any]
+    components: [serving]
+    patterns: [any]
+  owner: technical-anchor
+  also: [data-consumer, platform-team]
+  evidence:
+    docs: [requirements, test-strategy]
+    looks_like: >-
+      Expected concurrent users or calls and response targets, the serving design (aggregates,
+      caching, sizing), and a concurrency test result.
+  due: {plan: 4, designed: 5, evidenced: 7, proven: 9}
+  fail_fast: >-
+    Run the slowest report query twenty times at once against realistic data and time it.
+  severity: medium
+  related: [PERF-03, DES-02]
+  signal_id: null

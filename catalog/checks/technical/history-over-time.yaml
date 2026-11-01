@@ -1,0 +1,119 @@
+# Technical checks: keeping history of changes (slowly changing dimensions)
+
+- id: SCD-01
+  title: Which tables keep history, and for how long
+  kind: technical
+  concern: history-over-time
+  question: >-
+    For each table, has the business decided whether to keep the history of changes or only the
+    latest value, and for how long?
+  why: >-
+    Customer region was stored as latest only; when a sales team was reorganised, last year's
+    sales by region were silently restated and the bonus calculation was disputed.
+  applies:
+    kind: [any]
+    components: [modelling, transformation]
+    patterns: [any]
+  owner: business-analyst
+  also: [technical-anchor, data-consumer]
+  evidence:
+    docs: [requirements, data-model, decisions]
+    looks_like: >-
+      A list of entities and attributes with "history kept" or "latest only", a retention period,
+      and the business owner who agreed it.
+  signals:
+    - The data model has no statement about history for dimensions.
+  due: {plan: 3, designed: 4, evidenced: 7}
+  fail_fast: >-
+    Ask the main report owner "should last year's figures change when a customer moves region?"
+    and record the answer as a decision.
+  severity: medium
+  related: [SCD-02, DEL-02]
+  signal_id: null
+
+- id: SCD-02
+  title: History rows stay correct on reruns and out-of-order changes
+  kind: technical
+  concern: history-over-time
+  question: >-
+    Does the history logic (effective from and to dates, current flag) stay correct when a load is
+    rerun, when two changes arrive in one batch, or when changes arrive out of order?
+  why: >-
+    A rerun closed and reopened every current row, and an older change arriving late became
+    "current", so customers showed last year's address with overlapping validity periods.
+  applies:
+    kind: [any]
+    components: [modelling, transformation]
+    patterns: [any]
+  owner: developer
+  also: [technical-anchor, test-lead]
+  evidence:
+    docs: [architecture, test-strategy]
+    looks_like: >-
+      Changes ordered by a source sequence or change timestamp, not arrival time; a hash to skip
+      unchanged rows; and tests for rerun, two-changes-per-batch and out-of-order cases.
+  due: {plan: 4, designed: 5, evidenced: 7, proven: 9}
+  fail_fast: >-
+    Feed three versions of one record in reverse order, then rerun the same batch; exactly one
+    current row and no overlapping date ranges may remain.
+  severity: high
+  related: [SCD-01, DUP-02, SCD-04]
+  signal_id: null
+
+- id: SCD-03
+  title: A business key that can change
+  kind: technical
+  concern: history-over-time
+  question: >-
+    Can a source's business key ever change (renumbering, merges, re-registration), and how is the
+    identity of the thing kept across that change?
+  why: >-
+    The source renumbered accounts during a migration; each renumbered account became a new
+    customer, splitting its history and doubling the customer count.
+  applies:
+    kind: [any]
+    components: [modelling, transformation]
+    patterns: [any]
+  owner: technical-anchor
+  also: [source-owner, business-analyst]
+  evidence:
+    docs: [data-model, discovery]
+    looks_like: >-
+      Surrogate keys owned by the platform, a mapping from old to new source keys, and the source
+      owner's confirmation of whether keys can change.
+  due: {plan: 3, designed: 5, evidenced: 7}
+  fail_fast: >-
+    Ask each source owner directly whether keys are ever reused, merged or renumbered, and check a
+    real extract for one key mapping to two names over time.
+  severity: medium
+  related: [DUP-03, DES-04]
+  signal_id: null
+
+- id: SCD-04
+  title: Facts joined to the right version of history
+  kind: technical
+  concern: history-over-time
+  question: >-
+    When facts are joined to a dimension that keeps history, are they matched to the version valid
+    at the time of the fact, and is that the rule consumers expect?
+  why: >-
+    Facts were joined to the current customer row; reports that should show sales by the region
+    at the time showed today's region instead, and nobody had written down which was wanted.
+  applies:
+    kind: [any]
+    components: [modelling, serving]
+    patterns: [any]
+  owner: technical-anchor
+  also: [data-consumer]
+  evidence:
+    docs: [data-model, requirements]
+    looks_like: >-
+      For each report, whether it shows "as it was" or "as it is now", and joins that use the fact
+      date within the validity range or the surrogate key captured at load.
+  due: {plan: 4, designed: 5, evidenced: 7}
+  fail_fast: >-
+    Take one customer who changed region last year and check a sales report shows each sale under
+    the region the business expects.
+  severity: medium
+  related: [SCD-02, SERV-04]
+  signal_id: null

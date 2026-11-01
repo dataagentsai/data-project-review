@@ -1,0 +1,68 @@
+# Controlled vocabulary for the catalog. scripts/lint.py checks every check against these lists.
+
+kinds:              # what kind of work the team is doing
+  new-platform: Building a new data platform (environments, standards, frameworks and the first data products)
+  project-on-existing: A new project or data product on a platform that already exists
+
+components:         # which parts of the platform a project touches
+  ingestion: Getting data from sources into the platform (landing, raw/bronze)
+  transformation: Cleaning, conforming and joining data (silver)
+  modelling: Business-ready models, dimensions, facts, metrics (gold, semantic)
+  serving: Getting data to consumers (reports, APIs, extracts, ML features, AI)
+  orchestration: Scheduling, dependencies, retries, recovery
+  platform: Environments, network, identity, compute, storage, release pipeline, monitoring
+  governance: Access, personal data, lineage, catalog, retention, audit
+
+patterns:           # how data moves
+  batch: Scheduled loads
+  streaming: Continuous or near-real-time processing
+  cdc: Change data capture from a source database
+  file: Files dropped by a source
+  api: Pulled from or pushed to an API
+  database: Extracted from a database by query
+  history-load: A one-off or phased load of historical data
+
+concerns:           # groups used to organise checks and the report
+  technical:
+    duplicates: Same data arriving or being processed twice
+    first-and-history-load: Initial load, history, backfill
+    late-and-corrected: Late arriving and corrected data
+    deletes: Deletes and soft deletes at the source
+    history-over-time: Keeping history of changes (slowly changing dimensions)
+    schema-change: Columns added, renamed or retyped at the source
+    data-quality: Rules, bad rows, quarantine
+    reconciliation: Proving numbers match from source to report
+    performance: Volume, speed, freshness
+    cost: Running cost and its controls
+    security-and-personal-data: Access, masking, retention, regulations
+    environments-and-access: Environments, permissions, network
+    release-and-git: Version control, branching, promotion between environments
+    orchestration-and-recovery: Scheduling, dependencies, retries, restart
+    operations: Monitoring, alerting, support, runbooks
+    testing: Test levels, test data, environments
+    design: Architecture decisions, patterns, non-functional needs
+    serving-and-consumers: Contracts with consumers, grain, freshness promises
+  delivery:
+    estimation: Estimates and their assumptions
+    requirements: Requirements, definitions, acceptance criteria
+    scope: In scope, out of scope, change control
+    project-management: Plan, dependencies, risks, decisions, status
+    stakeholders: Who is involved, who decides, who can block
+    communication: How news, decisions and problems travel
+    handover: Documentation, knowledge transfer, support model
+
+doc_types:          # kinds of project documents; projects map their files to these in project.yaml
+  requirements: Business requirements, user stories, acceptance criteria
+  discovery: Discovery document or solution outline
+  architecture: Application / solution architecture, data flows, design decisions
+  platform: Platform architecture, environments, network, security
+  data-model: Data model, definitions, data dictionary, mappings
+  estimate: Estimates and their assumptions
+  plan: Project plan, milestones, MVPs, roadmap
+  raid: Risks, assumptions, issues, dependencies
+  decisions: Decision log, architecture decision records
+  test-strategy: Test strategy, test plan, test cases
+  deployment: Release plan, cut-over, migration, CI/CD
+  runbook: Operations guide, support model, monitoring
+  stakeholders: Stakeholder map, RACI, communication plan
+  status: Status reports, steering packs, meeting notes

@@ -1,0 +1,127 @@
+# Technical checks: duplicates (same data arriving or being processed twice)
+
+- id: DUP-01
+  title: Same batch or file arriving twice
+  kind: technical
+  concern: duplicates
+  question: >-
+    How is a file, batch or extract that arrives a second time prevented from doubling the numbers?
+  why: >-
+    After an outage the source resent yesterday's file, the pipeline loaded it again as new, and
+    revenue on the dashboard doubled for a day before anyone noticed.
+  applies:
+    kind: [any]
+    components: [ingestion]
+    patterns: [batch, file, api, database]
+  owner: technical-anchor
+  also: [developer, test-lead]
+  evidence:
+    docs: [architecture, test-strategy]
+    looks_like: >-
+      A business key or file fingerprint, a record of what has already been loaded, and a test
+      that loads the same input twice.
+  signals:
+    - The architecture describes loads as appends with no key, fingerprint or load register.
+    - The test strategy has no test that resends an input.
+  due: {plan: 3, designed: 5, evidenced: 7, proven: 9}
+  fail_fast: >-
+    Load the same file twice in a test environment; row counts and key totals in every layer must
+    not change after the second load.
+  severity: high
+  related: [DUP-02, DUP-03, REC-01]
+  signal_id: null
+
+- id: DUP-02
+  title: Rerunning a job changes the result
+  kind: technical
+  concern: duplicates
+  question: >-
+    If a job is run again for the same period, does it produce exactly the same result
+    (is every step idempotent)?
+  why: >-
+    Operations reran a failed nightly job, but its first half had already appended rows, so the
+    fact table held two copies of the night's orders until month-end reconciliation found them.
+  applies:
+    kind: [any]
+    components: [ingestion, transformation, modelling]
+    patterns: [any]
+  owner: technical-anchor
+  also: [developer, operations]
+  evidence:
+    docs: [architecture, test-strategy, runbook]
+    looks_like: >-
+      Each write described as merge on a key, or replace of a whole partition or period, never a
+      blind append; a rerun test per pipeline; the runbook says reruns are safe.
+  signals:
+    - Writes are described as "insert" or "append" with no key or partition overwrite.
+    - The runbook warns operators not to rerun, or says to clean up by hand before rerunning.
+  due: {plan: 3, designed: 5, evidenced: 7, proven: 9}
+  fail_fast: >-
+    Run the pipeline twice in a row for the same day in test and compare a fingerprint of every
+    output table (counts, sums of key measures); they must be identical.
+  severity: high
+  related: [DUP-01, ORCH-03, TEST-05]
+  signal_id: null
+
+- id: DUP-03
+  title: Duplicates already inside the source
+  kind: technical
+  concern: duplicates
+  question: >-
+    Does each source have a reliable unique key, and what is the rule when the source itself sends
+    two rows for the same thing?
+  why: >-
+    The source table had no primary key and sent the same customer twice with different
+    spellings; joins to it multiplied order rows and inflated sales by eight percent.
+  applies:
+    kind: [any]
+    components: [ingestion, transformation]
+    patterns: [any]
+  owner: business-analyst
+  also: [technical-anchor, source-owner]
+  evidence:
+    docs: [discovery, data-model]
+    looks_like: >-
+      A profile showing key uniqueness per source table, the chosen business key, and an agreed
+      rule for duplicates (keep latest, keep all, reject), signed by the data owner.
+  signals:
+    - The data model lists tables without a key, or says "key to be confirmed".
+    - No profiling results for key uniqueness are recorded.
+  due: {plan: 3, designed: 4, evidenced: 7}
+  fail_fast: >-
+    Count rows per proposed key in a real extract of every source table; any key with more than one
+    row needs a written rule before design continues.
+  severity: high
+  related: [DQ-05, DES-04, SCD-03]
+  signal_id: null
+
+- id: DUP-04
+  title: Replayed events in a stream
+  kind: technical
+  concern: duplicates
+  question: >-
+    When the stream redelivers events after a restart or failure (at-least-once delivery), how
+    does the target avoid counting them twice?
+  why: >-
+    A consumer restarted from an older position and replayed two hours of events; the counts
+    sink appended them again and the real-time dashboard overstated traffic for the day.
+  applies:
+    kind: [any]
+    components: [ingestion, transformation]
+    patterns: [streaming, cdc]
+  owner: technical-anchor
+  also: [developer]
+  evidence:
+    docs: [architecture, test-strategy]
+    looks_like: >-
+      An event id or key plus sequence used to deduplicate, a stated delivery guarantee end to
+      end, and an idempotent or transactional write to the sink.
+  signals:
+    - The design assumes "exactly once" without saying which component provides it.
+  due: {plan: 3, designed: 5, evidenced: 7, proven: 9}
+  fail_fast: >-
+    In test, stop the stream mid-flow, rewind its position by a known number of events, restart,
+    and confirm output counts match the input exactly.
+  severity: high
+  related: [DUP-02, ORCH-06, LATE-03]
+  signal_id: null

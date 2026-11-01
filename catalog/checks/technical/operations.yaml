@@ -1,0 +1,145 @@
+# Technical checks: monitoring, alerting, support, runbooks
+
+- id: OPS-01
+  title: Alerts reach someone who can act
+  kind: technical
+  concern: operations
+  question: >-
+    When a job fails, runs late or data looks wrong, who is alerted, through which channel, and
+    within how long?
+  why: >-
+    Failure emails went to a shared mailbox nobody read; a load had failed for four days before a
+    user asked why the report had not changed.
+  applies:
+    kind: [any]
+    components: [orchestration, platform]
+    patterns: [any]
+  owner: operations
+  also: [technical-anchor]
+  evidence:
+    docs: [runbook, architecture]
+    looks_like: >-
+      Alerts for failure, lateness against the freshness target and data checks, routed to a named
+      team or on-call rota, with an expected response time.
+  due: {plan: 4, designed: 5, evidenced: 8, proven: 9}
+  fail_fast: >-
+    Make a job fail in test and time how long it takes for a person to know.
+  severity: high
+  related: [DQ-04, OPS-02, OPS-04]
+  signal_id: null
+
+- id: OPS-02
+  title: A runbook operations can follow at night
+  kind: technical
+  concern: operations
+  question: >-
+    Is there a runbook that tells support how to check, rerun, reload and escalate each pipeline
+    without calling the developers?
+  why: >-
+    The night support team saw a failure, did not know whether rerunning was safe, and woke the
+    one developer who knew; she was on holiday.
+  applies:
+    kind: [any]
+    components: [orchestration, platform]
+    patterns: [any]
+  owner: technical-anchor
+  also: [operations]
+  evidence:
+    docs: [runbook]
+    looks_like: >-
+      Per pipeline: what it does, its schedule and dependencies, common failures and fixes, how to
+      rerun and reload a period, and who to escalate to.
+  signals:
+    - The plan lists "runbook" as a deliverable in the last week only.
+  due: {plan: 4, designed: 6, evidenced: 8, proven: 9}
+  fail_fast: >-
+    Give the runbook to someone from operations, break a test pipeline, and watch whether they can
+    recover it alone.
+  severity: high
+  related: [OPS-01, HIST-04, OPS-04]
+  signal_id: null
+
+- id: OPS-03
+  title: Every run leaves a record
+  kind: technical
+  concern: operations
+  question: >-
+    Does every run record what it read, what it wrote, row counts, duration and outcome, in a place
+    that can be queried?
+  why: >-
+    A user reported a wrong figure from two weeks ago; with no run records nobody could say which
+    load produced it or which input it came from.
+  applies:
+    kind: [any]
+    components: [ingestion, transformation, modelling, orchestration]
+    patterns: [any]
+  owner: developer
+  also: [operations]
+  evidence:
+    docs: [architecture, runbook]
+    looks_like: >-
+      A run log or audit table with run id, inputs, outputs, counts, timings and status, kept for
+      a stated period.
+  due: {plan: 4, designed: 5, evidenced: 7}
+  fail_fast: >-
+    Ask which source file produced a given row in yesterday's table, and see how long it takes to
+    answer.
+  severity: medium
+  related: [REC-01, OPS-01, COST-03]
+  signal_id: null
+
+- id: OPS-04
+  title: Support model agreed before go-live
+  kind: technical
+  concern: operations
+  question: >-
+    Who supports the solution after go-live, during which hours, and have they agreed to take it on?
+  why: >-
+    The project assumed the platform team would support it; the platform team had never been asked,
+    refused at go-live, and the developers stayed on call for six months.
+  applies:
+    kind: [any]
+    components: [any]
+    patterns: [any]
+  owner: operations
+  also: [project-manager, technical-anchor]
+  evidence:
+    docs: [runbook, stakeholders]
+    looks_like: >-
+      A named support team, support hours that match the freshness promise, escalation levels, and
+      their written acceptance.
+  due: {plan: 3, designed: 5, evidenced: 8, proven: 9}
+  fail_fast: >-
+    Ask the intended support team's lead whether they know about the project and have agreed to
+    support it.
+  severity: high
+  related: [OPS-02, OPS-05]
+  signal_id: null
+
+- id: OPS-05
+  title: Production watched closely after go-live
+  kind: technical
+  concern: operations
+  question: >-
+    Were the first weeks in production watched closely (hypercare), with defects closed and
+    operations running it alone before sign-off?
+  why: >-
+    The team moved to the next project on go-live day; a slow memory leak failed the job at
+    month-end and nobody who understood it was available.
+  applies:
+    kind: [any]
+    components: [any]
+    patterns: [any]
+  owner: technical-anchor
+  also: [operations, business-owner]
+  evidence:
+    docs: [deployment, status]
+    looks_like: >-
+      A hypercare period with daily checks, a log of production issues and their fixes, and a
+      handover point when operations run it alone.
+  due: {plan: 6, designed: 8, evidenced: 9, proven: 9}
+  fail_fast: >-
+    Put hypercare dates, people and exit criteria in the plan now.
+  severity: medium
+  related: [REC-04, OPS-04]
+  signal_id: null

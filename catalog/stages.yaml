@@ -1,0 +1,24 @@
+# The data project lifecycle (same ten stages as cleandataengineering.ai/learn/technical-anchor/#lifecycle).
+# A check's `due` field names the stage number by which each level of maturity is expected.
+# Levels, in order: plan < designed < evidenced < proven.
+
+stages:
+  1: {name: Requirement received, gate: false}
+  2: {name: Rough estimate, gate: false}
+  3: {name: Discovery, gate: false}
+  4: {name: Discovery sign-off, gate: true}
+  5: {name: MVP starts, gate: false}
+  6: {name: Build, gate: false}
+  7: {name: Test, gate: false}
+  8: {name: Deploy, gate: false}
+  9: {name: Production sign-off, gate: true}
+  10: {name: Project sign-off, gate: true}
+
+levels:
+  plan: We know how we will handle it, written down
+  designed: It is in the design or the backlog, with acceptance criteria
+  evidenced: A test or a real run shows it works
+  proven: It held in production
+
+# A stage 'is due' when the project's current stage >= the number given.
+# A gap at a level that is not yet due is reported as "coming up", not as a finding.

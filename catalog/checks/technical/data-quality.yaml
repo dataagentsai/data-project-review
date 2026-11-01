@@ -1,0 +1,152 @@
+# Technical checks: data quality rules, bad rows, quarantine
+
+- id: DQ-01
+  title: Data quality rules written with owners
+  kind: technical
+  concern: data-quality
+  question: >-
+    Which data quality rules apply to each important table, who owns each rule, and are they
+    written down as checks that run on every load?
+  why: >-
+    Everyone assumed someone else checked that order totals were positive; a source bug sent
+    negative totals for a week and nobody's check caught it.
+  applies:
+    kind: [any]
+    components: [ingestion, transformation, modelling]
+    patterns: [any]
+  owner: business-analyst
+  also: [technical-anchor, test-lead]
+  evidence:
+    docs: [requirements, data-model, test-strategy]
+    looks_like: >-
+      A rule list per table (not null, unique, valid values, ranges, referential integrity,
+      business rules), each with a business owner and a severity, implemented as automated checks.
+  signals:
+    - The documents say "data quality checks will be applied" with no list of rules.
+  due: {plan: 3, designed: 5, evidenced: 7, proven: 9}
+  fail_fast: >-
+    Ask the business owner for the five things that would make them distrust the main report, and
+    write each as a rule that runs on today's data.
+  severity: high
+  related: [DQ-02, DQ-05, TEST-01]
+  signal_id: null
+
+- id: DQ-02
+  title: What happens to a row that fails a rule
+  kind: technical
+  concern: data-quality
+  question: >-
+    When a row fails a rule, is the batch rejected, the row quarantined, or the row loaded and
+    flagged, and who is told and fixes it?
+  why: >-
+    Bad rows were filtered out silently; three thousand orders a day disappeared into a table no
+    one looked at, and sales were understated for a quarter.
+  applies:
+    kind: [any]
+    components: [ingestion, transformation]
+    patterns: [any]
+  owner: technical-anchor
+  also: [business-analyst, operations]
+  evidence:
+    docs: [architecture, runbook, requirements]
+    looks_like: >-
+      An action per rule severity, a quarantine table with reasons, a count of quarantined rows
+      reported to an owner, and a way to reprocess rows once fixed.
+  due: {plan: 3, designed: 5, evidenced: 7, proven: 9}
+  fail_fast: >-
+    Feed a sample with known bad rows in test and check each lands where the design says, with a
+    reason, and that an owner is notified.
+  severity: high
+  related: [DQ-01, DQ-03, OPS-01]
+  signal_id: null
+
+- id: DQ-03
+  title: One poison record does not stop the whole load
+  kind: technical
+  concern: data-quality
+  question: >-
+    Can a single malformed record (broken encoding, unparseable value, oversized field) stop the
+    whole pipeline, and how is it isolated?
+  why: >-
+    One record with a malformed date crashed the stream parser on every retry; the pipeline was
+    stuck for six hours while all later data waited behind it.
+  applies:
+    kind: [any]
+    components: [ingestion]
+    patterns: [any]
+  owner: developer
+  also: [technical-anchor]
+  evidence:
+    docs: [architecture, test-strategy]
+    looks_like: >-
+      Parsing that captures unreadable records into a side table with the raw content and the error,
+      and a test with deliberately malformed input.
+  due: {plan: 4, designed: 5, evidenced: 7}
+  fail_fast: >-
+    Put one malformed record in the middle of a test input; the rest must load and the bad record
+    must be kept somewhere readable.
+  severity: medium
+  related: [DQ-02, ORCH-02]
+  signal_id: null
+
+- id: DQ-04
+  title: A source goes quiet or sends far too little
+  kind: technical
+  concern: data-quality
+  question: >-
+    Does anything detect a source that sends no data, an empty file, or a much smaller or larger
+    volume than usual?
+  why: >-
+    The source sent an empty file after a failed export; the load succeeded, every job was green,
+    and the business saw a day with zero sales before any engineer did.
+  applies:
+    kind: [any]
+    components: [ingestion]
+    patterns: [any]
+  owner: operations
+  also: [technical-anchor]
+  evidence:
+    docs: [architecture, runbook]
+    looks_like: >-
+      Freshness and volume checks per source with expected ranges, which fail or alert rather than
+      load quietly.
+  signals:
+    - Monitoring is described only as "job failure alerts".
+  due: {plan: 4, designed: 5, evidenced: 7, proven: 9}
+  fail_fast: >-
+    Run a load with an empty input in test; it must not complete as a green success without
+    someone being told.
+  severity: high
+  related: [OPS-01, DQ-01]
+  signal_id: null
+
+- id: DQ-05
+  title: Real data profiled before design
+  kind: technical
+  concern: data-quality
+  question: >-
+    Has real data from every source been profiled (nulls, duplicates, broken keys, odd values,
+    volumes), and was the profile shown to the business owner?
+  why: >-
+    The design assumed every order had a customer; profiling in build week three found twenty
+    percent did not, and the model and estimate both had to be redone.
+  applies:
+    kind: [any]
+    components: [ingestion, transformation, modelling]
+    patterns: [any]
+  owner: technical-anchor
+  also: [business-analyst, business-owner]
+  evidence:
+    docs: [discovery]
+    looks_like: >-
+      A profile per source table from a real extract (not a sample built by hand), with findings
+      and what was decided about each.
+  signals:
+    - Discovery describes sources from documentation only, with no profiling results.
+  due: {plan: 2, designed: 3, evidenced: 4}
+  fail_fast: >-
+    Pull a real extract of the biggest source table this week and count nulls, duplicates and
+    orphan keys in the columns the design relies on.
+  severity: high
+  related: [DUP-03, DQ-01, DES-01]
+  signal_id: null

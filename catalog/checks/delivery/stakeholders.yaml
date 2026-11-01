@@ -1,0 +1,193 @@
+# Delivery checks: stakeholders.
+
+- id: STK-01
+  title: Only the sponsor is managed
+  kind: delivery
+  concern: stakeholders
+  question: >-
+    Does the stakeholder map include the people outside the weekly meeting who can block go-live: source
+    system owners, operations, security, the platform team and downstream users? Who could stop this
+    project in its last month that we have not spoken to in its first?
+  why: >-
+    The sponsor was kept happy every week. Security saw the design for the first time two weeks before
+    go-live, required personal data to be masked, and the release slipped by two months.
+  applies: {kind: [any], components: [any], patterns: [any]}
+  owner: project-manager
+  also: [technical-anchor]
+  evidence:
+    docs: [stakeholders]
+    looks_like: >-
+      A stakeholder map naming each person or group, what they care about, what they can approve or block,
+      when they were last spoken to, and how they are kept informed.
+  signals:
+    - No stakeholder map or communication plan exists.
+    - The map lists only the sponsor, the business owner and the project team.
+    - Operations, security, source owners or downstream consumers are not named anywhere.
+  contradiction: >-
+    Compare the architecture with the stakeholder map: every source, platform and consumer in the
+    architecture has an owner who should appear on the map; one who does not is an unmanaged blocker.
+  due: {plan: 3, evidenced: 4}
+  fail_fast: >-
+    List everyone who must say yes before go-live and book a thirty-minute meeting with each one you have
+    not met.
+  severity: high
+  related: [REQ-05, COM-04]
+  signal_id: missing-doc-type
+
+- id: STK-02
+  title: Nobody clearly owns the decisions
+  kind: delivery
+  concern: stakeholders
+  question: >-
+    For each kind of decision (scope, definitions, priorities, go-live), is one named person the decision
+    owner? When two senior people disagree, who decides, and how long will we wait?
+  why: >-
+    Two directors each believed they owned the project. Every decision was taken twice, the team built to
+    whichever spoke last, and both rejected the result.
+  applies: {kind: [any], components: [any], patterns: [any]}
+  owner: project-manager
+  also: [business-owner]
+  evidence:
+    docs: [stakeholders, decisions]
+    looks_like: >-
+      A responsibility table (who decides, who is consulted, who is informed) for the main decision types,
+      with one decider per type and a route for escalation.
+  signals:
+    - No responsibility table, or several people marked as the decider for the same thing.
+    - Decision log entries with no named decider.
+    - Phrases such as "the business will decide" without a name.
+  contradiction: >-
+    Compare the stakeholder map with the decision log: decisions signed by someone the map does not name as
+    the decider are likely to be reopened.
+  due: {plan: 3, evidenced: 4}
+  fail_fast: >-
+    Ask the sponsor to name, in writing, the one person who decides on scope and definitions.
+  severity: high
+  related: [PM-08, REQ-03]
+  signal_id: null
+
+- id: STK-03
+  title: No real numbers shown to the business
+  kind: delivery
+  concern: stakeholders
+  question: >-
+    Have the business users seen real numbers from real data, regularly, before user acceptance testing?
+    If they say "these numbers are wrong" at the end, will it be the first time they have looked?
+  why: >-
+    Demos used made-up data that looked fine. The first time the business saw real numbers was user
+    acceptance, and they did not recognise them.
+  applies: {kind: [any], components: [any], patterns: [any]}
+  owner: technical-anchor
+  also: [business-analyst, data-consumer]
+  evidence:
+    docs: [status, plan]
+    looks_like: >-
+      Regular demos, roughly every two weeks, with real data, and a record of what the business said and
+      what changed as a result.
+  signals:
+    - No demos are planned or recorded before the test stage.
+    - Demos are described as using sample, dummy or mock data.
+    - The data profile was not shown to the business owner during discovery.
+  contradiction: >-
+    Compare the plan with the meeting notes or status reports: planned demos that do not appear in the
+    notes did not happen.
+  due: {plan: 4, evidenced: 6}
+  fail_fast: >-
+    Show the business owner one real number from the thin slice and ask whether they recognise it.
+  severity: high
+  related: [REQ-05, REQ-04]
+  signal_id: null
+
+- id: STK-04
+  title: Conflicts left unsaid
+  kind: delivery
+  concern: stakeholders
+  question: >-
+    Where stakeholders want different things (speed against cost, one department's definition against
+    another's), is the conflict written down with options and taken to the decision owner? Which
+    disagreement are we avoiding that will surface at sign-off?
+  why: >-
+    Finance wanted monthly figures to match the ledger; sales wanted daily figures fast. Nobody named the
+    conflict, the design pleased neither, and both refused to sign.
+  applies: {kind: [any], components: [any], patterns: [any]}
+  owner: project-manager
+  also: [technical-anchor, business-analyst]
+  evidence:
+    docs: [raid, decisions]
+    looks_like: >-
+      Conflicts recorded as issues or open decisions, with each side's need, options, a recommendation and a deadline.
+  signals:
+    - Requirements from different groups that contradict each other with no note of the conflict.
+    - Meeting notes saying a topic was "taken offline" repeatedly.
+    - No issues or open decisions involve more than one stakeholder group.
+  contradiction: >-
+    Compare requirements from two different stakeholder groups: requirements that cannot both be met, with
+    no decision recorded, are a hidden conflict.
+  due: {plan: 3, evidenced: 4}
+  fail_fast: >-
+    Put the two conflicting needs on one page with options and send it to the decision owner this week.
+  severity: medium
+  related: [STK-02, COM-01]
+  signal_id: null
+
+- id: STK-05
+  title: Sign-off without reading
+  kind: delivery
+  concern: stakeholders
+  question: >-
+    Did the people signing get the document in time to read it, and are their findings answered in
+    writing? Is anyone signing something they have not read or do not agree with?
+  why: >-
+    Reviewers saw the discovery document for the first time in the sign-off meeting and approved it to
+    keep things moving. Their real objections arrived in the build, where they cost ten times more.
+  applies: {kind: [any], components: [any], patterns: [any]}
+  owner: project-manager
+  also: [technical-anchor, business-owner]
+  evidence:
+    docs: [decisions, status]
+    looks_like: >-
+      The document sent to reviewers several days before sign-off, a list of findings with written answers,
+      and a sign-off record naming who approved what.
+  signals:
+    - No review comments or findings are recorded before sign-off.
+    - The document was distributed on the same day as the sign-off meeting.
+    - Sign-off is recorded for a group ("the steering committee") with no individual names.
+  contradiction: >-
+    Compare the sign-off record with later status reports or change requests: early objections to items
+    that were signed suggest the signers had not read them.
+  due: {plan: 4, evidenced: 4}
+  fail_fast: >-
+    Ask each signer, before the meeting, for their single biggest concern in writing.
+  severity: medium
+  related: [SCOPE-06]
+  signal_id: null
+
+- id: STK-06
+  title: Success not defined for each stakeholder
+  kind: delivery
+  concern: stakeholders
+  question: >-
+    Has each key stakeholder been asked what success looks like for them and what has gone wrong for them
+    before? If a stakeholder calls the project a failure, will we know in advance what they were measuring?
+  why: >-
+    The sponsor wanted lower cost, operations wanted fewer night calls, and users wanted faster reports.
+    The project delivered only faster reports and was seen as a failure by two out of three.
+  applies: {kind: [any], components: [any], patterns: [any]}
+  owner: project-manager
+  also: [technical-anchor, business-analyst]
+  evidence:
+    docs: [stakeholders, discovery]
+    looks_like: >-
+      For each key stakeholder, one line on what success means to them and a note of past problems they raised.
+  signals:
+    - The stakeholder map lists names and roles but not interests or success measures.
+    - No record of initial interviews with stakeholders outside the business owner.
+  contradiction: >-
+    Compare each stakeholder's success measure with the scope: a measure that nothing in scope can move
+    is a disappointment already planned.
+  due: {plan: 3}
+  fail_fast: >-
+    Ask each stakeholder one question this week: "What would make you say this project worked?"
+  severity: low
+  related: [REQ-07, STK-01]
+  signal_id: null

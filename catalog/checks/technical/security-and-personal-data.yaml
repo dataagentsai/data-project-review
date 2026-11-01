@@ -1,0 +1,147 @@
+# Technical checks: access, masking, retention, regulations
+
+- id: SEC-01
+  title: Personal and sensitive data found and classified
+  kind: technical
+  concern: security-and-personal-data
+  question: >-
+    Which columns hold personal or sensitive data, in which sources and layers, and is each
+    classified?
+  why: >-
+    Free-text notes held customer phone numbers and health details; nobody had classified them, so
+    they were copied unmasked into a table hundreds of analysts could read.
+  applies:
+    kind: [any]
+    components: [any]
+    patterns: [any]
+  owner: security
+  also: [business-analyst, technical-anchor]
+  evidence:
+    docs: [data-model, discovery, platform]
+    looks_like: >-
+      A classification for every column in scope (public, internal, confidential, personal,
+      special category), including free-text fields, recorded in the data dictionary or catalog.
+  signals:
+    - Personal data is not mentioned, or mentioned only as "will follow policy".
+  due: {plan: 3, designed: 4, evidenced: 7}
+  fail_fast: >-
+    Scan a real extract of each source for patterns like emails, phone numbers and national ids,
+    including in free-text columns.
+  severity: high
+  related: [SEC-02, SEC-03, SEC-05]
+  signal_id: null
+
+- id: SEC-02
+  title: Who can see what
+  kind: technical
+  concern: security-and-personal-data
+  question: >-
+    Who may see which tables, rows and columns, and how is that enforced (masking, row filters,
+    separate views) rather than trusted?
+  why: >-
+    Regional managers were meant to see only their own region, but the report filtered it in the
+    front end; anyone querying the table directly saw every region's salaries.
+  applies:
+    kind: [any]
+    components: [modelling, serving, governance]
+    patterns: [any]
+  owner: security
+  also: [technical-anchor, data-consumer]
+  evidence:
+    docs: [platform, architecture, requirements]
+    looks_like: >-
+      An access matrix by group, enforced in the data platform itself with masking and row-level
+      rules, and tests that run as each persona.
+  due: {plan: 3, designed: 5, evidenced: 7, proven: 9}
+  fail_fast: >-
+    Log in as a test user of the lowest-privilege persona and query the most sensitive table
+    directly.
+  severity: high
+  related: [SEC-01, ENV-02, SEC-04]
+  signal_id: null
+
+- id: SEC-03
+  title: Retention and the right to be forgotten
+  kind: technical
+  concern: security-and-personal-data
+  question: >-
+    How long is each kind of data kept, and how is a person's data erased everywhere it lives,
+    including history tables, old table versions, backups and extracts?
+  why: >-
+    A customer's erasure request deleted their current row, but the history table, old file
+    versions kept for recovery and a weekly extract to a partner still held their data.
+  applies:
+    kind: [any]
+    components: [governance, modelling, serving, ingestion]
+    patterns: [any]
+  owner: security
+  also: [technical-anchor, operations]
+  evidence:
+    docs: [platform, architecture, runbook]
+    looks_like: >-
+      A retention period per data class, an erasure procedure that covers every layer, history,
+      versions and copies, and the time it takes to complete.
+  due: {plan: 3, designed: 5, evidenced: 7, proven: 10}
+  fail_fast: >-
+    Trace one test person through every table, version and extract in test and count where their
+    data would remain after the erasure procedure.
+  severity: high
+  related: [SEC-01, DEL-02, PERF-05]
+  signal_id: null
+
+- id: SEC-04
+  title: Access is audited
+  kind: technical
+  concern: security-and-personal-data
+  question: >-
+    Is every read and change of sensitive data logged with who, what and when, and does someone
+    review it?
+  why: >-
+    After a data leak, the team could not say who had queried the customer table in the last month,
+    and the regulator treated the whole table as exposed.
+  applies:
+    kind: [new-platform]
+    components: [platform, governance]
+    patterns: [any]
+  owner: security
+  also: [platform-team]
+  evidence:
+    docs: [platform, runbook]
+    looks_like: >-
+      Audit logs switched on for data access, kept for the regulated period, and a named reviewer
+      with a review frequency.
+  due: {plan: 3, designed: 5, evidenced: 7, proven: 9}
+  fail_fast: >-
+    Query a sensitive test table, then find that query in the audit log within an hour.
+  severity: medium
+  related: [SEC-02, OPS-03]
+  signal_id: null
+
+- id: SEC-05
+  title: Regulations and where data may live
+  kind: technical
+  concern: security-and-personal-data
+  question: >-
+    Which regulations apply to the data (privacy, industry, residency), and does the design keep
+    data, copies and processing in permitted locations?
+  why: >-
+    A disaster-recovery copy was configured to another region outside the permitted jurisdiction;
+    the audit found it a week before go-live and the platform design had to change.
+  applies:
+    kind: [any]
+    components: [platform, governance]
+    patterns: [any]
+  owner: security
+  also: [architect, platform-team]
+  evidence:
+    docs: [platform, decisions]
+    looks_like: >-
+      A list of applicable regulations, permitted regions for storage, processing and backups, and
+      sign-off from the data protection or compliance owner.
+  due: {plan: 3, designed: 4, evidenced: 8}
+  fail_fast: >-
+    Ask the compliance owner which locations are permitted, and list every place the design puts
+    a copy of the data.
+  severity: high
+  related: [SEC-01, ORCH-05]
+  signal_id: null

@@ -1,0 +1,320 @@
+# Delivery checks: project management.
+
+- id: PM-01
+  title: Dates set before the dependencies were known
+  kind: delivery
+  concern: project-management
+  question: >-
+    Were the milestones set after the dependencies (access, environments, source changes, other teams,
+    approvals) were listed and confirmed with the people who own them? If the first milestone slips, will
+    it be because of something outside the team that nobody had asked about?
+  why: >-
+    The go-live date was announced first. The source team's change freeze, the security review and the
+    network change each added weeks, and none had been asked about when the date was set.
+  applies: {kind: [any], components: [any], patterns: [any]}
+  owner: project-manager
+  also: [technical-anchor, source-owner, platform-team]
+  evidence:
+    docs: [plan, raid]
+    looks_like: >-
+      A dependency list with each owner, the date they committed to, and the plan tasks that wait on it.
+  signals:
+    - Milestone dates appear in the brief or charter before any dependency list exists.
+    - The plan has no dependencies, or lists them without owners or dates.
+    - External teams named in the architecture do not appear in the plan.
+  contradiction: >-
+    Compare the architecture with the plan: every system or team the architecture relies on should appear
+    as a dependency in the plan; one that does not is an unplanned wait.
+  due: {plan: 3, designed: 4}
+  fail_fast: >-
+    Phone the owner of the biggest external dependency and ask for the date they can deliver it, in writing.
+  severity: high
+  related: [PM-07, PM-10]
+  signal_id: null
+
+- id: PM-02
+  title: Risks listed, not managed
+  kind: delivery
+  concern: project-management
+  question: >-
+    Does each top risk have an owner, a trigger that tells us it is happening, a mitigation that is being
+    done, and a date it was last reviewed? Looking back after a failure, will the cause be on the risk log
+    with nothing done about it?
+  why: >-
+    "Source data quality may be poor" sat on the risk log for six months with no owner. It was exactly the
+    reason the project missed its date.
+  applies: {kind: [any], components: [any], patterns: [any]}
+  owner: project-manager
+  also: [technical-anchor]
+  evidence:
+    docs: [raid]
+    looks_like: >-
+      A short top-risks list where each risk has an owner, a trigger, a mitigation with a due date, and a
+      recent review date.
+  signals:
+    - Risks with no owner, or with a team rather than a person as owner.
+    - No triggers or mitigation actions, only descriptions.
+    - The risk log has not changed in several weeks while status reports describe new problems.
+  contradiction: >-
+    Compare the RAID log with status reports: problems in the status reports that were never on the risk
+    log, or risks that became issues without the log changing, mean the log is not used.
+  due: {plan: 3, evidenced: 6}
+  fail_fast: >-
+    Take the top three risks and ask each owner what they did about it this week.
+  severity: high
+  related: [PM-04, EST-03]
+  signal_id: risks-without-owner
+
+- id: PM-03
+  title: Decisions not written down
+  kind: delivery
+  concern: project-management
+  question: >-
+    Is there a decision log recording the options, the choice, the reason, who decided and when? When a
+    decision is reopened by someone who was not in the room, what will we show them?
+  why: >-
+    The team agreed to keep only the latest customer address. Three months later a new manager asked why
+    history was missing, and with no record the decision was reversed and the work redone.
+  applies: {kind: [any], components: [any], patterns: [any]}
+  owner: project-manager
+  also: [technical-anchor, architect]
+  evidence:
+    docs: [decisions]
+    looks_like: >-
+      A decision log or short decision records: context, options, decision, reason, owner, who signed, date.
+  signals:
+    - No decision log or decision records exist among the project documents.
+    - Meeting notes contain "agreed" or "decided" but no decision log entry matches.
+    - Architecture choices are stated with no record of the options considered.
+  contradiction: >-
+    Compare meeting notes or status reports with the decision log: a decision mentioned in notes but not
+    in the log is one that can be lost.
+  due: {plan: 3, evidenced: 6}
+  fail_fast: >-
+    List the last five important choices from memory and check how many are in the log.
+  severity: high
+  related: [PM-08, COM-03, HAND-02]
+  signal_id: no-decision-log
+
+- id: PM-04
+  title: Green until it is red
+  kind: delivery
+  concern: project-management
+  question: >-
+    Do status reports show amber or red when something is slipping, with the reason and the next step? If
+    the project fails suddenly, will the reports from the month before have shown it as green?
+  why: >-
+    Status stayed green for four months while the team quietly fell behind. It went red two weeks before
+    go-live, when there was nothing left to do but move the date.
+  applies: {kind: [any], components: [any], patterns: [any]}
+  owner: project-manager
+  also: [technical-anchor, business-owner]
+  evidence:
+    docs: [status]
+    looks_like: >-
+      Status reports where the colour is based on stated rules (for example forecast versus baseline), and
+      where amber appears early with a recovery action.
+  signals:
+    - Every status report is green.
+    - The status colour does not change while the forecast date or open issues change.
+    - No forecast finish date, only activities done.
+  contradiction: >-
+    Compare status reports with the RAID log and the estimate: a green status alongside rising issues, a
+    rate below the estimate, or slipping dependencies means the colour is not telling the truth.
+  due: {plan: 4, evidenced: 6}
+  fail_fast: >-
+    Write down the rule for red, amber and green today and apply it to the last report.
+  severity: high
+  related: [PM-02, EST-06, COM-01]
+  signal_id: status-always-green
+
+- id: PM-05
+  title: Testing and deployment left to the end
+  kind: delivery
+  concern: project-management
+  question: >-
+    Does the plan have testing and deployment to a production-like environment starting in the first weeks
+    of build, rather than after it? If go-live slips, will it be because the first real deployment happened
+    a month before the date?
+  why: >-
+    Everything was built, then tested, then deployed. The first deployment found network, permission and
+    performance problems that took longer to fix than the build had taken.
+  applies: {kind: [any], components: [any], patterns: [any]}
+  owner: project-manager
+  also: [technical-anchor, test-lead, release-devops]
+  evidence:
+    docs: [plan, test-strategy, deployment]
+    looks_like: >-
+      A test strategy and a release approach agreed in discovery, a first deployment of a thin slice in the
+      first weeks, and "done" defined as tested and deployed.
+  signals:
+    - No test strategy or deployment document exists, or it says "to be defined".
+    - The plan has testing and deployment as single phases after build.
+    - The definition of done mentions coding but not testing or deployment.
+  contradiction: >-
+    Compare the plan with the test strategy: if the strategy describes continuous testing but the plan has
+    one test phase at the end, the plan wins and testing will be squeezed.
+  due: {plan: 3, designed: 5, evidenced: 6}
+  fail_fast: >-
+    Deploy the thin slice to the test environment this week, through the real release route.
+  severity: high
+  related: [EST-04, SCOPE-05]
+  signal_id: missing-doc-type
+
+- id: PM-06
+  title: Key-person risk
+  kind: delivery
+  concern: project-management
+  question: >-
+    Is there any part of the project that only one person understands or can do, and are the people the
+    plan needs named and available when it needs them? If one person leaves next month, what stops?
+  why: >-
+    One developer understood the source system. When they moved to another project mid-build, the team
+    lost six weeks rediscovering what they knew.
+  applies: {kind: [any], components: [any], patterns: [any]}
+  owner: project-manager
+  also: [technical-anchor]
+  evidence:
+    docs: [plan, raid]
+    looks_like: >-
+      Named people for each role with their availability, a second person for every critical area, and
+      key-person risks on the RAID log.
+  signals:
+    - The same person's name appears as owner for most technical items.
+    - Roles are listed as "to be hired" or "to be confirmed" for work in the next stage.
+    - No mention of availability, leave or shared allocation.
+  contradiction: >-
+    Compare the plan with the stakeholder map or team list: a plan that needs a role the team list does not
+    have, or a person allocated part-time who carries full-time tasks, will slip.
+  due: {plan: 3, evidenced: 6}
+  fail_fast: >-
+    Ask each team member which area they could not cover if a colleague were away for a month.
+  severity: medium
+  related: [HAND-03]
+  signal_id: null
+
+- id: PM-07
+  title: The plan ignores the estimate's assumptions
+  kind: delivery
+  concern: project-management
+  question: >-
+    Does the plan use the same assumptions as the estimate (start of access, team size, environment
+    availability, source readiness)? When the plan slips, will it be because it assumed something the
+    estimate never did?
+  why: >-
+    The estimate assumed access in week three; the plan assumed week one. Nobody compared them, and the
+    plan was two weeks behind before work started.
+  applies: {kind: [any], components: [any], patterns: [any]}
+  owner: project-manager
+  also: [technical-anchor]
+  evidence:
+    docs: [plan, estimate]
+    looks_like: >-
+      A plan that lists the estimate's key assumptions and shows where each one sits on the timeline.
+  signals:
+    - The plan does not mention the estimate or its assumptions.
+    - The plan's team size or start dates differ from the estimate's.
+  contradiction: >-
+    Compare the estimate's assumptions with the plan's dates and staffing: any mismatch is a slip already
+    built in.
+  due: {plan: 3, designed: 4}
+  fail_fast: >-
+    Put the estimate's assumptions next to the first four weeks of the plan and look for disagreements.
+  severity: medium
+  related: [EST-03, PM-01]
+  signal_id: null
+
+- id: PM-08
+  title: Open decisions with no owner, deadline or default
+  kind: delivery
+  concern: project-management
+  question: >-
+    Does every open decision have an owner, a date by which it is needed, and a default that applies if
+    nobody decides? If the team is blocked next month, will it be waiting on a decision nobody owns?
+  why: >-
+    The choice between daily and hourly loads stayed open for ten weeks because nobody owned it. The team
+    built for both, and later threw half away.
+  applies: {kind: [any], components: [any], patterns: [any]}
+  owner: project-manager
+  also: [business-owner, technical-anchor]
+  evidence:
+    docs: [decisions, raid]
+    looks_like: >-
+      An open-decisions list with the question, options, owner, the date needed, the default and the
+      effect of deciding late.
+  signals:
+    - Open questions listed with no owner or due date.
+    - Items the build depends on are marked "TBD" or "to be confirmed".
+    - The same open question appears in several consecutive status reports.
+  contradiction: >-
+    Compare the open decisions with the plan: a task scheduled to start before the decision it depends on
+    is due will either stall or be redone.
+  due: {plan: 3, evidenced: 5}
+  fail_fast: >-
+    Give every open decision an owner and a default today, and tell the owners the default applies on the due date.
+  severity: medium
+  related: [PM-03, STK-02]
+  signal_id: null
+
+- id: PM-09
+  title: Discovery with no timebox
+  kind: delivery
+  concern: project-management
+  question: >-
+    Does discovery have a fixed length, a cost, and a list of exit criteria? If discovery runs for months or
+    is squeezed into days, which risks will we carry into the build without having tested them?
+  why: >-
+    Discovery was squeezed into three days to "start building faster". The riskiest beliefs were never
+    tested, and they surfaced one by one during the build.
+  applies: {kind: [any], components: [any], patterns: [any]}
+  owner: project-manager
+  also: [technical-anchor, business-owner]
+  evidence:
+    docs: [plan, discovery]
+    looks_like: >-
+      A discovery plan of a few weeks with weekly goals, its own estimate, named reviewers and written exit criteria.
+  signals:
+    - No discovery stage in the plan, or no end date for it.
+    - Discovery has no estimate of its own.
+    - No exit criteria for discovery sign-off.
+  contradiction: >-
+    Compare the discovery exit criteria with the discovery document: criteria that are not met but sign-off
+    still happened show the timebox beat the evidence.
+  due: {plan: 2, evidenced: 4}
+  fail_fast: >-
+    Write the discovery exit criteria now and agree the end date with the sponsor.
+  severity: medium
+  related: [EST-01]
+  signal_id: null
+
+- id: PM-10
+  title: Access and environments treated as admin
+  kind: delivery
+  concern: project-management
+  question: >-
+    Were access to sources, environments and tools requested in the first week and tracked as dependencies
+    with owners and dates? If the build starts late, will it be because the team waited weeks for access?
+  why: >-
+    Access requests were raised when build started. Approvals took six weeks, so the team spent the first
+    sprints on paper designs that the real data later contradicted.
+  applies: {kind: [any], components: [any], patterns: [any]}
+  owner: project-manager
+  also: [technical-anchor, platform-team, security]
+  evidence:
+    docs: [raid, plan]
+    looks_like: >-
+      A list of every access and environment request with the date raised, the approver, the expected date
+      and its current state.
+  signals:
+    - No access or environment requests are listed in the plan or RAID log.
+    - Access is described as "assumed" or "will be arranged".
+    - Discovery has no real data extract because access had not arrived.
+  contradiction: >-
+    Compare the plan's start of build with the access request dates: a build that starts before access is
+    expected is planned to wait.
+  due: {plan: 2, evidenced: 3}
+  fail_fast: >-
+    Raise every access request today and record the date each one arrives.
+  severity: high
+  related: [PM-01, EST-04]
+  signal_id: null

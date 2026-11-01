@@ -1,0 +1,92 @@
+# Technical checks: columns added, renamed or retyped at the source
+
+- id: SCH-01
+  title: A new column appears at the source
+  kind: technical
+  concern: schema-change
+  question: >-
+    When a source adds a column, does the pipeline fail, drop it silently, or carry it through, and
+    is that the agreed behaviour per layer?
+  why: >-
+    The source added a discount column; the raw layer dropped it silently, and when finance asked
+    for it three months later the history could not be recovered.
+  applies:
+    kind: [any]
+    components: [ingestion, transformation]
+    patterns: [any]
+  owner: technical-anchor
+  also: [developer]
+  evidence:
+    docs: [architecture]
+    looks_like: >-
+      A schema policy per layer (for example: raw keeps everything including unknown columns,
+      cleaned layers change only through a reviewed change), and an alert when a new column appears.
+  signals:
+    - The architecture does not mention schema changes at all.
+  due: {plan: 3, designed: 5, evidenced: 7}
+  fail_fast: >-
+    Add a column to a test source file or table and run the pipeline; see what each layer does and
+    whether anyone is told.
+  severity: medium
+  related: [SCH-02, SCH-03]
+  signal_id: null
+
+- id: SCH-02
+  title: A column renamed, removed or retyped
+  kind: technical
+  concern: schema-change
+  question: >-
+    When a source renames, removes or changes the type of a column, does the pipeline stop
+    loudly before writing wrong data?
+  why: >-
+    A source changed an amount column from cents to a decimal in dollars; the pipeline cast it
+    happily and revenue fell a hundredfold in the morning report.
+  applies:
+    kind: [any]
+    components: [ingestion, transformation]
+    patterns: [any]
+  owner: technical-anchor
+  also: [developer, operations]
+  evidence:
+    docs: [architecture, test-strategy]
+    looks_like: >-
+      An expected schema checked on every load, breaking changes failing the load with a clear
+      alert, and range or distribution checks on key measures.
+  due: {plan: 3, designed: 5, evidenced: 7, proven: 9}
+  fail_fast: >-
+    In test, rename one column and change one type in a source sample; the load must fail with a
+    message that names the column.
+  severity: high
+  related: [SCH-01, DQ-01, OPS-01]
+  signal_id: null
+
+- id: SCH-03
+  title: Source owners warn before they change
+  kind: technical
+  concern: schema-change
+  question: >-
+    Is there an agreement (a data contract or a change notice) that source owners tell the data
+    team before changing structure or meaning?
+  why: >-
+    The source team released a new version on a Friday with restructured tables; nobody told the
+    data team and the weekend loads failed, missing a regulatory deadline.
+  applies:
+    kind: [any]
+    components: [ingestion]
+    patterns: [any]
+  owner: technical-anchor
+  also: [source-owner, project-manager]
+  evidence:
+    docs: [discovery, stakeholders, raid]
+    looks_like: >-
+      A written agreement or contract per source naming the schema, the notice period for changes,
+      and a contact; source release calendars known to the team.
+  signals:
+    - Source owners are not in the stakeholder map.
+  due: {plan: 3, designed: 4, evidenced: 9}
+  fail_fast: >-
+    Ask each source owner when their next release is and whether it changes anything the project
+    reads.
+  severity: medium
+  related: [SCH-02, SERV-03]
+  signal_id: null

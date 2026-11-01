@@ -1,0 +1,143 @@
+# Technical checks: test levels, test data, environments
+
+- id: TEST-01
+  title: Test levels that include data tests
+  kind: technical
+  concern: testing
+  question: >-
+    Does the test strategy cover code tests, data tests (rules, reconciliation), integration end to
+    end, performance and user acceptance, each with an owner?
+  why: >-
+    Tests checked that each function worked on hand-made rows; nobody tested the real data end to
+    end, and the first integrated run produced reports nobody recognised.
+  applies:
+    kind: [any]
+    components: [any]
+    patterns: [any]
+  owner: test-lead
+  also: [technical-anchor]
+  evidence:
+    docs: [test-strategy]
+    looks_like: >-
+      A test strategy naming each test level, what it proves, who runs it, where, and with what
+      data, including data quality and reconciliation tests.
+  signals:
+    - The test strategy says "to be defined", or covers only unit tests and user acceptance.
+  due: {plan: 3, designed: 4, evidenced: 7}
+  fail_fast: >-
+    For each top requirement, write the one data test that would prove it, and see which ones you
+    cannot write.
+  severity: high
+  related: [TEST-02, TEST-03, DQ-01]
+  signal_id: null
+
+- id: TEST-02
+  title: Realistic, safe test data
+  kind: technical
+  concern: testing
+  question: >-
+    Where does test data come from, is it realistic enough to find real problems (volumes, edge
+    cases, bad rows), and is personal data masked or synthetic?
+  why: >-
+    Test data was a tidy hand-made sample with no nulls or duplicates; every test passed, and the
+    first real load failed on problems the sample could never have shown.
+  applies:
+    kind: [any]
+    components: [any]
+    patterns: [any]
+  owner: test-lead
+  also: [security, source-owner]
+  evidence:
+    docs: [test-strategy, platform]
+    looks_like: >-
+      A source of test data per environment (masked copy, sampled production, generated), the edge
+      cases it includes, and security approval.
+  due: {plan: 3, designed: 5, evidenced: 6}
+  fail_fast: >-
+    Compare the null, duplicate and orphan-key rates of the test data with the real-data profile.
+  severity: high
+  related: [TEST-01, SEC-01, DQ-05]
+  signal_id: null
+
+- id: TEST-03
+  title: Automated tests run on every change
+  kind: technical
+  concern: testing
+  question: >-
+    Do automated tests (code and data) run on every change in the release pipeline, and does a
+    failure stop the release?
+  why: >-
+    A small refactor changed a join; the tests existed but were run by hand and nobody ran them, so
+    the regression reached production.
+  applies:
+    kind: [any]
+    components: [any]
+    patterns: [any]
+  owner: developer
+  also: [release-devops, test-lead]
+  evidence:
+    docs: [test-strategy, deployment]
+    looks_like: >-
+      Tests wired into the pull request and deployment pipeline as required gates, with coverage of
+      the transformations that carry business rules.
+  due: {plan: 4, designed: 5, evidenced: 6, proven: 9}
+  fail_fast: >-
+    Break one business rule deliberately on a branch; the pipeline must fail before merge.
+  severity: medium
+  related: [REL-02, TEST-01]
+  signal_id: null
+
+- id: TEST-04
+  title: Users test with numbers they recognise
+  kind: technical
+  concern: testing
+  question: >-
+    Will business users accept the solution by checking real numbers they know, against agreed
+    criteria, rather than by looking at screens?
+  why: >-
+    User acceptance was a demo of the dashboard layout; the first time finance compared it with
+    their own numbers was after go-live, and they rejected it.
+  applies:
+    kind: [any]
+    components: [modelling, serving]
+    patterns: [any]
+  owner: test-lead
+  also: [business-owner, data-consumer]
+  evidence:
+    docs: [test-strategy, requirements]
+    looks_like: >-
+      User acceptance scenarios with expected figures supplied by the business, named testers,
+      dates, and sign-off criteria.
+  due: {plan: 4, designed: 6, evidenced: 7}
+  fail_fast: >-
+    Ask the business owner for three numbers they know by heart and check them in the thin slice.
+  severity: high
+  related: [REC-02, TEST-01]
+  signal_id: null
+
+- id: TEST-05
+  title: Failure, rerun and recovery tested on purpose
+  kind: technical
+  concern: testing
+  question: >-
+    Does the test plan include deliberate failures: reruns, duplicate input, late data, schema
+    changes, empty input and jobs killed mid-run?
+  why: >-
+    Every test assumed the happy path; in the first month the pipeline met a resent file, a late
+    batch and a crash mid-write, and each one corrupted data.
+  applies:
+    kind: [any]
+    components: [ingestion, transformation, modelling, orchestration]
+    patterns: [any]
+  owner: test-lead
+  also: [technical-anchor, developer]
+  evidence:
+    docs: [test-strategy]
+    looks_like: >-
+      Negative test cases for each failure the design claims to handle, with expected outcomes.
+  due: {plan: 4, designed: 5, evidenced: 7}
+  fail_fast: >-
+    List every failure the architecture says it handles and check each has a test case.
+  severity: high
+  related: [DUP-02, ORCH-03, SCH-02]
+  signal_id: null

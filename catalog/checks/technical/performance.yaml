@@ -1,0 +1,148 @@
+# Technical checks: volume, speed, freshness
+
+- id: PERF-01
+  title: Volumes and growth stated
+  kind: technical
+  concern: performance
+  question: >-
+    What are the real volumes per source today (rows, size, files per day), and how much are they
+    expected to grow over the next two to three years?
+  why: >-
+    The design was sized from a test sample of a million rows; production sent eight hundred
+    million on month-end and the nightly window was blown on the first close.
+  applies:
+    kind: [any]
+    components: [any]
+    patterns: [any]
+  owner: technical-anchor
+  also: [source-owner, architect]
+  evidence:
+    docs: [discovery, architecture]
+    looks_like: >-
+      Measured volumes per source from real data, peak days (month-end, seasonal), and a growth
+      assumption.
+  signals:
+    - Volumes are missing, or given as "large" or "medium" rather than numbers.
+  due: {plan: 3, designed: 4, evidenced: 7}
+  fail_fast: >-
+    Ask each source owner for the row count of their biggest table on their busiest day, and check
+    one against a real extract.
+  severity: medium
+  related: [PERF-03, COST-01, HIST-02]
+  signal_id: null
+
+- id: PERF-02
+  title: Freshness target measured end to end
+  kind: technical
+  concern: performance
+  question: >-
+    What freshness or latency is promised (for example, ready by 07:00, or within one minute), and
+    has the full path from source to consumer been timed against it?
+  why: >-
+    Each step met its own target, but source export, transfer, three layers and the report refresh
+    added up to ninety minutes against a promised thirty.
+  applies:
+    kind: [any]
+    components: [any]
+    patterns: [any]
+  owner: technical-anchor
+  also: [data-consumer, architect]
+  evidence:
+    docs: [requirements, architecture, test-strategy]
+    looks_like: >-
+      A freshness target per consumer, a time budget split across every hop, and a measured end to
+      end time from the thin slice or a test run.
+  due: {plan: 3, designed: 4, evidenced: 7, proven: 9}
+  fail_fast: >-
+    Time one record from source change to visible in the report in the thin slice, and compare
+    with the target.
+  severity: high
+  related: [PERF-03, SERV-02, DES-06]
+  signal_id: null
+
+- id: PERF-03
+  title: Tested at production volume
+  kind: technical
+  concern: performance
+  question: >-
+    Has the pipeline been run at production volume, including a peak day and the history load,
+    before go-live?
+  why: >-
+    Every test ran on a tenth of the data; the first month-end in production ran out of memory in
+    the biggest join and the finance close waited a day.
+  applies:
+    kind: [any]
+    components: [ingestion, transformation, modelling]
+    patterns: [any]
+  owner: test-lead
+  also: [technical-anchor, platform-team]
+  evidence:
+    docs: [test-strategy]
+    looks_like: >-
+      A performance test at peak production volume with run times, compute size and cost recorded,
+      and the result compared with the freshness target.
+  signals:
+    - The test strategy has no performance or volume test, or uses only small samples.
+  due: {plan: 3, designed: 5, evidenced: 7, proven: 9}
+  fail_fast: >-
+    Run the heaviest transformation on one full peak day of real (or realistically generated)
+    data and time it.
+  severity: high
+  related: [PERF-01, PERF-04, COST-01]
+  signal_id: null
+
+- id: PERF-04
+  title: Skewed keys and very large joins
+  kind: technical
+  concern: performance
+  question: >-
+    Are there hot keys (one customer, one default value, nulls) or joins between two very large
+    tables that will make some steps run far slower than the rest?
+  why: >-
+    Half of all rows carried a placeholder customer id; in the big join one worker processed that
+    key for an hour while the others sat idle, and the job missed its window.
+  applies:
+    kind: [any]
+    components: [transformation, modelling]
+    patterns: [any]
+  owner: developer
+  also: [technical-anchor]
+  evidence:
+    docs: [architecture, discovery]
+    looks_like: >-
+      Key distributions profiled for the large join keys, and a strategy for skewed keys and large
+      joins (filtering defaults, splitting hot keys, pre-aggregating).
+  due: {plan: 4, designed: 5, evidenced: 7}
+  fail_fast: >-
+    Count rows per join key for the two largest joins and look at the top ten keys' share.
+  severity: medium
+  related: [PERF-03, DQ-05]
+  signal_id: null
+
+- id: PERF-05
+  title: Storage layout and file sizes kept healthy
+  kind: technical
+  concern: performance
+  question: >-
+    How are table layout (partitioning or clustering) and file sizes chosen and maintained, so
+    frequent small writes do not slow reads over time?
+  why: >-
+    A streaming load wrote thousands of tiny files an hour; reads slowed every week until a simple
+    query took ten minutes and cost ten times more.
+  applies:
+    kind: [any]
+    components: [ingestion, transformation, modelling]
+    patterns: [any]
+  owner: developer
+  also: [platform-team]
+  evidence:
+    docs: [architecture, runbook]
+    looks_like: >-
+      Layout chosen from the main filter and join columns, a scheduled compaction and cleanup job,
+      and a metric for average file size.
+  due: {plan: 4, designed: 5, evidenced: 7, proven: 10}
+  fail_fast: >-
+    After a week of test loads, count files and average file size for the busiest table.
+  severity: medium
+  related: [COST-04, PERF-03, SEC-03]
+  signal_id: null

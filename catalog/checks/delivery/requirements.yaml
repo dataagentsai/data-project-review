@@ -1,0 +1,232 @@
+# Delivery checks: requirements.
+
+- id: REQ-01
+  title: Vague words in the requirements
+  kind: delivery
+  concern: requirements
+  question: >-
+    Has every vague word in the requirements, such as "real-time", "fast", "all data", "user-friendly",
+    "accurate" or "complete", been replaced with a number or a test? If the users reject the system at the
+    end, will it be because we each read those words differently?
+  why: >-
+    "Real-time" meant within a second to the sponsor and by the next morning to the team. The design was
+    built for daily loads and had to be rebuilt late in the project.
+  applies: {kind: [any], components: [any], patterns: [any]}
+  owner: business-analyst
+  also: [technical-anchor, test-lead]
+  evidence:
+    docs: [requirements]
+    looks_like: >-
+      Every quality word paired with a measure, for example "available by 7 a.m. on working days" instead
+      of "timely", or "the last three years" instead of "all history".
+  signals:
+    - Words such as real-time, near real-time, fast, quickly, timely, all data, complete, accurate,
+      user-friendly, intuitive, seamless, scalable or robust appear without a number next to them.
+    - Lists of required data or reports end with "etc." or "and so on".
+  contradiction: >-
+    Compare the requirements with the architecture: if the requirement says "real-time" and the
+    architecture schedules a daily batch, someone's reading of the word is wrong.
+  due: {plan: 1, designed: 4}
+  fail_fast: >-
+    Ask the requester to put a number on each vague word in a fifteen-minute call, and write the answers down.
+  severity: high
+  related: [REQ-02, REQ-06]
+  signal_id: vague-words
+
+- id: REQ-02
+  title: No acceptance criteria
+  kind: delivery
+  concern: requirements
+  question: >-
+    Does every requirement have acceptance criteria that the data can be tested against? At user
+    acceptance, how will we and the business agree that a requirement is met?
+  why: >-
+    Requirements said "show monthly sales by region". At user acceptance the business compared it with
+    their own report, got a different number, and nobody had agreed in advance which one was right.
+  applies: {kind: [any], components: [any], patterns: [any]}
+  owner: business-analyst
+  also: [test-lead, technical-anchor]
+  evidence:
+    docs: [requirements, test-strategy]
+    looks_like: >-
+      For each requirement, one or more criteria in the form "given this data, the result is this", ideally
+      with a known figure the business already trusts.
+  signals:
+    - Requirements or user stories have no "acceptance criteria" or "done when" section.
+    - Acceptance criteria repeat the requirement in other words rather than describing a test.
+    - Backlog items are marked ready for build without criteria.
+  contradiction: >-
+    Compare the requirements with the test strategy: requirements that have no matching test, or tests
+    that trace to no requirement, show the two were written apart.
+  due: {plan: 3, designed: 5, evidenced: 7}
+  fail_fast: >-
+    Take the three most important requirements and write a test for each with the business owner, using a
+    figure from a report they already trust.
+  severity: high
+  related: [REQ-01, REQ-03]
+  signal_id: no-acceptance-criteria
+
+- id: REQ-03
+  title: Business definitions not agreed and signed
+  kind: delivery
+  concern: requirements
+  question: >-
+    Are the key business definitions (for example revenue, active customer, order date) written down and
+    signed by the person who owns each one? If two departments see different numbers after go-live, which
+    signed definition settles it?
+  why: >-
+    Sales counted revenue when the order was booked; finance counted it when it was paid. Both signed the
+    requirements, which said "revenue", and the dashboard was disowned by one of them in the first week.
+  applies: {kind: [any], components: [modelling, serving], patterns: [any]}
+  owner: business-analyst
+  also: [business-owner, data-consumer, technical-anchor]
+  evidence:
+    docs: [data-model, decisions]
+    looks_like: >-
+      A definitions list with the exact rule for each term, the grain, the owner who signed it and the date.
+  signals:
+    - The data dictionary has names but no rules, owners or sign-off.
+    - The same term is used in requirements from different departments with no definition.
+    - Definitions are marked "to be confirmed" in a document that has passed discovery sign-off.
+  contradiction: >-
+    Compare the requirements with the data model: if a term in the requirements has a different rule, or
+    no rule, in the data model, the definition was never agreed.
+  due: {plan: 3, designed: 4}
+  fail_fast: >-
+    Ask two of the main consumers to write their own definition of the top five terms separately, then
+    compare the answers.
+  severity: high
+  related: [REQ-02, STK-02]
+  signal_id: null
+
+- id: REQ-04
+  title: Requirements written without looking at the data
+  kind: delivery
+  concern: requirements
+  question: >-
+    Were the requirements checked against a profile of the real source data? If a requirement turns out
+    to be impossible, will we find out in discovery or in testing?
+  why: >-
+    The requirement asked for sales by product category. The source had no category for a third of
+    products, which only came to light when the report was tested.
+  applies: {kind: [any], components: [any], patterns: [any]}
+  owner: business-analyst
+  also: [technical-anchor, source-owner]
+  evidence:
+    docs: [discovery, requirements]
+    looks_like: >-
+      A data profile per source (volumes, keys, nulls, odd values) and a note against each requirement
+      saying which source fields support it and any gaps found.
+  signals:
+    - No data profiling section or results in the discovery document.
+    - Requirements name fields or attributes that do not appear in any source description.
+    - Phrases such as "data to be confirmed" or "assumed available" against required fields.
+  contradiction: >-
+    Compare the requirements with the data model or source mapping: a required field with no source
+    mapped to it is a requirement nobody checked against the data.
+  due: {plan: 3, evidenced: 4}
+  fail_fast: >-
+    Pull one real extract from each source and map the top ten requirements to actual columns in an afternoon.
+  severity: high
+  related: [EST-07, REQ-03]
+  signal_id: null
+
+- id: REQ-05
+  title: The users are not the requesters
+  kind: delivery
+  concern: requirements
+  question: >-
+    Have the people who will use the output every day been asked what they need, or only the people who
+    requested it? If nobody uses the system three months after go-live, will it be because it answered the
+    requester's question and not the users'?
+  why: >-
+    A director requested a dashboard and approved the design. The analysts who were meant to use it
+    needed row-level detail to act on, kept their old reports, and the dashboard went unused.
+  applies: {kind: [any], components: [serving, modelling], patterns: [any]}
+  owner: business-analyst
+  also: [data-consumer, business-owner]
+  evidence:
+    docs: [requirements, stakeholders]
+    looks_like: >-
+      Named users or user groups, how they will use the output, which decisions it supports, and evidence
+      that some of them took part in workshops and will take part in user acceptance testing.
+  signals:
+    - Requirements name only a sponsor or requester, not users.
+    - No user workshops, interviews or user personas are mentioned.
+    - User acceptance testers are not named, or are the same person as the requester.
+  contradiction: >-
+    Compare the stakeholder map with the requirements sources: user groups on the map who are not listed
+    as contributors to the requirements were never asked.
+  due: {plan: 1, designed: 4, evidenced: 7}
+  fail_fast: >-
+    Show a rough mock-up or a real sample of the output to three actual users and ask what decision they
+    would make with it.
+  severity: medium
+  related: [STK-01, STK-03]
+  signal_id: null
+
+- id: REQ-06
+  title: Non-functional needs missing
+  kind: delivery
+  concern: requirements
+  question: >-
+    Are freshness, volume and growth, recovery time and acceptable data loss, retention, and who may see
+    what written as requirements with numbers? If the system works but is rejected, will it be because it
+    is too slow, too stale, or unrecoverable?
+  why: >-
+    Nobody asked how fresh the data had to be or how quickly it had to recover. After the first overnight
+    failure the business found out it would take a day to recover, and the system was not accepted.
+  applies: {kind: [any], components: [any], patterns: [any]}
+  owner: business-analyst
+  also: [technical-anchor, operations, security]
+  evidence:
+    docs: [requirements, architecture]
+    looks_like: >-
+      A short non-functional list: freshness deadline, expected volume and growth, how long it may be down,
+      how much data may be lost, how long data is kept, and access rules.
+  signals:
+    - No "non-functional" heading in the requirements.
+    - Freshness, recovery or retention are mentioned only as "to be agreed".
+    - Volume is described in words ("large") rather than numbers.
+  contradiction: >-
+    Compare the requirements with the runbook or support model: if the runbook promises recovery within
+    hours but no requirement says what is needed, or the reverse, the two disagree on what was promised.
+  due: {plan: 3, designed: 4, evidenced: 7}
+  fail_fast: >-
+    Ask the business owner: "If this is down for a day, what happens?" and write down the answer as a number.
+  severity: high
+  related: [REQ-01, HAND-04]
+  signal_id: null
+
+- id: REQ-07
+  title: Goals with no measure of success
+  kind: delivery
+  concern: requirements
+  question: >-
+    What business result is this project for, how will it be measured, and what is the measure today? A
+    year after go-live, how will anyone know whether it was worth it?
+  why: >-
+    The goal was "better insight into customers". No measure was agreed, so at closure the project could
+    not show any benefit, and the next request for funding was refused.
+  applies: {kind: [any], components: [any], patterns: [any]}
+  owner: business-analyst
+  also: [business-owner]
+  evidence:
+    docs: [discovery, requirements]
+    looks_like: >-
+      Two or three goals, each with a measure, today's value (the baseline), a target, and where the data
+      for measuring it will come from.
+  signals:
+    - Goals are written as activities ("build a data platform") rather than results.
+    - No baseline figures are given for any goal.
+    - Success measures need data the project does not collect.
+  contradiction: >-
+    Compare the goals in the discovery document with the scope: a goal whose measure depends on data or
+    reports that are out of scope cannot be measured.
+  due: {plan: 3, designed: 4, proven: 10}
+  fail_fast: >-
+    Ask the sponsor to state the one number they hope will change, and check today whether that number can
+    be produced.
+  severity: medium
+  related: [HAND-05]
+  signal_id: null

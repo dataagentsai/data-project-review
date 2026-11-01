@@ -1,0 +1,17 @@
+# Roles. Every check has one owner role (who must make sure it is answered) and optional others.
+# On small teams one person holds several roles; the roles still exist.
+
+roles:
+  technical-anchor: {name: Technical anchor, tech: true, cares: "Will it work end to end, for everyone who depends on it?"}
+  architect: {name: Architect, tech: true, cares: "Is the design sound, simple and consistent with standards?"}
+  platform-team: {name: Platform team, tech: true, cares: "Environments, network, identity, compute, release pipeline"}
+  developer: {name: Developers, tech: true, cares: "Can I build and test this without guessing?"}
+  test-lead: {name: Test lead, tech: true, cares: "Is every requirement testable, with real test data?"}
+  release-devops: {name: Release and DevOps, tech: true, cares: "Can it be deployed, promoted and rolled back safely?"}
+  operations: {name: Operations and support, tech: true, cares: "Can we monitor it, rerun it and support it at night?"}
+  security: {name: Security and governance, tech: true, cares: "Who can see what, where personal data flows, how long it is kept"}
+  business-analyst: {name: Business analyst, tech: false, cares: "Do we know exactly what the business needs, in testable terms?"}
+  project-manager: {name: Project manager, tech: false, cares: "Plan, dependencies, risks, decisions, status"}
+  business-owner: {name: Business owner and sponsor, tech: false, cares: "Does it deliver the value we're paying for, when we need it?"}
+  source-owner: {name: Source system owners, tech: true, cares: "What load and changes will this put on my system?"}
+  data-consumer: {name: Data consumers, tech: false, cares: "Can I trust and use the numbers, at the grain and time I need?"}

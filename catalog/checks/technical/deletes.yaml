@@ -1,0 +1,89 @@
+# Technical checks: deletes and soft deletes at the source
+
+- id: DEL-01
+  title: Detecting hard deletes at the source
+  kind: technical
+  concern: deletes
+  question: >-
+    When a record is physically deleted in the source, how does the platform find out?
+  why: >-
+    Cancelled orders were deleted in the source, but the incremental extract only picked up new
+    and changed rows, so the cancelled orders stayed in the warehouse and inflated sales.
+  applies:
+    kind: [any]
+    components: [ingestion]
+    patterns: [batch, database, api, file, cdc]
+  owner: technical-anchor
+  also: [source-owner]
+  evidence:
+    docs: [discovery, architecture]
+    looks_like: >-
+      For each source, whether deletes happen and how they are captured: change capture with
+      delete events, a periodic full key comparison, or a delete feed from the source.
+  signals:
+    - Incremental loads use a modified-date filter and deletes are not mentioned.
+  due: {plan: 3, designed: 5, evidenced: 7}
+  fail_fast: >-
+    Ask the source owner whether rows are ever deleted, then delete a test row in a source test
+    system and run the load; the platform must reflect it.
+  severity: high
+  related: [DEL-02, DEL-03, REC-01]
+  signal_id: null
+
+- id: DEL-02
+  title: What a delete means downstream
+  kind: technical
+  concern: deletes
+  question: >-
+    When a source deletes or soft-deletes a record, must it disappear, be flagged, or stay in each
+    layer and report, and who decided?
+  why: >-
+    Engineers removed deleted customers from every table, but finance needed them kept for
+    historic invoices, and last year's revenue dropped after a routine load.
+  applies:
+    kind: [any]
+    components: [transformation, modelling, serving]
+    patterns: [any]
+  owner: business-analyst
+  also: [technical-anchor, data-consumer]
+  evidence:
+    docs: [requirements, data-model]
+    looks_like: >-
+      A rule per entity (remove, flag with a deleted date, or keep) agreed with the data owner,
+      and how flagged rows are filtered in reports.
+  due: {plan: 3, designed: 5, evidenced: 7}
+  fail_fast: >-
+    Write the delete rule for the top three entities and get the data owner to sign them in one
+    meeting.
+  severity: medium
+  related: [DEL-01, SCD-01, SEC-03]
+  signal_id: null
+
+- id: DEL-03
+  title: Deletes flow through derived tables
+  kind: technical
+  concern: deletes
+  question: >-
+    When a source row is deleted, are the aggregates, summaries and extracts built from it
+    recalculated too?
+  why: >-
+    The detail table dropped a deleted order, but the daily summary built from it was only ever
+    appended to, so detail and summary disagreed and users stopped trusting both.
+  applies:
+    kind: [any]
+    components: [transformation, modelling, serving]
+    patterns: [any]
+  owner: technical-anchor
+  also: [developer]
+  evidence:
+    docs: [architecture, test-strategy]
+    looks_like: >-
+      Derived tables rebuilt for the affected periods when deletes arrive, and a test that checks
+      detail and summary still agree after a delete.
+  due: {plan: 4, designed: 5, evidenced: 7}
+  fail_fast: >-
+    Delete one source row in test, run the full chain, and compare the summary total against the
+    sum of the detail.
+  severity: medium
+  related: [DEL-01, LATE-01, REC-01]
+  signal_id: null

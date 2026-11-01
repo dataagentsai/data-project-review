@@ -1,0 +1,194 @@
+# Delivery checks: communication.
+
+- id: COM-01
+  title: Bad news held back
+  kind: delivery
+  concern: communication
+  question: >-
+    When the team learns something bad (a slip, a data problem, a design that will not work), how quickly
+    and to whom is it reported, with a next step? Is there anything the team knows today that the sponsor
+    does not?
+  why: >-
+    The team knew for six weeks that the source could not deliver hourly data. They hoped to find a
+    workaround and said nothing, so the sponsor learned it from the source owner instead.
+  applies: {kind: [any], components: [any], patterns: [any]}
+  owner: technical-anchor
+  also: [project-manager]
+  evidence:
+    docs: [status, raid]
+    looks_like: >-
+      Status reports and the issue log that raise problems within days of their discovery, each with an
+      impact and a proposed next step.
+  signals:
+    - Issues appear in the RAID log weeks before they appear in any status report.
+    - Status reports contain only achievements.
+    - Words such as "minor", "under control" or "being looked at" used for issues that later became major.
+  contradiction: >-
+    Compare the RAID log dates with status report dates: an issue logged long before it was reported is
+    news that was held back.
+  due: {plan: 4, evidenced: 6}
+  fail_fast: >-
+    Ask the team: "What do we know that we have not told the sponsor?" and report it this week.
+  severity: high
+  related: [PM-04, STK-04]
+  signal_id: null
+
+- id: COM-02
+  title: Technical words used with business people
+  kind: delivery
+  concern: communication
+  question: >-
+    Are documents and reports written for the business in plain words, with technical terms explained or
+    left out? When the business owner signs something, do they understand what it means for them?
+  why: >-
+    The design said history would be "type 1 for most dimensions". The business owner signed it, not
+    realising it meant old addresses would be overwritten and last year's regional figures would change.
+  applies: {kind: [any], components: [any], patterns: [any]}
+  owner: technical-anchor
+  also: [business-analyst, project-manager]
+  evidence:
+    docs: [status, discovery, decisions]
+    looks_like: >-
+      Business-facing documents that state consequences in business terms ("last year's figures by region
+      will change when a customer moves"), with a short glossary for unavoidable terms.
+  signals:
+    - Status or sign-off documents for the business use unexplained abbreviations and technical terms.
+    - Decisions are described by their technical option, not by their effect on users.
+    - No glossary in documents read by business stakeholders.
+  contradiction: >-
+    Compare a decision record with the business owner's own description of it (in notes or e-mail): if
+    they describe a different consequence, the decision was not understood.
+  due: {plan: 3, evidenced: 4}
+  fail_fast: >-
+    Ask the business owner to explain the three biggest decisions back in their own words.
+  severity: medium
+  related: [STK-05]
+  signal_id: null
+
+- id: COM-03
+  title: Agreed in a meeting, lost afterwards
+  kind: delivery
+  concern: communication
+  question: >-
+    Does every important meeting end with written actions and decisions, sent to the people affected and
+    copied into the decision log or RAID log? A month from now, will anyone remember what was agreed today?
+  why: >-
+    The source owner agreed in a meeting to provide a daily extract by a set time. Nothing was written,
+    the owner moved on, and the successor had never heard of it.
+  applies: {kind: [any], components: [any], patterns: [any]}
+  owner: project-manager
+  also: [technical-anchor]
+  evidence:
+    docs: [status, decisions]
+    looks_like: >-
+      Short meeting notes with actions (owner and date) and decisions, sent the same day, and decisions
+      copied into the decision log.
+  signals:
+    - No meeting notes, or notes without actions and owners.
+    - Actions in notes that never appear again in later notes or status reports.
+    - Phrases such as "as discussed" referring to something with no written record.
+  contradiction: >-
+    Compare meeting notes with the decision log and RAID log: decisions and actions in the notes that are
+    missing from the logs have been lost.
+  due: {plan: 3, evidenced: 5}
+  fail_fast: >-
+    After the next meeting, send three lines within an hour: decided, actions, open questions.
+  severity: medium
+  related: [PM-03]
+  signal_id: null
+
+- id: COM-04
+  title: Nobody knows who to call
+  kind: delivery
+  concern: communication
+  question: >-
+    Is there a contact list for the project and the systems it depends on, including who to call when a
+    source changes or a load fails, and how to escalate? If the pipeline fails at night in the first week
+    of production, who is woken up and who do they call?
+  why: >-
+    A source was changed without notice and the load failed. Nobody knew who owned the source, so it took
+    three days to find the right person while the reports stayed empty.
+  applies: {kind: [any], components: [any], patterns: [any]}
+  owner: project-manager
+  also: [operations, source-owner]
+  evidence:
+    docs: [stakeholders, runbook]
+    looks_like: >-
+      A contact and escalation list for the team, each source, the platform, security and operations, with
+      named people and a deputy for each.
+  signals:
+    - No contact or escalation list in the stakeholder map or runbook.
+    - Source systems named in the architecture with no named owner.
+    - Escalation described as "raise with management".
+  contradiction: >-
+    Compare the architecture's list of sources and systems with the contact list: a system with no contact
+    is one that will fail silently.
+  due: {plan: 3, evidenced: 8}
+  fail_fast: >-
+    For each source, find the named owner and confirm they will tell the team before changing it.
+  severity: medium
+  related: [STK-01, HAND-04]
+  signal_id: null
+
+- id: COM-05
+  title: Assumptions never shared with the business
+  kind: delivery
+  concern: communication
+  question: >-
+    Have the assumptions behind the estimate and plan been shown to the sponsor and the business owner,
+    and do they know what changes if one of them breaks? If an assumption fails, will the business be
+    surprised that the plan ever depended on it?
+  why: >-
+    The estimate assumed the business would provide testers for two weeks. The business never knew; when
+    no testers came, user acceptance slipped by a month and the team was blamed.
+  applies: {kind: [any], components: [any], patterns: [any]}
+  owner: project-manager
+  also: [technical-anchor, business-owner]
+  evidence:
+    docs: [status, estimate]
+    looks_like: >-
+      The key assumptions repeated in status reports and sign-off packs, with their current state (holding,
+      at risk, broken).
+  signals:
+    - Status reports and steering packs do not mention assumptions.
+    - Assumptions that require business action (testers, decisions, data) are not assigned to a business person.
+  contradiction: >-
+    Compare the estimate's assumptions with the status reports: assumptions in the estimate that never
+    appear in any report have not been shared.
+  due: {plan: 4, evidenced: 6}
+  fail_fast: >-
+    Add a three-line "assumptions this plan depends on" box to the next status report.
+  severity: medium
+  related: [EST-03, PM-07]
+  signal_id: null
+
+- id: COM-06
+  title: No regular rhythm for updates
+  kind: delivery
+  concern: communication
+  question: >-
+    Is there an agreed rhythm for telling stakeholders what was learned, what changed, and what is needed
+    from them? Which stakeholder will say they heard nothing for a month?
+  why: >-
+    Updates went out only when there was good news. Stakeholders filled the silence with rumours and the
+    sponsor started asking for daily reports, which took the team's time away from the work.
+  applies: {kind: [any], components: [any], patterns: [any]}
+  owner: project-manager
+  also: [technical-anchor]
+  evidence:
+    docs: [stakeholders, status]
+    looks_like: >-
+      A communication plan stating who gets what and how often, and status reports that follow it.
+  signals:
+    - No communication plan.
+    - Gaps of several weeks between status reports.
+    - Status reports go to the sponsor only.
+  contradiction: >-
+    Compare the communication plan with the actual status reports: a planned weekly update that appears
+    monthly is a rhythm that broke.
+  due: {plan: 4, evidenced: 6}
+  fail_fast: >-
+    Send a three-line update this Friday: what we learned, what changed, what we need from you.
+  severity: low
+  related: [COM-01]
+  signal_id: null

@@ -1,0 +1,118 @@
+# Technical checks: proving numbers match from source to report
+
+- id: REC-01
+  title: Counts and totals reconciled layer by layer
+  kind: technical
+  concern: reconciliation
+  question: >-
+    Are row counts and key totals compared automatically between the source and each layer on
+    every load, with the differences explained?
+  why: >-
+    The report was four percent short of the source and nobody could say in which layer rows had
+    been lost, so a week went into tracing one join that dropped orphan rows.
+  applies:
+    kind: [any]
+    components: [ingestion, transformation, modelling]
+    patterns: [any]
+  owner: technical-anchor
+  also: [test-lead, developer]
+  evidence:
+    docs: [test-strategy, architecture]
+    looks_like: >-
+      Counts and sums of key measures captured at the source and after each layer for every run,
+      stored, compared, and every expected difference (filters, quarantined rows) accounted for.
+  signals:
+    - Reconciliation appears only as a one-off test activity, not as part of every run.
+  due: {plan: 3, designed: 5, evidenced: 7, proven: 9}
+  fail_fast: >-
+    For one day of real data, write down the source count and total, then the count and total in
+    each layer, and explain every difference.
+  severity: high
+  related: [REC-02, REC-03, DUP-01]
+  signal_id: null
+
+- id: REC-02
+  title: Matched against a number the business already trusts
+  kind: technical
+  concern: reconciliation
+  question: >-
+    Are the final numbers checked against an independent figure the business already trusts
+    (a finance ledger, an existing report, a source application screen)?
+  why: >-
+    Source-to-target counts all matched, yet the new revenue figure disagreed with the finance
+    ledger because the definition of revenue differed; it was found only at user acceptance.
+  applies:
+    kind: [any]
+    components: [modelling, serving]
+    patterns: [any]
+  owner: test-lead
+  also: [business-owner, data-consumer]
+  evidence:
+    docs: [test-strategy, requirements]
+    looks_like: >-
+      A named trusted figure for each key measure, the comparison method, and an agreed
+      explanation of known differences.
+  due: {plan: 3, designed: 5, evidenced: 7, proven: 9}
+  fail_fast: >-
+    Ask the business owner which existing number they would compare against, and compare one
+    month of thin-slice output with it now.
+  severity: high
+  related: [REC-01, SERV-04, TEST-04]
+  signal_id: null
+
+- id: REC-03
+  title: Tolerances and who signs off differences
+  kind: technical
+  concern: reconciliation
+  question: >-
+    What size of difference is acceptable for each measure, and who decides when a difference is
+    explained well enough to go live?
+  why: >-
+    Test found a 0.3 percent gap; engineering called it rounding, finance called it a blocker, and
+    go-live slipped two weeks while they argued.
+  applies:
+    kind: [any]
+    components: [modelling, serving]
+    patterns: [any]
+  owner: business-owner
+  also: [test-lead, technical-anchor]
+  evidence:
+    docs: [test-strategy, decisions]
+    looks_like: >-
+      A tolerance per measure and a named person who accepts reconciliation results.
+  due: {plan: 4, designed: 5, evidenced: 7}
+  fail_fast: >-
+    Put the tolerance question on the next sign-off agenda and record a number for the top three
+    measures.
+  severity: medium
+  related: [REC-01, REC-02]
+  signal_id: null
+
+- id: REC-04
+  title: First production loads reconciled
+  kind: technical
+  concern: reconciliation
+  question: >-
+    Were the first production loads, including the history load, reconciled against the source and
+    trusted figures before users were told to rely on them?
+  why: >-
+    Production used a different source instance with extra test records; nobody reconciled the
+    first loads, and dummy orders appeared in the board pack.
+  applies:
+    kind: [any]
+    components: [ingestion, modelling]
+    patterns: [any]
+  owner: technical-anchor
+  also: [operations, business-owner]
+  evidence:
+    docs: [deployment, status]
+    looks_like: >-
+      A reconciliation result for each of the first production runs, with sign-off, recorded in
+      the hypercare or go-live report.
+  due: {plan: 6, designed: 8, evidenced: 9, proven: 9}
+  fail_fast: >-
+    Add "reconcile first production load" as a go-live checklist item with an owner and a
+    tolerance.
+  severity: high
+  related: [REC-01, HIST-01, OPS-05]
+  signal_id: null

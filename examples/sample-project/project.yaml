@@ -1,0 +1,29 @@
+# Team profile for the Harbor & Pine Sales and Returns Insight project.
+project: harbor-and-pine
+name: Sales and Returns Insight (MVP 1)
+organisation: Harbor & Pine
+kind: project-on-existing
+components: [ingestion, transformation, modelling, serving, orchestration]
+patterns: [cdc, file, batch, history-load]
+tech: [databricks]
+stage: 6            # Build — week 5 of a 12-week MVP 1
+roles_present:
+  - technical-anchor
+  - developer
+  - business-analyst
+  - project-manager
+  - test-lead        # part-time tester
+  - business-owner   # sponsor: Finance Director
+docs:
+  requirements: docs/requirements.md
+  discovery: docs/discovery.md
+  architecture: docs/architecture.md
+  platform: docs/platform-and-environments.md
+  data-model: docs/data-model.md
+  estimate: docs/estimate.md
+  plan: docs/plan.md
+  raid: docs/raid-log.md
+  test-strategy: docs/test-strategy.md
+  deployment: docs/deployment-plan.md
+  stakeholders: docs/stakeholders.md
+  status: docs/status-report-week5.md

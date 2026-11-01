@@ -1,0 +1,620 @@
+tech: databricks
+name: Databricks
+version_note: >-
+  Checked against docs.databricks.com on 2026-11-01. Product names used here: Unity Catalog, Lakeflow
+  Jobs, Lakeflow pipelines (formerly Delta Live Tables / DLT), AUTO CDC (formerly APPLY CHANGES),
+  Declarative Automation Bundles (formerly Databricks Asset Bundles), data quality monitoring (formerly
+  anomaly detection) and data profiling (formerly Lakehouse Monitoring). Names move fast; re-check
+  before quoting them to a client.
+
+how:
+  DUP-01:
+    do: >-
+      Ingest files with Auto Loader or COPY INTO, which both remember files already loaded. Write to
+      silver with MERGE on the business key, not append.
+    verify: >-
+      Re-drop the same file and rerun; DESCRIBE HISTORY on the target shows no rows inserted
+      (operationMetrics numTargetRowsInserted = 0).
+    traps: >-
+      A file renamed or rewritten by the source counts as new to Auto Loader. Its checkpoint is the
+      memory: deleting or moving it reloads everything.
+  DUP-02:
+    do: >-
+      Use MERGE on a key, or INSERT OVERWRITE / replaceWhere for a whole date range, for every write
+      a rerun could repeat.
+    verify: >-
+      Run the job twice for the same period; compare counts and DESCRIBE HISTORY metrics between runs.
+    traps: >-
+      Repairing a failed Lakeflow Jobs run reruns failed tasks from the start; a task that appended
+      before failing will append again.
+  DUP-03:
+    do: >-
+      Profile key uniqueness with a GROUP BY key HAVING count(*) > 1 query; deduplicate in silver
+      with a window (row_number over key ordered by a change timestamp) before MERGE.
+    verify: A uniqueness expectation or test on the silver key runs on every load.
+    traps: >-
+      MERGE fails when several source rows match one target row; deduplicate the source batch first.
+      PRIMARY KEY constraints in Unity Catalog are informational and are not enforced.
+  DUP-04:
+    do: >-
+      In Structured Streaming use dropDuplicatesWithinWatermark on an event id, and idempotent
+      writes in foreachBatch (MERGE, or txnAppId plus txnVersion options).
+    verify: Restart a stream from an older checkpoint copy in test and compare counts.
+    traps: >-
+      dropDuplicates without a watermark keeps state forever and grows until the job slows or fails.
+  HIST-01:
+    do: >-
+      Load history into the same bronze tables as daily loads, by date chunk, from archive files or
+      a source extract; record the chunks in a control table.
+    verify: Reconcile each historical year against the source or finance before switching on daily loads.
+  HIST-02:
+    do: >-
+      For JDBC reads, set partitionColumn, lowerBound, upperBound and numPartitions and keep
+      parallel connections within what the source owner agreed; or land extracts as files instead.
+    verify: Time one chunk against the source in its busy window.
+    traps: >-
+      Too many partitions in a JDBC read opens that many connections at once against the source.
+  HIST-03:
+    do: >-
+      With Lakeflow pipelines, AUTO CDC with SEQUENCE BY absorbs overlap between the snapshot and
+      the change feed; otherwise MERGE with a sequence column so older changes never overwrite newer.
+    verify: Change rows during the snapshot in test and check each ends with its latest value once.
+  HIST-04:
+    do: >-
+      Pass the period as a job parameter and write with replaceWhere on the date column; keep a
+      separate backfill job or bundle target for large reloads.
+    verify: Reload one past day in test; DESCRIBE HISTORY shows only that day's files were rewritten.
+    traps: >-
+      A full refresh of a Lakeflow pipeline streaming table re-reads all source data and clears the
+      table first; check source retention before pressing it.
+  LATE-01:
+    do: >-
+      Rebuild aggregates for affected business dates with MERGE or replaceWhere driven by the dates
+      present in the incoming batch; Change Data Feed on silver can tell gold which keys changed.
+    verify: Insert a row with an old business date in test and check the gold total for that date changes.
+  LATE-02:
+    do: >-
+      Insert an unknown-member row in each dimension and left join facts to it; or quarantine misses
+      to a table and reprocess it in a scheduled task.
+    verify: An expectation or test counts facts pointing at the unknown member over time.
+  LATE-03:
+    do: Set withWatermark on the event-time column from measured lateness; route later events to a side table.
+    verify: Check the streaming query progress metrics for numRowsDroppedByWatermark.
+    traps: A watermark that is too long holds more state and costs memory; too short silently drops events.
+  LATE-04:
+    do: >-
+      Store timestamps as TIMESTAMP (universal time) and convert with from_utc_timestamp for the
+      business-day time zone; set the session time zone deliberately rather than relying on defaults.
+    verify: Compare business dates of near-midnight rows with the source application.
+    traps: TIMESTAMP_NTZ has no time zone; mixing it with TIMESTAMP across sources shifts hours.
+  DEL-01:
+    do: >-
+      With CDC feeds use AUTO CDC ... APPLY AS DELETE WHEN, or MERGE ... WHEN MATCHED AND op = 'D'
+      THEN DELETE; without CDC, compare full key snapshots (AUTO CDC FROM SNAPSHOT treats missing
+      keys as deleted) or use MERGE ... WHEN NOT MATCHED BY SOURCE.
+    verify: Delete a row in a source test system and check it disappears or is flagged after the load.
+    traps: WHEN NOT MATCHED BY SOURCE against a partial extract deletes everything not in that extract.
+  DEL-03:
+    do: Enable Change Data Feed on silver so downstream jobs see deletes and rebuild affected aggregates.
+    verify: After a test delete, gold totals equal the sum of silver detail.
+  SCD-02:
+    do: >-
+      Prefer AUTO CDC ... STORED AS SCD TYPE 2 with SEQUENCE BY on a source sequence; it places
+      out-of-order changes in the right history position. Hand-written MERGE needs a hash of tracked
+      columns and ordering by sequence.
+    verify: Feed reversed versions and a rerun in test; check no overlapping __START_AT / __END_AT ranges.
+    traps: Sequencing by ingestion time instead of a source sequence breaks history when changes arrive out of order.
+  SCD-03:
+    do: Generate surrogate keys with an IDENTITY column on the dimension; keep a source-key mapping table.
+    traps: IDENTITY values are unique but not consecutive, and declaring one limits concurrent writes to the table.
+  SCH-01:
+    do: >-
+      Choose an Auto Loader schemaEvolutionMode per source: addNewColumns (default when no schema is
+      given; stream stops once, then continues with the new column), rescue (new columns go to
+      _rescued_data), failOnNewColumns, or none. In silver, use MERGE WITH SCHEMA EVOLUTION only
+      where agreed.
+    verify: Drop a test file with an extra column and watch what the stream and the target do.
+    traps: >-
+      With addNewColumns the stream fails on purpose and must be restarted; make sure the job has
+      retries, or it stays down overnight.
+  SCH-02:
+    do: >-
+      Supply an explicit schema or schema hints for critical columns; let Delta schema enforcement
+      reject mismatched writes; add CHECK constraints for ranges.
+    verify: A test file with a renamed or retyped column fails the load with a clear error.
+    traps: Type mismatches can land in _rescued_data quietly; alert when that column is not null.
+  DQ-01:
+    do: >-
+      In Lakeflow pipelines write rules as expectations (EXPECT ... ON VIOLATION DROP ROW / FAIL
+      UPDATE); elsewhere use CHECK and NOT NULL constraints plus a test framework in jobs.
+    verify: Query the pipeline event log or Data quality tab for pass and fail counts per rule.
+  DQ-02:
+    do: >-
+      Use warn or drop expectations, and write failing rows to a quarantine table with an inverted
+      expectation so they are kept with a reason, not just counted.
+    verify: Load known-bad rows in test and find each one in quarantine.
+    traps: expect_or_drop only counts dropped rows; the rows themselves are gone unless you quarantine them.
+  DQ-03:
+    do: >-
+      Read files with a rescued data column (Auto Loader) or badRecordsPath, so malformed records are
+      kept aside instead of failing the stream.
+    verify: Put a malformed record in a test file; the rest loads and the bad record is readable.
+  DQ-04:
+    do: >-
+      Enable data quality monitoring on the schema for freshness and completeness, and add a row-count
+      check task that fails on empty or abnormal batches; alert with Databricks SQL alerts.
+    verify: Load an empty file in test and confirm an alert fires.
+    traps: Monitoring results arrive after the load; a gate inside the job is still needed to stop bad data reaching gold.
+  DQ-05:
+    do: Profile real extracts with SQL in a notebook or with data profiling on the bronze tables.
+  REC-01:
+    do: >-
+      Write per-run counts and sums per layer to a reconciliation table from each task; DESCRIBE
+      HISTORY operationMetrics give rows written per commit.
+    verify: A dashboard or query compares source and each layer per run.
+  PERF-03:
+    do: >-
+      Run on a production-sized copy (a deep clone in a test catalog, or generated data) on the
+      production compute configuration; read the Spark UI or query profile for spill and skew.
+    verify: Record run time, compute size and cost from system.lakeflow.job_run_timeline and system.billing.usage.
+  PERF-04:
+    do: >-
+      Rely on adaptive query execution for skewed joins, broadcast small tables, filter null and
+      placeholder keys before joins, and salt only when AQE is not enough.
+    verify: In the Spark UI, compare the longest task against the median for the big join stage.
+  PERF-05:
+    do: >-
+      Use liquid clustering on the main filter or merge columns for new tables; let predictive
+      optimization run OPTIMIZE and VACUUM on Unity Catalog managed tables.
+    verify: DESCRIBE DETAIL shows numFiles and sizeInBytes; DESCRIBE HISTORY shows OPTIMIZE runs.
+    traps: >-
+      Predictive optimization covers managed tables only; external tables need scheduled OPTIMIZE
+      and VACUUM. Check that clustering keys match the MERGE condition, or merges scan the whole table.
+  COST-01:
+    do: Read the thin slice's cost from system.billing.usage joined to system.billing.list_prices, by job.
+    verify: Compare the estimate with the first month of production usage from the same tables.
+    traps: List price is not your contract price; agree discounts with whoever holds the contract.
+  COST-02:
+    do: >-
+      Use compute policies to cap node types and worker counts and to force auto-termination and
+      tags; set account budgets with alerts per workspace or tag.
+    verify: Try to create oversized compute as a developer in development; the policy should block it.
+    traps: >-
+      Budgets alert, they do not cap general spend; serverless usage policies only tag usage for
+      attribution. Real limits come from policies and permissions.
+  COST-03:
+    do: >-
+      Enforce custom tags through compute policies for classic compute and serverless usage policies
+      for serverless; report from system.billing.usage custom_tags.
+    verify: Query the share of last week's usage with no project tag.
+  COST-04:
+    do: >-
+      Use job compute or serverless for scheduled work instead of all-purpose clusters; set
+      auto-termination; wait for upstream data with file-arrival or table-update triggers, not sleeping tasks.
+    verify: Compare job duration with compute uptime in system tables for the top jobs.
+    traps: A continuous Lakeflow pipeline or stream runs compute all day; use triggered mode when freshness allows.
+  SEC-01:
+    do: Apply governed tags for classification on columns in Unity Catalog; data classification can suggest tags.
+    verify: Query information_schema column tags to list sensitive columns and their owners.
+  SEC-02:
+    do: >-
+      Grant to groups in Unity Catalog; apply row filters and column masks, or ABAC policies on
+      governed tags at catalog or schema level for many tables.
+    verify: Query the table as a test user from the lowest persona.
+    traps: >-
+      Row filters and masks need recent runtimes (older compute returns no data), cannot be put on
+      views, and block time travel and clones on that table.
+  SEC-03:
+    do: >-
+      DELETE the person's rows in every layer, then VACUUM so old files are removed; deletion vectors
+      need a REORG ... APPLY (PURGE) before VACUUM to physically remove rows.
+    verify: After the procedure, time travel to an earlier version and confirm the data is gone once retention has passed.
+    traps: Time travel, deep clones and exports keep copies until each is cleaned too.
+  SEC-04:
+    do: Query system.access.audit for data access events; keep it for the regulated period.
+    verify: Find a test query against a sensitive table in system.access.audit.
+  ENV-01:
+    do: >-
+      Separate workspaces or at least separate catalogs per environment, bound to their workspaces
+      with workspace-catalog binding, and separate storage locations.
+    verify: A development service principal cannot write to the production catalog.
+  ENV-02:
+    do: >-
+      Grant privileges to account groups, make groups (not people) owners of catalogs, schemas and
+      jobs, and run jobs as service principals.
+    verify: Check job run_as and object owners; none should be a named person in production.
+  ENV-03:
+    do: >-
+      For private sources, plan private connectivity (for serverless, network connectivity
+      configurations) and Unity Catalog connections or credentials early.
+    traps: Serverless and classic compute reach the network differently; prove the route for the compute you will really use.
+  REL-01:
+    do: Keep code in Git folders and jobs, pipelines and schedules as bundle resources in the repository.
+    verify: Recreate a job from the repository into an empty workspace with a bundle deploy.
+    traps: Jobs edited in the UI drift from the bundle; restrict edit rights in production.
+  REL-03:
+    do: >-
+      Use Declarative Automation Bundles with one target per environment; CI runs databricks bundle
+      validate and deploy with a service principal.
+    verify: The production deployment history shows only the CI service principal deploying.
+  REL-04:
+    do: Use bundle variables and target overrides for catalog names, paths and compute sizes.
+    verify: Search the code for production catalog names outside the bundle configuration.
+  REL-05:
+    do: >-
+      Keep secrets in secret scopes (optionally backed by the cloud key store) and read them with
+      dbutils.secrets; prefer Unity Catalog connections and service credentials over passwords in code.
+    traps: Secrets printed in a notebook cell are redacted, but derived strings and logs can still leak them.
+  REL-06:
+    do: >-
+      Define workspaces, catalogs, grants, policies and storage credentials with the Databricks
+      Terraform provider; bundles for jobs and pipelines.
+  REL-07:
+    do: Use RESTORE TABLE ... TO VERSION AS OF for data rollback, within the retention window; redeploy the previous bundle version for code.
+    verify: Rehearse RESTORE on a test table after a schema-changing release.
+    traps: RESTORE only works for versions VACUUM has not cleaned up.
+  ORCH-01:
+    do: Use task dependencies inside a job, and table-update or file-arrival triggers across jobs.
+    verify: Delay an upstream table in test and check the downstream job does not start.
+  ORCH-02:
+    do: Set task retries and minimum retry interval, plus job and task timeouts and duration warnings.
+    traps: Retrying a non-idempotent task duplicates data; fix idempotency before adding retries.
+  ORCH-03:
+    do: >-
+      Each Delta write is atomic per table; split multi-table updates into tasks and use repair runs
+      to rerun only failed tasks and those after them.
+    verify: Cancel a run mid-task in test, repair it, and compare outputs with a clean run.
+    traps: A repair reruns the whole failed task from the beginning, not from the failed row.
+  ORCH-04:
+    do: Keep maximum concurrent runs at 1 (the default for new jobs) and use queueing for triggered jobs.
+    traps: Two different jobs writing one table can still conflict; Delta raises concurrent modification errors on overlapping files.
+  ORCH-05:
+    do: >-
+      Decide which tables need deep clones or storage replication to another region; time travel is
+      not a backup, because VACUUM removes old files.
+    verify: Restore a table from the chosen backup into a test catalog and time it.
+  ORCH-06:
+    do: >-
+      Give every stream a fixed, environment-specific checkpoint location and keep it with the
+      table; in Lakeflow pipelines checkpoints are managed for you.
+    verify: Redeploy a changed stream in test and confirm it resumes from its position.
+    traps: >-
+      Some query changes are not allowed with an existing checkpoint (for example changes to stateful
+      operations); plan a reset and backfill when they are needed.
+  OPS-01:
+    do: Configure job notifications to a team channel or paging tool, plus duration-warning notifications for lateness.
+    verify: Fail a test job and time the alert.
+  OPS-03:
+    do: >-
+      Use system.lakeflow job and task run tables and DESCRIBE HISTORY for run records; add an audit
+      table for business counts.
+    verify: Trace a row in gold to its job run and source file (_metadata.file_path captured in bronze).
+  TEST-02:
+    do: Use shallow or deep clones of masked production tables into a test catalog, or generated data.
+    traps: Clones of tables with row filters or masks are not supported; mask before cloning.
+  TEST-03:
+    do: Run unit tests with pytest locally or with Databricks Connect, and data tests in a CI job deployed by the bundle to a test target.
+  SERV-02:
+    do: >-
+      Publish a status table or use table health in Catalog Explorer from data quality monitoring;
+      show last refresh time on AI/BI dashboards.
+  SERV-04:
+    do: Define shared measures once as Unity Catalog metric views and point dashboards and Genie spaces at them.
+    traps: Metric views are newer; check the feature's status in your workspace before standardising on it.
+  SERV-05:
+    do: Serve reports from a SQL warehouse sized and scaled for concurrency; pre-aggregate heavy gold tables or use materialized views.
+    verify: Run concurrent queries and read the warehouse's query history for queueing time.
+
+checks:
+  - id: DBX-01
+    binding: databricks
+    title: Unity Catalog objects owned by groups
+    kind: technical
+    concern: environments-and-access
+    question: >-
+      Are catalogs, schemas, tables, jobs and pipelines owned by groups or service principals, with
+      privileges granted to account groups rather than individual users?
+    why: >-
+      A catalog owned by a contractor's user account could not be changed after the contractor left,
+      until an admin reassigned ownership in the middle of an incident.
+    applies:
+      kind: [any]
+      components: [platform, governance]
+      patterns: [any]
+    owner: platform-team
+    also: [security]
+    evidence:
+      docs: [platform]
+      looks_like: An ownership and grant model by group per catalog and schema, defined in code.
+    due: {plan: 3, designed: 5, evidenced: 7, proven: 9}
+    fail_fast: >-
+      List owners of production catalogs, schemas and jobs from information_schema and the jobs
+      list; flag every individual user.
+    severity: medium
+    related: [ENV-02, SEC-02]
+    signal_id: null
+
+  - id: DBX-02
+    binding: databricks
+    title: Compute policies cap size and force shutdown
+    kind: technical
+    concern: cost
+    question: >-
+      Do compute policies limit node types and worker counts, force auto-termination and required
+      tags, and are users unable to create compute without a policy?
+    why: >-
+      Without policies a developer created a large all-purpose cluster with no auto-termination, and
+      it ran idle for two weeks.
+    applies:
+      kind: [new-platform]
+      components: [platform]
+      patterns: [any]
+    owner: platform-team
+    also: [security]
+    evidence:
+      docs: [platform]
+      looks_like: Named policies per workload type, who may use each, and unrestricted cluster creation removed.
+    due: {plan: 3, designed: 5, evidenced: 6}
+    fail_fast: As a normal user, try to create compute without a policy and above the policy's size.
+    severity: high
+    related: [COST-02, COST-04]
+    signal_id: null
+
+  - id: DBX-03
+    binding: databricks
+    title: Serverless usage tagged for attribution
+    kind: technical
+    concern: cost
+    question: >-
+      Is serverless compute (notebooks, jobs, pipelines) attributed to projects through serverless
+      usage policies, and is the team aware these tag usage rather than cap it?
+    why: >-
+      Serverless spend grew quickly across teams with no tags, so it showed as one untraceable line on
+      the bill.
+    applies:
+      kind: [any]
+      components: [platform]
+      patterns: [any]
+    owner: platform-team
+    evidence:
+      docs: [platform]
+      looks_like: Serverless usage policies per project or team, assigned to the right groups, and a cost report by their tags.
+    due: {plan: 4, designed: 5, evidenced: 7, proven: 9}
+    fail_fast: Query system.billing.usage for serverless usage in the last week with no project tag.
+    severity: medium
+    related: [COST-03, DBX-09]
+    signal_id: null
+
+  - id: DBX-04
+    binding: databricks
+    title: Table retention matches time travel and recovery needs
+    kind: technical
+    concern: orchestration-and-recovery
+    question: >-
+      Is delta.deletedFileRetentionDuration (and log retention) set per table to match how far back the
+      team needs time travel, RESTORE and stream recovery, balanced against storage cost and erasure rules?
+    why: >-
+      A bad release was found eight days later; VACUUM had already removed files older than the default
+      seven days, so RESTORE to the good version was impossible.
+    applies:
+      kind: [any]
+      components: [transformation, modelling, platform]
+      patterns: [any]
+    owner: technical-anchor
+    also: [security, operations]
+    evidence:
+      docs: [architecture, runbook]
+      looks_like: A retention setting per table class, justified by recovery needs and personal-data erasure deadlines.
+    due: {plan: 4, designed: 5, evidenced: 7}
+    fail_fast: Run SHOW TBLPROPERTIES on key tables and compare retention with how long defects usually take to find.
+    severity: medium
+    related: [REL-07, SEC-03, PERF-05]
+    signal_id: null
+
+  - id: DBX-05
+    binding: databricks
+    title: Auto Loader schema evolution mode chosen per source
+    kind: technical
+    concern: schema-change
+    question: >-
+      For each Auto Loader source, is the schema evolution mode (addNewColumns, rescue,
+      failOnNewColumns, none) chosen deliberately, with the job set to restart after an intentional stop?
+    why: >-
+      With the default addNewColumns mode, a new source column stopped the stream as designed, but the
+      job had no retries and the stream stayed down all night.
+    applies:
+      kind: [any]
+      components: [ingestion]
+      patterns: [file, streaming, cdc]
+    owner: developer
+    also: [technical-anchor]
+    evidence:
+      docs: [architecture]
+      looks_like: The mode per source, where rescued data is monitored, and retries on the ingestion task.
+    due: {plan: 4, designed: 5, evidenced: 7}
+    fail_fast: Drop a file with a new column in test and see whether the job recovers without a person.
+    severity: medium
+    related: [SCH-01, SCH-02]
+    signal_id: null
+
+  - id: DBX-06
+    binding: databricks
+    title: Job retries, concurrency and repair are safe
+    kind: technical
+    concern: orchestration-and-recovery
+    question: >-
+      Are task retries, timeouts, maximum concurrent runs and queueing set deliberately for each job,
+      and is every task safe to rerun from the start, as a repair run does?
+    why: >-
+      Operations repaired a failed run; the failed task had appended half its rows before failing, and
+      the repair appended them again.
+    applies:
+      kind: [any]
+      components: [orchestration]
+      patterns: [any]
+    owner: developer
+    also: [operations]
+    evidence:
+      docs: [architecture, runbook]
+      looks_like: Retry and timeout settings per task in the bundle, concurrency left at one, and a runbook note on repair.
+    due: {plan: 4, designed: 5, evidenced: 7}
+    fail_fast: Cancel a task halfway in test, repair the run, and compare the output with a clean run.
+    severity: high
+    related: [DUP-02, ORCH-02, ORCH-03]
+    signal_id: null
+
+  - id: DBX-07
+    binding: databricks
+    title: Pipeline expectations with the right action
+    kind: technical
+    concern: data-quality
+    question: >-
+      In Lakeflow pipelines, does each expectation use the right action (warn, drop row, fail update),
+      and are dropped rows kept somewhere for reprocessing?
+    why: >-
+      Every rule was set to drop; thousands of rows a day were silently removed and only a count was
+      logged.
+    applies:
+      kind: [any]
+      components: [ingestion, transformation]
+      patterns: [any]
+    owner: developer
+    also: [business-analyst]
+    evidence:
+      docs: [architecture, data-model]
+      looks_like: A rule list mapping each expectation to an action, plus a quarantine table for dropped rows.
+    due: {plan: 4, designed: 5, evidenced: 7, proven: 9}
+    fail_fast: Count expectations by action in the pipeline code and check each drop has a quarantine.
+    severity: medium
+    related: [DQ-01, DQ-02]
+    signal_id: null
+
+  - id: DBX-08
+    binding: databricks
+    title: Promotion through bundles, run as service principals
+    kind: technical
+    concern: release-and-git
+    question: >-
+      Are jobs, pipelines and dashboards deployed to each environment through Declarative Automation
+      Bundles (formerly Asset Bundles) from CI, with production jobs running as a service principal?
+    why: >-
+      Production jobs were created by hand in the UI and ran as the developer; a later bundle deploy
+      created duplicates and both copies wrote to the same tables.
+    applies:
+      kind: [any]
+      components: [platform, orchestration]
+      patterns: [any]
+    owner: release-devops
+    also: [platform-team]
+    evidence:
+      docs: [deployment]
+      looks_like: A bundle with dev, test and prod targets, run_as a service principal in prod, deployed only by CI.
+    due: {plan: 4, designed: 5, evidenced: 6, proven: 9}
+    fail_fast: Deploy the thin slice to the test target with databricks bundle deploy from a CI pipeline.
+    severity: medium
+    related: [REL-03, REL-04, ENV-02]
+    signal_id: null
+
+  - id: DBX-09
+    binding: databricks
+    title: System tables used for cost and run monitoring
+    kind: technical
+    concern: operations
+    question: >-
+      Are system tables (billing usage and prices, job run timeline, audit, query history) available to
+      the people who need them, with a cost and reliability view built on them?
+    why: >-
+      Nobody had been granted access to the system catalog, so a cost spike was investigated for a week
+      from the invoice instead of in an hour from the usage table.
+    applies:
+      kind: [new-platform]
+      components: [platform]
+      patterns: [any]
+    owner: platform-team
+    also: [operations]
+    evidence:
+      docs: [platform, runbook]
+      looks_like: Grants on the system catalog to platform and finance groups, and a dashboard by job, tag and day.
+    due: {plan: 4, designed: 5, evidenced: 7, proven: 9}
+    fail_fast: Query yesterday's cost by job from system.billing.usage and list prices.
+    severity: low
+    related: [COST-01, COST-03, OPS-03]
+    signal_id: null
+
+  - id: DBX-10
+    binding: databricks
+    title: Managed or external tables decided
+    kind: technical
+    concern: design
+    question: >-
+      Is the choice between Unity Catalog managed and external tables, and the storage location for
+      each catalog, decided and recorded?
+    why: >-
+      Tables were created as external by habit; predictive optimization did not run on them, small
+      files built up, and dropping a table left its data behind in storage.
+    applies:
+      kind: [new-platform]
+      components: [platform, governance]
+      patterns: [any]
+    owner: architect
+    also: [platform-team]
+    evidence:
+      docs: [platform, decisions]
+      looks_like: A decision record on table types and managed storage locations per catalog.
+    due: {plan: 3, designed: 4}
+    fail_fast: Count production tables by table type in information_schema.tables.
+    severity: low
+    related: [PERF-05, ENV-04]
+    signal_id: null
+
+  - id: DBX-11
+    binding: databricks
+    title: AUTO CDC sequenced by a real source order
+    kind: technical
+    concern: history-over-time
+    question: >-
+      Where AUTO CDC builds SCD tables, is SEQUENCE BY a column that truly reflects source change order
+      (with a tie-breaker), not the time the row landed?
+    why: >-
+      Sequencing used the file arrival time; a delayed file replayed older updates as newest, and SCD
+      type 2 history showed customers moving back to old addresses.
+    applies:
+      kind: [any]
+      components: [transformation, modelling]
+      patterns: [cdc]
+    owner: developer
+    also: [source-owner]
+    evidence:
+      docs: [architecture, data-model]
+      looks_like: The sequence column per source, how ties are broken (STRUCT of columns), and the delete condition.
+    due: {plan: 4, designed: 5, evidenced: 7}
+    fail_fast: Ask the source owner which column orders changes, and check for ties in a real change extract.
+    severity: high
+    related: [SCD-02, HIST-03]
+    signal_id: null
+
+  - id: DBX-12
+    binding: databricks
+    title: Workspace and catalog layout per environment
+    kind: technical
+    concern: environments-and-access
+    question: >-
+      Is it decided how environments map to workspaces and catalogs (for example one catalog per
+      environment, bound to its workspace), and how layers map to schemas?
+    why: >-
+      All environments shared one metastore catalog with prefixed schema names; a test job pointed at
+      the wrong prefix and overwrote a production schema.
+    applies:
+      kind: [new-platform]
+      components: [platform]
+      patterns: [any]
+    owner: architect
+    also: [platform-team, security]
+    evidence:
+      docs: [platform, decisions]
+      looks_like: A diagram of workspaces, catalogs and schemas per environment, with workspace-catalog bindings.
+    due: {plan: 3, designed: 4, evidenced: 5}
+    fail_fast: From the development workspace, try to read and write a production catalog.
+    severity: high
+    related: [ENV-01, ENV-04]
+    signal_id: null

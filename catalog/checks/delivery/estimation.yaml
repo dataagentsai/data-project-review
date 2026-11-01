@@ -1,0 +1,235 @@
+# Delivery checks: estimation. Each check is a failure pattern found three ways:
+# signals in documents, a contradiction between two documents, or silence (the question is then
+# asked directly and used as a pre-mortem prompt).
+
+- id: EST-01
+  title: The rough guess became the promise
+  kind: delivery
+  concern: estimation
+  question: >-
+    Has the estimate been redone since the first rough guess, and does everyone quoting a date or a
+    budget know which version they are quoting? Imagine it is six months from now and the project is
+    late: was the date we are judged against the one somebody guessed before anyone looked at the data?
+  why: >-
+    A number given in a corridor before discovery was written into the budget. Discovery found twice the
+    work, but the plan was expected to confirm the guess, so the project was "late" from its first week.
+  applies: {kind: [any], components: [any], patterns: [any]}
+  owner: technical-anchor
+  also: [project-manager, business-owner]
+  evidence:
+    docs: [estimate, plan, status]
+    looks_like: >-
+      An estimate history showing the rough estimate, the discovery estimate and later re-estimates, each
+      dated, with the baseline that sign-off accepted clearly marked.
+  signals:
+    - The same number appears in the first brief, the discovery document and the plan, unchanged.
+    - The estimate has no date or version, so nobody can tell whether it came before or after discovery.
+    - Status reports measure progress against a figure that is older than the discovery document.
+    - Phrases such as "as agreed at the outset" or "the approved budget" with no link to how it was built.
+  contradiction: >-
+    Compare the estimate with the plan: if the plan's end date or budget matches the stage-2 rough
+    estimate rather than the discovery estimate, the guess has become the promise.
+  due: {plan: 2, evidenced: 4}
+  fail_fast: >-
+    Put the rough estimate and the discovery estimate side by side in front of the sponsor and ask which
+    one the plan is built on.
+  severity: high
+  related: [EST-02, EST-06]
+  signal_id: null
+
+- id: EST-02
+  title: One number instead of a range
+  kind: delivery
+  concern: estimation
+  question: >-
+    Is the estimate given as a range, with the reason for its width? If the project overruns, will anyone
+    be able to say whether the overrun was inside the range we said was possible?
+  why: >-
+    "Six weeks" was heard as a commitment. "Five to eight weeks if access arrives in week one" would have
+    been a plan, and the slip to seven weeks would have been expected rather than a crisis.
+  applies: {kind: [any], components: [any], patterns: [any]}
+  owner: technical-anchor
+  also: [project-manager]
+  evidence:
+    docs: [estimate]
+    looks_like: >-
+      A low and a high figure (or a most-likely figure with a stated spread), and a sentence on what would
+      move it toward either end.
+  signals:
+    - The estimate is a single figure in days, weeks or money with no low and high value.
+    - The width of the range does not narrow from the rough estimate to the discovery estimate.
+    - The range is the same percentage on every item, which suggests it was added, not reasoned.
+  contradiction: >-
+    Compare the estimate with the status reports: a range in the estimate but a single committed date in
+    every status report means the range was dropped on the way to the stakeholders.
+  due: {plan: 2, evidenced: 4}
+  fail_fast: >-
+    Ask the person who wrote the estimate for the worst realistic case. If they can name one without
+    hesitating, it belongs in the document.
+  severity: high
+  related: [EST-01, EST-03]
+  signal_id: single-number-estimate
+
+- id: EST-03
+  title: An estimate with no written assumptions
+  kind: delivery
+  concern: estimation
+  question: >-
+    Which assumptions does the estimate depend on, and which one, if wrong, would move it the most? If the
+    estimate turns out wrong, will we be able to point to the assumption that broke?
+  why: >-
+    The estimate assumed the source data was clean and that one person would test. Neither was written
+    down, so when both failed, the overrun looked like the team's fault instead of a known risk.
+  applies: {kind: [any], components: [any], patterns: [any]}
+  owner: technical-anchor
+  also: [project-manager, business-owner]
+  evidence:
+    docs: [estimate, raid]
+    looks_like: >-
+      A numbered list of assumptions next to the estimate, the most sensitive ones marked, and each one
+      also logged in the RAID log with an owner.
+  signals:
+    - No "assumptions" heading or list anywhere in or near the estimate.
+    - Assumptions are written as one line, such as "standard assumptions apply".
+    - Assumptions exist in the estimate but none of them appear in the RAID log.
+  contradiction: >-
+    Compare the estimate's assumptions with the RAID log: an assumption in one but not the other is either
+    unmanaged or was never the real basis of the estimate.
+  due: {plan: 2, evidenced: 4}
+  fail_fast: >-
+    Pick the riskiest assumption and test it this week, for example by requesting the access or pulling
+    one real extract.
+  severity: high
+  related: [EST-02, COM-05, PM-07]
+  signal_id: no-assumptions
+
+- id: EST-04
+  title: Invisible work left out of the estimate
+  kind: delivery
+  concern: estimation
+  question: >-
+    Does the estimate include the work that is not building: getting access, setting up environments,
+    testing, fixing data, rehearsing the cut-over, documentation and handover? If we run out of time, will
+    it be because the build took longer, or because this work was never counted?
+  why: >-
+    The build finished on time. Then access approvals, test data, two cut-over rehearsals and the runbook
+    took another five weeks that nobody had planned for.
+  applies: {kind: [any], components: [any], patterns: [any]}
+  owner: technical-anchor
+  also: [project-manager, test-lead, operations]
+  evidence:
+    docs: [estimate, plan]
+    looks_like: >-
+      Separate lines for access and onboarding, environments, testing (including reconciliation and user
+      acceptance), data fixes, history load, cut-over and rollback rehearsal, runbook, handover and hypercare.
+  signals:
+    - The estimate lists only build items (pipelines, tables, reports).
+    - Testing is a fixed percentage added at the end rather than counted per item.
+    - Words such as "cut-over", "handover", "access", "environment" or "hypercare" do not appear in the estimate.
+  contradiction: >-
+    Compare the estimate with the plan: plan tasks for testing, cut-over or handover that have no matching
+    line in the estimate are unfunded work.
+  due: {plan: 2, evidenced: 4}
+  fail_fast: >-
+    Read the estimate against the ten lifecycle stages and ask, for each stage after build, which line pays for it.
+  severity: high
+  related: [EST-05, EST-07, PM-05]
+  signal_id: no-invisible-work
+
+- id: EST-05
+  title: Guessed, not counted
+  kind: delivery
+  concern: estimation
+  question: >-
+    Was the estimate built by counting the things the project will deliver (sources, tables, rules,
+    reports, interfaces) and multiplying by a rate, or was it a total someone felt was right? Could another
+    person rebuild the number from the document?
+  why: >-
+    The estimate was "about three months" for the whole project. When it was finally counted there were
+    forty tables and twelve reports, which at the team's real rate was nearer six months.
+  applies: {kind: [any], components: [any], patterns: [any]}
+  owner: technical-anchor
+  also: [project-manager]
+  evidence:
+    docs: [estimate]
+    looks_like: >-
+      A table of counted items by type and complexity, a rate per item, where the rate came from, and the total.
+  signals:
+    - The estimate is a total with no breakdown, or a breakdown by phase only.
+    - No counts of sources, tables, rules or reports appear anywhere in the documents.
+    - The rate per item is not stated or not explained.
+  contradiction: >-
+    Compare the estimate with the requirements or data model: if they list more sources, tables or reports
+    than the estimate counted, the estimate is short.
+  due: {plan: 2, designed: 4}
+  fail_fast: >-
+    Count the items in the requirements yourself and divide the estimate by the count. If the effort per
+    item looks implausibly small, it probably is.
+  severity: medium
+  related: [EST-04, EST-06]
+  signal_id: null
+
+- id: EST-06
+  title: Never corrected against actual progress
+  kind: delivery
+  concern: estimation
+  question: >-
+    Is actual effort compared with the estimate at least every two weeks, and has the estimate been
+    changed when the real rate differed? If we finish late, will we have known it two months before or
+    two days before?
+  why: >-
+    The thin slice took three times longer than planned per table. Nobody re-estimated, and the gap only
+    showed when the last month of the plan arrived with half the tables still to build.
+  applies: {kind: [any], components: [any], patterns: [any]}
+  owner: technical-anchor
+  also: [project-manager]
+  evidence:
+    docs: [estimate, status]
+    looks_like: >-
+      A re-estimate after the thin slice and then every two weeks, showing items done, the real rate, and
+      the forecast finish, with changes explained.
+  signals:
+    - The estimate document has one version and its date is before build started.
+    - Status reports show percent complete but never a forecast end date or rate.
+    - No mention of a thin slice or of the rate it achieved.
+  contradiction: >-
+    Compare status reports with the estimate: if progress reports show fewer items finished than the
+    estimate's rate predicts, but the end date never moves, the estimate is not being corrected.
+  due: {plan: 4, evidenced: 6}
+  fail_fast: >-
+    Divide items finished so far by weeks spent, and project the finish date from that rate today.
+  severity: high
+  related: [EST-01, PM-04]
+  signal_id: null
+
+- id: EST-07
+  title: History load and data fixing underestimated
+  kind: delivery
+  concern: estimation
+  question: >-
+    Has the work of loading history and dealing with poor source data been estimated separately, using a
+    profile of the real data? If the history load is what delays go-live, will that surprise anyone?
+  why: >-
+    The pipelines worked on a month of data. Ten years of history held old codes, broken keys and a format
+    change, and checking the old numbers with the business took longer than building the pipelines.
+  applies: {kind: [any], components: [any], patterns: [any]}
+  owner: technical-anchor
+  also: [business-analyst, source-owner]
+  evidence:
+    docs: [estimate, discovery]
+    looks_like: >-
+      Separate estimate lines for the history load (volume, number of runs, reconciliation with the
+      business) and for data fixes, sized from a profile of real data.
+  signals:
+    - The history load is not mentioned in the estimate, or it is one line with a small number.
+    - The estimate says data quality is "assumed acceptable" with no profile behind it.
+    - There is no data profiling section in the discovery document.
+  contradiction: >-
+    Compare the discovery profiling results with the estimate: if the profile found quality problems but
+    the estimate has no line for fixing or handling them, the estimate ignored the evidence.
+  due: {plan: 3, evidenced: 4}
+  fail_fast: >-
+    Load one year of real history in a test environment and time it, and count the rows that fail basic rules.
+  severity: high
+  related: [EST-04, REQ-04]
+  signal_id: null

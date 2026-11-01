@@ -1,0 +1,148 @@
+# Technical checks: environments, permissions, network
+
+- id: ENV-01
+  title: Separate environments with separate data
+  kind: technical
+  concern: environments-and-access
+  question: >-
+    Are there separate development, test and production environments, isolated so work in one
+    cannot read or overwrite another's data?
+  why: >-
+    A developer ran a cleanup script pointed at what they thought was development; the paths were
+    shared and production tables were wiped the night before a board meeting.
+  applies:
+    kind: [new-platform]
+    components: [platform]
+    patterns: [any]
+  owner: platform-team
+  also: [architect, security]
+  evidence:
+    docs: [platform]
+    looks_like: >-
+      Named environments with separate storage, catalogs or schemas, identities and compute, and a
+      rule that non-production identities cannot write to production.
+  signals:
+    - The platform document describes one workspace or one storage location for all stages.
+  due: {plan: 3, designed: 4, evidenced: 5}
+  fail_fast: >-
+    Using a development identity, try to write to a production table; it must be refused.
+  severity: high
+  related: [ENV-02, REL-04, TEST-02]
+  signal_id: null
+
+- id: ENV-02
+  title: Access through groups and service identities
+  kind: technical
+  concern: environments-and-access
+  question: >-
+    Is access granted to groups by role with least privilege, and do scheduled jobs run as service
+    identities rather than as a person?
+  why: >-
+    Production jobs ran under the lead developer's own account; when she left the company her
+    account was disabled and every nightly job failed.
+  applies:
+    kind: [any]
+    components: [platform, governance, orchestration]
+    patterns: [any]
+  owner: platform-team
+  also: [security, technical-anchor]
+  evidence:
+    docs: [platform, architecture]
+    looks_like: >-
+      A role-to-group access model, service identities for jobs in each environment, no direct user
+      grants in production, and who approves access requests.
+  due: {plan: 3, designed: 5, evidenced: 7, proven: 9}
+  fail_fast: >-
+    List who owns and runs each production job; any job owned or run by a named person is a gap.
+  severity: high
+  related: [ENV-01, SEC-02, REL-05]
+  signal_id: null
+
+- id: ENV-03
+  title: Network path to every source proven early
+  kind: technical
+  concern: environments-and-access
+  question: >-
+    Has a connection from the platform to every source and target been made in a real environment,
+    through firewalls, private links and credentials?
+  why: >-
+    The source sat in a data centre behind a firewall; the network change took nine weeks of
+    tickets and MVP 1 waited for it with the team idle.
+  applies:
+    kind: [any]
+    components: [ingestion, serving, platform]
+    patterns: [any]
+  owner: platform-team
+  also: [technical-anchor, source-owner]
+  evidence:
+    docs: [platform, raid, discovery]
+    looks_like: >-
+      Each source and target with its connection method, the network changes required, their lead
+      time, and evidence a test connection succeeded.
+  signals:
+    - Connectivity appears as an assumption in the risk log with no date.
+  due: {plan: 3, designed: 4, evidenced: 5}
+  fail_fast: >-
+    Raise the network and credential requests in week one of discovery and pull one row from every
+    source.
+  severity: high
+  related: [DES-01, ENV-01]
+  signal_id: null
+
+- id: ENV-04
+  title: Platform standards that projects follow
+  kind: technical
+  concern: environments-and-access
+  question: >-
+    Are naming, layer, folder and table standards written down for the platform so every project
+    builds the same way?
+  why: >-
+    Three projects named and layered their tables differently; consumers could not tell raw from
+    cleaned data, and a shared lineage view became impossible.
+  applies:
+    kind: [new-platform]
+    components: [platform, governance]
+    patterns: [any]
+  owner: architect
+  also: [platform-team, developer]
+  evidence:
+    docs: [platform, decisions]
+    looks_like: >-
+      A short standards document covering naming, layers, table types, ownership tags and code
+      structure, with examples, applied by the first project.
+  due: {plan: 3, designed: 5, evidenced: 7}
+  fail_fast: >-
+    Ask two developers to name the same new table independently; if the names differ, the
+    standard is missing or unclear.
+  severity: medium
+  related: [DES-05, ENV-01]
+  signal_id: null
+
+- id: ENV-05
+  title: Project fits the existing platform's standards
+  kind: technical
+  concern: environments-and-access
+  question: >-
+    Does the project follow the existing platform's environments, standards and shared frameworks,
+    and are any exceptions agreed with the platform team?
+  why: >-
+    The project built its own ingestion code and its own environment layout; the platform team
+    refused to support it at go-live and it had to be rebuilt.
+  applies:
+    kind: [project-on-existing]
+    components: [any]
+    patterns: [any]
+  owner: technical-anchor
+  also: [platform-team, architect]
+  evidence:
+    docs: [architecture, decisions]
+    looks_like: >-
+      References to the platform standards and frameworks used, and a decision record for each
+      deviation, signed by the platform team.
+  due: {plan: 3, designed: 4, evidenced: 7}
+  fail_fast: >-
+    Walk the platform team through the architecture for thirty minutes and list every point where
+    they say "we don't do it that way".
+  severity: medium
+  related: [DES-05, ENV-04]
+  signal_id: null

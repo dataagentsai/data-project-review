@@ -1,0 +1,173 @@
+# Technical checks: architecture decisions, patterns, non-functional needs
+
+- id: DES-01
+  title: A thin slice proved the design end to end
+  kind: technical
+  concern: design
+  question: >-
+    Has one source table been pushed through every layer to one report or query in a
+    production-like environment, before the design was signed off?
+  why: >-
+    A clean architecture diagram was signed off without ever running; in MVP 1 the team found the
+    source format, network and permissions all differed from the assumptions.
+  applies:
+    kind: [any]
+    components: [any]
+    patterns: [any]
+  owner: technical-anchor
+  also: [architect]
+  evidence:
+    docs: [discovery, architecture]
+    looks_like: >-
+      A description of the thin slice, where it ran, what it proved, what it found, and how the
+      design changed as a result.
+  signals:
+    - The architecture shows only target-state diagrams with no evidence of anything having run.
+  due: {plan: 3, designed: 3, evidenced: 4}
+  fail_fast: >-
+    Choose the riskiest source and the most important report, and connect them with the simplest
+    possible pipeline this week.
+  severity: high
+  related: [DQ-05, ENV-03, PERF-02]
+  signal_id: null
+
+- id: DES-02
+  title: Non-functional needs written as numbers
+  kind: technical
+  concern: design
+  question: >-
+    Are the non-functional needs (freshness, volume, recovery, availability, retention, concurrency)
+    written as measurable numbers and agreed with the business?
+  why: >-
+    "Near real time" meant five seconds to the business and an hour to the engineers; the gap was
+    found at user acceptance and the design had to be rebuilt.
+  applies:
+    kind: [any]
+    components: [any]
+    patterns: [any]
+  owner: architect
+  also: [business-analyst, business-owner]
+  evidence:
+    docs: [requirements, architecture]
+    looks_like: >-
+      A table of non-functional needs, each with a number, a measurement method and who agreed it.
+  signals:
+    - Words like "fast", "near real time", "scalable" or "highly available" with no numbers.
+  due: {plan: 3, designed: 4, evidenced: 7}
+  fail_fast: >-
+    Rewrite each non-functional sentence as a number and ask the business owner to confirm it.
+  severity: high
+  related: [PERF-02, ORCH-05, DES-06]
+  signal_id: null
+
+- id: DES-03
+  title: Big decisions recorded with the options
+  kind: technical
+  concern: design
+  question: >-
+    Are the big technical choices written down as short decision records, with the options
+    considered, the reasons and who decided?
+  why: >-
+    The choice of a streaming design was agreed verbally; six months later a new architect
+    reopened it, and nobody could explain why batch had been rejected.
+  applies:
+    kind: [any]
+    components: [any]
+    patterns: [any]
+  owner: architect
+  also: [technical-anchor]
+  evidence:
+    docs: [decisions, architecture]
+    looks_like: >-
+      A decision log with one short record per big choice: context, options, decision,
+      consequences, date and owner.
+  due: {plan: 3, designed: 4, evidenced: 6}
+  fail_fast: >-
+    List the five choices that would be most expensive to reverse and check each has a record.
+  severity: low
+  related: [DES-06, ENV-05]
+  signal_id: null
+
+- id: DES-04
+  title: Grain and keys of every table
+  kind: technical
+  concern: design
+  question: >-
+    Is the grain (what one row means) and the key of every target table written down and agreed?
+  why: >-
+    The orders table mixed order headers and order lines; summing it double-counted shipping, and
+    two teams built different fixes.
+  applies:
+    kind: [any]
+    components: [transformation, modelling, serving]
+    patterns: [any]
+  owner: technical-anchor
+  also: [business-analyst, data-consumer]
+  evidence:
+    docs: [data-model]
+    looks_like: >-
+      For each table: one sentence for the grain, the key columns, and a uniqueness test on that
+      key.
+  due: {plan: 3, designed: 4, evidenced: 7}
+  fail_fast: >-
+    For each target table, finish the sentence "one row is one …" and test the key for uniqueness.
+  severity: high
+  related: [DUP-03, SERV-01, SCD-03]
+  signal_id: null
+
+- id: DES-05
+  title: Shared frameworks instead of one-off code
+  kind: technical
+  concern: design
+  question: >-
+    Does the platform provide shared, configuration-driven patterns for common work (ingestion,
+    quality checks, logging, history handling), so each pipeline is not hand-built?
+  why: >-
+    Forty pipelines were each written differently; a fix to the deduplication logic had to be made
+    forty times, and twelve were missed.
+  applies:
+    kind: [new-platform]
+    components: [platform, ingestion, transformation]
+    patterns: [any]
+  owner: architect
+  also: [technical-anchor, developer]
+  evidence:
+    docs: [platform, architecture, decisions]
+    looks_like: >-
+      A small set of shared patterns or frameworks with documented configuration, proved by the
+      first two projects, and a decision on what is built versus reused.
+  due: {plan: 3, designed: 5, evidenced: 7}
+  fail_fast: >-
+    Onboard a second source table with the framework and count how many lines of new code it took.
+  severity: medium
+  related: [ENV-04, ENV-05]
+  signal_id: null
+
+- id: DES-06
+  title: Batch or streaming chosen for a reason
+  kind: technical
+  concern: design
+  question: >-
+    Is the choice between batch, micro-batch and streaming justified by a stated freshness need and
+    its cost, not by preference?
+  why: >-
+    The team built continuous streaming for a report read once a day; it cost eight times a nightly
+    batch and was harder to support.
+  applies:
+    kind: [any]
+    components: [ingestion, transformation, orchestration]
+    patterns: [batch, streaming, cdc]
+  owner: architect
+  also: [business-owner, technical-anchor]
+  evidence:
+    docs: [decisions, requirements]
+    looks_like: >-
+      A decision record linking the processing mode to a freshness number and a running cost
+      comparison.
+  due: {plan: 3, designed: 4}
+  fail_fast: >-
+    Ask the consumer what decision they would take differently with data one minute old versus one
+    hour old.
+  severity: medium
+  related: [DES-02, COST-01, PERF-02]
+  signal_id: null

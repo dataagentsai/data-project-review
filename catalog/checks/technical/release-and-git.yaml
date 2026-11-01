@@ -1,0 +1,204 @@
+# Technical checks: version control, branching, promotion between environments
+
+- id: REL-01
+  title: Everything that runs is in version control
+  kind: technical
+  concern: release-and-git
+  question: >-
+    Is everything that runs in production (pipeline code, SQL, job definitions, schedules, data
+    quality rules, permissions) kept in version control?
+  why: >-
+    The schedule and parameters were edited by hand in the production interface; when the job was
+    recreated after an incident, nobody knew the real settings and it ran with wrong ones for a week.
+  applies:
+    kind: [any]
+    components: [any]
+    patterns: [any]
+  owner: release-devops
+  also: [developer, technical-anchor]
+  evidence:
+    docs: [deployment, architecture]
+    looks_like: >-
+      A repository layout that includes code, job and schedule definitions and configuration, and a
+      rule that production is never changed by hand.
+  signals:
+    - Jobs are described as "configured in the user interface".
+  due: {plan: 3, designed: 5, evidenced: 6, proven: 9}
+  fail_fast: >-
+    Pick one production job and try to recreate it in a fresh environment only from the
+    repository.
+  severity: high
+  related: [REL-02, REL-03, REL-06]
+  signal_id: null
+
+- id: REL-02
+  title: Branching and code review
+  kind: technical
+  concern: release-and-git
+  question: >-
+    What is the branching approach, and must every change be reviewed by another person and pass
+    automated checks before it merges?
+  why: >-
+    A developer pushed a join change straight to the main branch on a Friday; it removed a filter,
+    and the weekend loads double-counted refunds.
+  applies:
+    kind: [any]
+    components: [any]
+    patterns: [any]
+  owner: release-devops
+  also: [developer, technical-anchor]
+  evidence:
+    docs: [deployment]
+    looks_like: >-
+      A short branching model, protected main branch, required reviewer, and automated tests and
+      linting run on every pull request.
+  due: {plan: 4, designed: 5, evidenced: 6}
+  fail_fast: >-
+    Try to push directly to the main branch; it should be refused.
+  severity: medium
+  related: [REL-01, TEST-03]
+  signal_id: null
+
+- id: REL-03
+  title: Automated promotion of the same build
+  kind: technical
+  concern: release-and-git
+  question: >-
+    Is the same tested build promoted automatically from development to test to production, with
+    an approval step before production?
+  why: >-
+    Each environment was deployed by copying scripts by hand; production ended up with an older
+    version of one script, and test results said nothing about what really ran.
+  applies:
+    kind: [any]
+    components: [any]
+    patterns: [any]
+  owner: release-devops
+  also: [platform-team]
+  evidence:
+    docs: [deployment]
+    looks_like: >-
+      A pipeline that builds once, deploys the same version to each environment with environment
+      settings injected, and records which version is where.
+  due: {plan: 3, designed: 5, evidenced: 6, proven: 9}
+  fail_fast: >-
+    Deploy the thin slice to test using only the pipeline, with nobody clicking in the target
+    environment.
+  severity: high
+  related: [REL-01, REL-04, REL-07]
+  signal_id: null
+
+- id: REL-04
+  title: Configuration per environment, not in code
+  kind: technical
+  concern: release-and-git
+  question: >-
+    Are environment-specific values (paths, connection names, schedules, compute sizes) kept in
+    configuration per environment rather than written into the code?
+  why: >-
+    A storage path to production was hard-coded in a shared module; tests in development read and
+    then overwrote production data.
+  applies:
+    kind: [any]
+    components: [any]
+    patterns: [any]
+  owner: developer
+  also: [release-devops]
+  evidence:
+    docs: [deployment, architecture]
+    looks_like: >-
+      A configuration file or variable set per environment, and code that reads all environment
+      values from it.
+  due: {plan: 4, designed: 5, evidenced: 6}
+  fail_fast: >-
+    Search the code for production host names, paths and catalog names; each hit is a defect.
+  severity: medium
+  related: [REL-03, REL-05, ENV-01]
+  signal_id: null
+
+- id: REL-05
+  title: No secrets in the repository
+  kind: technical
+  concern: release-and-git
+  question: >-
+    Are passwords, keys and tokens kept in a secret store and read at run time, never in code,
+    configuration files or the repository's history?
+  why: >-
+    A database password was committed in a script; the repository was later shared with a
+    vendor, and the security team had to rotate credentials across four systems.
+  applies:
+    kind: [any]
+    components: [any]
+    patterns: [any]
+  owner: security
+  also: [developer, release-devops]
+  evidence:
+    docs: [platform, deployment]
+    looks_like: >-
+      A named secret store per environment, code that reads secrets by name, and an automated
+      secret scan on the repository.
+  due: {plan: 3, designed: 5, evidenced: 6}
+  fail_fast: >-
+    Run a secret scanner over the whole repository history today.
+  severity: high
+  related: [REL-04, ENV-02]
+  signal_id: null
+
+- id: REL-06
+  title: Infrastructure defined as code
+  kind: technical
+  concern: release-and-git
+  question: >-
+    Are the platform's environments, storage, compute policies, identities and permissions created
+    from code, so another environment can be built identically?
+  why: >-
+    The test environment was built by hand months after production and differed in network and
+    permission settings, so tests passed that failed in production.
+  applies:
+    kind: [new-platform]
+    components: [platform]
+    patterns: [any]
+  owner: platform-team
+  also: [release-devops]
+  evidence:
+    docs: [platform, deployment]
+    looks_like: >-
+      Infrastructure code in version control covering workspaces, storage, networks, identities,
+      policies and grants, applied through a pipeline.
+  due: {plan: 3, designed: 5, evidenced: 6, proven: 9}
+  fail_fast: >-
+    Build a throwaway environment from the infrastructure code alone and compare its settings with
+    test.
+  severity: medium
+  related: [REL-01, ENV-01]
+  signal_id: null
+
+- id: REL-07
+  title: Rolling back a release, including its data
+  kind: technical
+  concern: release-and-git
+  question: >-
+    If a release goes wrong, how are both the code and any data or table structure it changed put
+    back, and has that been rehearsed?
+  why: >-
+    A release changed a table's structure and backfilled it; the code could be rolled back in
+    minutes, but the data could not, and reports were broken for two days.
+  applies:
+    kind: [any]
+    components: [any]
+    patterns: [any]
+  owner: release-devops
+  also: [technical-anchor, operations]
+  evidence:
+    docs: [deployment, runbook]
+    looks_like: >-
+      A rollback plan per release covering code, schema and data (restore points or table
+      versions), and a rehearsal in a production-like environment.
+  signals:
+    - The cut-over plan has no rollback section, or says "roll back the code" only.
+  due: {plan: 5, designed: 6, evidenced: 8}
+  fail_fast: >-
+    Deploy a release that changes a table in test, then roll it back fully, and time it.
+  severity: high
+  related: [REL-03, ORCH-05]
+  signal_id: null

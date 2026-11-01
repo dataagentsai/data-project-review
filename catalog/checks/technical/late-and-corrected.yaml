@@ -1,0 +1,124 @@
+# Technical checks: late arriving and corrected data
+
+- id: LATE-01
+  title: Late and corrected rows rebuild the right periods
+  kind: technical
+  concern: late-and-corrected
+  question: >-
+    When rows arrive late or yesterday's figures are corrected next week, which periods are
+    rebuilt, and how far back can corrections reach?
+  why: >-
+    Returns were booked against sales from three weeks earlier, but the pipeline only rebuilt the
+    last two days, so monthly net revenue never matched the finance ledger.
+  applies:
+    kind: [any]
+    components: [ingestion, transformation, modelling]
+    patterns: [any]
+  owner: technical-anchor
+  also: [business-analyst, source-owner]
+  evidence:
+    docs: [discovery, architecture]
+    looks_like: >-
+      A profile of how late data really arrives, an agreed correction window, and a design that
+      reprocesses affected periods by business date rather than load date.
+  signals:
+    - Aggregates are described as built "for the load date" only.
+    - Nothing in the discovery document says how late source data can arrive.
+  due: {plan: 3, designed: 5, evidenced: 7, proven: 9}
+  fail_fast: >-
+    In a real extract, compare business date against load date and find the longest lag; then
+    insert a row two weeks late in test and check the monthly total updates.
+  severity: high
+  related: [LATE-02, HIST-04, REC-01]
+  signal_id: null
+
+- id: LATE-02
+  title: Facts arriving before their reference data
+  kind: technical
+  concern: late-and-corrected
+  question: >-
+    What happens to a fact row whose customer, product or other reference record has not arrived
+    yet?
+  why: >-
+    Orders for new products arrived hours before the product feed; an inner join silently dropped
+    them, and the new-launch report showed zero sales on launch day.
+  applies:
+    kind: [any]
+    components: [transformation, modelling]
+    patterns: [any]
+  owner: technical-anchor
+  also: [developer]
+  evidence:
+    docs: [architecture, data-model]
+    looks_like: >-
+      An "unknown" or placeholder member, or a quarantine with automatic reprocessing, and a step
+      that re-points facts once the reference record arrives.
+  signals:
+    - Joins between facts and reference tables are described as inner joins with no handling of misses.
+  due: {plan: 3, designed: 5, evidenced: 7}
+  fail_fast: >-
+    Load a fact row whose reference key does not exist yet, then load the reference row; the fact
+    must be kept and end up attached to the right reference record.
+  severity: high
+  related: [LATE-01, DQ-02, REC-01]
+  signal_id: null
+
+- id: LATE-03
+  title: Event time, watermarks and late events in streams
+  kind: technical
+  concern: late-and-corrected
+  question: >-
+    Do streaming aggregations use event time, how long do they wait for late events (the
+    watermark), and what happens to events later than that?
+  why: >-
+    The window waited ten minutes, but mobile clients uploaded events hours later after going
+    offline; those events were silently discarded and daily active users were understated.
+  applies:
+    kind: [any]
+    components: [transformation, modelling]
+    patterns: [streaming]
+  owner: technical-anchor
+  also: [developer, data-consumer]
+  evidence:
+    docs: [architecture, requirements]
+    looks_like: >-
+      The lateness of real events measured, a watermark chosen from that, and a stated home for
+      events beyond it (a correction batch or a side table) agreed with consumers.
+  due: {plan: 3, designed: 5, evidenced: 7, proven: 9}
+  fail_fast: >-
+    Measure the gap between event time and arrival time in a day of real events and see what share
+    falls beyond the proposed watermark.
+  severity: medium
+  related: [LATE-01, DUP-04, PERF-02]
+  signal_id: null
+
+- id: LATE-04
+  title: Time zones and business dates
+  kind: technical
+  concern: late-and-corrected
+  question: >-
+    Which time zone does each source use, how are timestamps stored, and which time zone defines a
+    business day?
+  why: >-
+    One source sent local time and another sent universal time; orders placed late in the evening
+    fell into the next day and daily sales never matched the stores' own reports.
+  applies:
+    kind: [any]
+    components: [ingestion, transformation, modelling]
+    patterns: [any]
+  owner: business-analyst
+  also: [technical-anchor]
+  evidence:
+    docs: [data-model, discovery]
+    looks_like: >-
+      The time zone of every source timestamp, a single storage convention, a defined business-day
+      time zone, and a rule for daylight-saving changes.
+  signals:
+    - The data dictionary lists timestamps without a time zone.
+  due: {plan: 3, designed: 5, evidenced: 7}
+  fail_fast: >-
+    Pick ten real transactions near midnight and check that their business date matches what the
+    source application shows.
+  severity: medium
+  related: [DES-04, REC-02]
+  signal_id: null

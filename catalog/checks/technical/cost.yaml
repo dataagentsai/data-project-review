@@ -1,0 +1,117 @@
+# Technical checks: running cost and its controls
+
+- id: COST-01
+  title: Running cost estimated from a real run
+  kind: technical
+  concern: cost
+  question: >-
+    What will the solution cost to run each month (compute, storage, transfer, licences), and is
+    the figure based on a measured run rather than a guess?
+  why: >-
+    The business case assumed a few hundred a month; the first production bill was eleven
+    thousand because the streaming jobs ran around the clock, and the project was paused for review.
+  applies:
+    kind: [any]
+    components: [any]
+    patterns: [any]
+  owner: technical-anchor
+  also: [platform-team, business-owner]
+  evidence:
+    docs: [discovery, architecture, estimate]
+    looks_like: >-
+      A monthly running cost estimate broken down by job and storage, derived from the thin slice
+      or a test run scaled to production volume, agreed with the budget owner.
+  signals:
+    - Cost appears only as build effort, with no running cost.
+  due: {plan: 3, designed: 4, evidenced: 7, proven: 9}
+  fail_fast: >-
+    Read the actual cost of the thin slice's runs and multiply by production volume and schedule.
+  severity: medium
+  related: [COST-02, PERF-01, DES-06]
+  signal_id: null
+
+- id: COST-02
+  title: Platform cost guardrails
+  kind: technical
+  concern: cost
+  question: >-
+    What stops a single team, job or user from running up an unexpected bill (budgets, alerts,
+    limits on compute size, automatic shutdown)?
+  why: >-
+    A developer left a large compute cluster running over a holiday weekend, and the month's
+    budget was gone by the fourth.
+  applies:
+    kind: [new-platform]
+    components: [platform]
+    patterns: [any]
+  owner: platform-team
+  also: [security, business-owner]
+  evidence:
+    docs: [platform, runbook]
+    looks_like: >-
+      Budgets with alerts per team or project, policies that cap compute size and enforce
+      automatic shutdown, and a named person who receives cost alerts.
+  due: {plan: 3, designed: 5, evidenced: 6, proven: 9}
+  fail_fast: >-
+    Try to create the largest compute allowed as an ordinary developer in the development
+    environment; the policy should stop you.
+  severity: high
+  related: [COST-03, COST-04, ENV-02]
+  signal_id: null
+
+- id: COST-03
+  title: Cost can be traced to a team and a job
+  kind: technical
+  concern: cost
+  question: >-
+    Can the running cost be broken down by project, team, environment and job (by tags or
+    separate accounts), so overruns can be traced?
+  why: >-
+    The platform bill doubled in one month and nobody could say which project caused it, so every
+    team was asked to cut costs instead of the one that needed to.
+  applies:
+    kind: [any]
+    components: [platform, orchestration]
+    patterns: [any]
+  owner: platform-team
+  also: [technical-anchor]
+  evidence:
+    docs: [platform, architecture]
+    looks_like: >-
+      A mandatory tagging standard (project, owner, environment), enforced on compute and storage,
+      and a cost report by tag.
+  due: {plan: 4, designed: 5, evidenced: 7, proven: 9}
+  fail_fast: >-
+    Pull last week's cost broken down by project tag; check how much is untagged.
+  severity: low
+  related: [COST-02, OPS-03]
+  signal_id: null
+
+- id: COST-04
+  title: No compute running when nothing needs it
+  kind: technical
+  concern: cost
+  question: >-
+    Is compute sized from real runs and does it stop when idle, rather than staying on
+    or oversized "to be safe"?
+  why: >-
+    A job that needed ten minutes of compute held a large cluster for two hours each run because it
+    waited on an upstream file, and nobody noticed for six months.
+  applies:
+    kind: [any]
+    components: [ingestion, transformation, modelling, orchestration]
+    patterns: [any]
+  owner: developer
+  also: [platform-team, operations]
+  evidence:
+    docs: [architecture, runbook]
+    looks_like: >-
+      Compute sizes justified by measured runs, automatic stop or job-scoped compute, waits on
+      upstream data done outside paid compute, and a periodic review of utilisation.
+  due: {plan: 4, designed: 5, evidenced: 7, proven: 9}
+  fail_fast: >-
+    For the three most expensive jobs, compare the time compute was running against the time it
+    was busy.
+  severity: medium
+  related: [COST-01, COST-02, PERF-05]
+  signal_id: null

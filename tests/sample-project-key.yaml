@@ -1,0 +1,208 @@
+# Answer key for examples/sample-project (Harbor & Pine). Keep out of the docs folder.
+# The reviewer runs blind on examples/sample-project/docs + project.yaml and is scored against this list.
+project: harbor-and-pine
+stage: 6
+planted_gaps:
+  # ---------------- technical ----------------
+  - gap: G01
+    kind: technical
+    concern: duplicates
+    how_hidden: omission
+    where: [discovery.md §2.2 Resends, architecture.md §2.2 and §3 silver.online_order_line]
+    description: Discovery says Cartwell resends a day's files (same name or _v2 suffix), but Auto Loader appends to bronze and silver online orders are appended by ingest time, with no de-duplication or rerun-safe (idempotent) load.
+    severity: high
+  - gap: G02
+    kind: technical
+    concern: first-and-history-load
+    how_hidden: omission
+    where: [discovery.md §2.1 History and §2.2 History, requirements.md FR-10, architecture.md, estimate.md §2, plan.md §3]
+    description: Three years of history (~200M POS lines plus a one-off Cartwell extract) is in scope, but there is no history-load approach (CDC retention is 3 days, so CDC cannot supply it), no estimate line and no plan slot for it.
+    severity: high
+  - gap: G03
+    kind: technical
+    concern: deletes
+    how_hidden: omission
+    where: [discovery.md §2.1 End-of-day process, architecture.md §3 silver.sales_line, test-strategy.md §3 merge cases]
+    description: POS physically deletes voided transactions, but the silver MERGE only handles inserts (op 2) and updates (op 4); CDC delete operations (op 1) are ignored, so voided sales stay in revenue.
+    severity: high
+  - gap: G04
+    kind: technical
+    concern: late-and-corrected
+    how_hidden: contradiction
+    where: [discovery.md §3 Returns behaviour, architecture.md §4 gold.fact_returns_daily and fact_sales_daily]
+    description: Returns arrive up to 60 days late and are attributed to the original sale date, yet gold only rewrites the business_date = run_date - 1 partition, so late returns (and POS price corrections to older days) never restate earlier days.
+    severity: high
+  - gap: G05
+    kind: technical
+    concern: history-over-time
+    how_hidden: omission
+    where: [requirements.md FR-06 and §5 Region, discovery.md §2.1 Customer records, data-model.md §3.1 dim_customer, architecture.md §3 silver.customer]
+    description: Customers change address (~2% a month) and FR-06 needs a 12-month trend by home region, but dim_customer just overwrites with latest values; no decision on keeping history (SCD type) is recorded.
+    severity: medium
+  - gap: G06
+    kind: technical
+    concern: reconciliation
+    how_hidden: omission
+    where: [test-strategy.md (all), requirements.md NFR-03 and O3]
+    description: NFR-03 requires consistency with the finance ledger, but the test strategy has no source-to-gold reconciliation (counts or totals POS/Cartwell vs silver vs gold vs dashboard) and UAT checks only navigation, filters and RLS.
+    severity: high
+  - gap: G07
+    kind: technical
+    concern: performance
+    how_hidden: vague
+    where: [test-strategy.md §6, discovery.md §2.1 and §2.2 Volumes, raid-log.md R-04]
+    description: Performance is tested only on a 1% sample plus one week of files; no test at full or December/Black Friday peak volume, and the 9-minute dev result is used as evidence of fit.
+    severity: medium
+  - gap: G08
+    kind: technical
+    concern: security-and-personal-data
+    how_hidden: omission
+    where: [data-model.md §4 Marketing extract, requirements.md FR-09, architecture.md §5]
+    description: Name, email, phone and postcode go to an external marketing tool with no masking, minimisation, opt-in filter (marketing_opt_in exists in silver but is not used), retention or access/privacy decision.
+    severity: high
+  - gap: G09
+    kind: technical
+    concern: security-and-personal-data
+    how_hidden: omission
+    where: [deployment-plan.md §3 Configuration and §2 repo layout]
+    description: POS password and SFTP credentials are kept in conf/<env>.yaml in the git repo instead of a secret scope or key vault.
+    severity: high
+  - gap: G10
+    kind: technical
+    concern: release-and-git
+    how_hidden: omission
+    where: [deployment-plan.md §4 and §5]
+    description: The deployment and go-live steps only go forward; there is no rollback or back-out plan for code, Power BI or data if the first production run fails.
+    severity: medium
+  - gap: G11
+    kind: technical
+    concern: operations
+    how_hidden: omission
+    where: [deployment-plan.md §6, project.yaml (no runbook), discovery.md §6 CDC retention constraint]
+    description: No runbook exists and monitoring is only a failure email to the dev distribution list; no freshness/SLA alert for the 09:00 finance review, no on-call, no rerun guidance, despite the 3-day CDC retention making outages costly.
+    severity: high
+  - gap: G12
+    kind: technical
+    concern: cost
+    how_hidden: silence
+    where: [all documents]
+    description: Running cost of the new workload (job clusters, serverless pipeline, SQL warehouse, history load) is never mentioned; no budget, estimate or guardrail.
+    severity: medium
+  - gap: G13
+    kind: technical
+    concern: schema-change
+    how_hidden: omission
+    where: [discovery.md §2.2 Layout changes, architecture.md §2.2, raid-log.md A-04]
+    description: Cartwell changed and renamed columns twice last year, but the design just infers schema on first run, with no evolution mode, rescue column, contract or notification process; the RAID log assumes layouts match spec v3.2.
+    severity: medium
+  - gap: G14
+    kind: technical
+    concern: orchestration-and-recovery
+    how_hidden: omission
+    where: [architecture.md §6, discovery.md §2.2 Arrival]
+    description: The job runs at a fixed 05:00 although Cartwell files arrive as late as 07:30; there is no file-arrival check or trigger, no retry policy, and no rerun/backfill procedure for a missed day.
+    severity: medium
+  # ---------------- delivery ----------------
+  - gap: G15
+    kind: delivery
+    concern: estimation
+    how_hidden: omission
+    where: [estimate.md §2, §3]
+    description: The estimate is a single point (35 developer-weeks rounded to 12 weeks) with no assumptions, ranges or contingency and no lines for testing, environment and access setup, history load, cut-over or handover.
+    severity: high
+  - gap: G16
+    kind: delivery
+    concern: requirements
+    how_hidden: vague
+    where: [requirements.md NFR-01, FR-10, NFR-03, architecture.md §7 decision 3]
+    description: The phrases "near real-time", "all historical data" and "accurate" are stated without numbers; near real-time also conflicts with the agreed daily 05:00 batch and discovery's 3-year figure.
+    severity: medium
+  - gap: G17
+    kind: delivery
+    concern: requirements
+    how_hidden: contradiction
+    where: [requirements.md §5 Revenue, data-model.md §3.2 fact_sales_daily revenue and §3.3 Revenue measure]
+    description: Requirements define revenue as net of returns and excluding VAT, but the data model's revenue is gross of returns and including VAT, so the headline number will not match finance.
+    severity: high
+  - gap: G18
+    kind: delivery
+    concern: scope
+    how_hidden: omission
+    where: [requirements.md §7]
+    description: There is an in-scope list but no out-of-scope list or change-control process (e.g. other POS tables, stock, promotions, near-real-time, MVP 2 items).
+    severity: medium
+  - gap: G19
+    kind: delivery
+    concern: project-management
+    how_hidden: contradiction
+    where: [plan.md M1 and Sprint 1, plan.md §4 Dependencies, raid-log.md R-01 and D-01/D-02]
+    description: The plan assumes POS access in week 1 and puts it on the critical path, while the RAID log says approval takes about 6 weeks from a week-1 request; the plan was never re-baselined.
+    severity: high
+  - gap: G20
+    kind: delivery
+    concern: project-management
+    how_hidden: omission
+    where: [raid-log.md Risks]
+    description: Six of seven risks have no owner, and risk mitigations have no dates (R-01 escalation at week 4 has not visibly happened).
+    severity: medium
+  - gap: G21
+    kind: delivery
+    concern: project-management
+    how_hidden: omission
+    where: [status-report-week5.md §7 meeting notes, architecture.md §7, project.yaml (no decisions doc)]
+    description: There is no decision log; decisions (full-file extract, channel of click-and-collect returns, delayed store-manager access, JDBC instead of Lakeflow Connect) live only in meeting notes, and the status report lists no decisions needed.
+    severity: medium
+  - gap: G22
+    kind: delivery
+    concern: communication
+    how_hidden: contradiction
+    where: [status-report-week5.md §1 and §3, plan.md §2 M1/M2/M3 exit criteria and §6 critical path]
+    description: Status is all green, but M1 and M2 are marked complete without meeting their exit criteria (no live POS source), M3 is due this week with customers at 40%, and both slips sit on the plan's critical path.
+    severity: high
+  - gap: G23
+    kind: delivery
+    concern: stakeholders
+    how_hidden: omission
+    where: [stakeholders.md §1 and §4]
+    description: The stakeholder map has no StoreLink POS system owner/DBA (whose source and CDC are relied on) and no IT operations or service desk who will run the solution.
+    severity: high
+  - gap: G24
+    kind: delivery
+    concern: stakeholders
+    how_hidden: omission
+    where: [stakeholders.md, requirements.md FR-09 and §3 Users, plan.md §4]
+    description: Marketing, the consumer of the daily extract, is not named as a stakeholder, not in the RACI or communications, and not in UAT; no agreed extract contract with Brightwave/marketing.
+    severity: medium
+  - gap: G25
+    kind: delivery
+    concern: testing
+    how_hidden: omission
+    where: [plan.md §3 Sprint 6 and M7, test-strategy.md §2 and §7]
+    description: UAT happens only in week 12, the same week as go-live, leaving no time to fix defects; business users only see sprint demos before that.
+    severity: medium
+  - gap: G26
+    kind: delivery
+    concern: requirements
+    how_hidden: omission
+    where: [requirements.md header and §9, test-strategy.md §7 Exit, stakeholders.md RACI UAT sign-off]
+    description: Requirements and UAT are signed off by the sponsor alone, with no acceptance criteria per requirement and no sign-off from the financial controller, store performance or marketing.
+    severity: medium
+  - gap: G27
+    kind: delivery
+    concern: handover
+    how_hidden: silence
+    where: [all documents]
+    description: Nobody says who owns and runs the pipelines after go-live; there is no handover, knowledge transfer, documentation or support model anywhere in the plan, estimate or deployment plan.
+    severity: high
+
+false_positive_traps:
+  - what: Data quality rules table with rule, severity, action, stop threshold and owner, plus quarantine table and weekly review with finance; tested with pass/fail cases and injected bad rows in SIT.
+    where: data-model.md §5; test-strategy.md §4
+  - what: Clear environment list (dev/test/prod workspaces, catalogs, Power BI workspaces, source endpoints per environment) and access model with service principals and no developer access to prod jobs.
+    where: platform-and-environments.md §2–§4, §7
+  - what: Stakeholder map and RACI for the core team and core deliverables, with communication plan and escalation path (good for those it covers; only the missing parties are gaps).
+    where: stakeholders.md §1–§5
+  - what: Git and CI/CD process — trunk-based branching, protected main, PR review, CI with lint, unit tests and bundle validation, promotion dev→test→prod via Asset Bundles under a service principal (rollback is the only gap here).
+    where: deployment-plan.md §2, §4
+  - what: Table-driven unit tests for merge logic including out-of-order CDC updates (LSN ordering), transformation code in modules testable in CI.
+    where: test-strategy.md §3; architecture.md §3 silver.sales_line

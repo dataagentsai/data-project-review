@@ -1,0 +1,175 @@
+# Technical checks: scheduling, dependencies, retries, restart
+
+- id: ORCH-01
+  title: Jobs wait for their data, not the clock
+  kind: technical
+  concern: orchestration-and-recovery
+  question: >-
+    Does each job start when its upstream data is complete, rather than at a fixed time that
+    assumes the upstream has finished?
+  why: >-
+    The report job ran at 06:00 assuming the load finished at 05:00; one night the load ran late,
+    and the report published half a day's figures to the whole company.
+  applies:
+    kind: [any]
+    components: [orchestration]
+    patterns: [batch, file, api, database, cdc]
+  owner: technical-anchor
+  also: [developer, operations]
+  evidence:
+    docs: [architecture]
+    looks_like: >-
+      Dependencies declared between jobs or on completion markers, cross-team dependencies named,
+      and what happens when an upstream is late.
+  signals:
+    - The schedule is a list of fixed times with no dependencies.
+  due: {plan: 3, designed: 5, evidenced: 7}
+  fail_fast: >-
+    Delay an upstream job in test and check that the downstream waits instead of running on stale
+    or partial data.
+  severity: high
+  related: [ORCH-02, SERV-02]
+  signal_id: null
+
+- id: ORCH-02
+  title: Retries for passing failures only
+  kind: technical
+  concern: orchestration-and-recovery
+  question: >-
+    Which failures are retried automatically (timeouts, throttling), how many times and with what
+    wait, and which fail straight away (bad data, logic errors)?
+  why: >-
+    Every failure was retried five times; a bad-data error retried for three hours, burning compute
+    and delaying the alert until the morning.
+  applies:
+    kind: [any]
+    components: [orchestration]
+    patterns: [any]
+  owner: developer
+  also: [operations]
+  evidence:
+    docs: [architecture, runbook]
+    looks_like: >-
+      A retry policy per job with limits and back-off, failures classified as transient or
+      permanent, and an alert after the last retry.
+  due: {plan: 4, designed: 5, evidenced: 7}
+  fail_fast: >-
+    In test, cause one timeout and one data error; the first should retry and succeed, the second
+    should fail fast and alert.
+  severity: medium
+  related: [ORCH-01, DQ-03, OPS-01]
+  signal_id: null
+
+- id: ORCH-03
+  title: Restart after failing in the middle
+  kind: technical
+  concern: orchestration-and-recovery
+  question: >-
+    If a job fails halfway through writing, is the target left untouched or fully consistent, and
+    can the job restart from the failed step without redoing everything?
+  why: >-
+    A job failed after updating three of five tables; reports joined new facts to old dimensions,
+    and rerunning from the start re-applied the first three updates.
+  applies:
+    kind: [any]
+    components: [orchestration, transformation, modelling]
+    patterns: [any]
+  owner: technical-anchor
+  also: [developer, operations]
+  evidence:
+    docs: [architecture, runbook, test-strategy]
+    looks_like: >-
+      Atomic writes per table, a defined restart point per step, consumers reading only completed
+      runs, and a failure-injection test.
+  due: {plan: 4, designed: 5, evidenced: 7, proven: 9}
+  fail_fast: >-
+    Kill a job in test while it is writing, then restart it; outputs must match an uninterrupted
+    run.
+  severity: high
+  related: [DUP-02, TEST-05, ORCH-04]
+  signal_id: null
+
+- id: ORCH-04
+  title: Two runs writing the same table at once
+  kind: technical
+  concern: orchestration-and-recovery
+  question: >-
+    What stops two runs of the same job, or two different jobs, writing to the same table at the
+    same time?
+  why: >-
+    A manual rerun overlapped the scheduled run; both merged into the same table, one failed on a
+    conflict, and the other left half-updated rows.
+  applies:
+    kind: [any]
+    components: [orchestration, transformation, modelling]
+    patterns: [any]
+  owner: developer
+  also: [operations]
+  evidence:
+    docs: [architecture, runbook]
+    looks_like: >-
+      One writer per table by design, a limit of one concurrent run per job, and a runbook rule for
+      manual reruns.
+  due: {plan: 4, designed: 5, evidenced: 7}
+  fail_fast: >-
+    Start the same job twice in test and see what happens to the second run and the table.
+  severity: medium
+  related: [ORCH-03]
+  signal_id: null
+
+- id: ORCH-05
+  title: Recovery time and data loss limits
+  kind: technical
+  concern: orchestration-and-recovery
+  question: >-
+    How quickly must the service recover after a major failure, how much data may be lost, and has
+    recovery to those limits been tried?
+  why: >-
+    A storage account was deleted by mistake; the backups existed but nobody had tried a restore,
+    and it took four days instead of the four hours the business assumed.
+  applies:
+    kind: [any]
+    components: [platform, orchestration]
+    patterns: [any]
+  owner: architect
+  also: [business-owner, operations, platform-team]
+  evidence:
+    docs: [requirements, platform, runbook]
+    looks_like: >-
+      An agreed recovery time and acceptable data loss, a backup or replication design that meets
+      them, and the result of a restore test.
+  due: {plan: 3, designed: 5, evidenced: 8, proven: 10}
+  fail_fast: >-
+    Restore one important table from backup into a test environment and time it.
+  severity: high
+  related: [REL-07, SEC-05]
+  signal_id: null
+
+- id: ORCH-06
+  title: Stream restarts from where it stopped
+  kind: technical
+  concern: orchestration-and-recovery
+  question: >-
+    When a streaming job stops or is redeployed, does it resume from its saved position without
+    losing or repeating data, and how is that state protected?
+  why: >-
+    A redeploy changed the stream's checkpoint location; the job restarted from the earliest
+    available data, reprocessed a week and flooded downstream tables.
+  applies:
+    kind: [any]
+    components: [ingestion, transformation, orchestration]
+    patterns: [streaming, cdc]
+  owner: developer
+  also: [operations, technical-anchor]
+  evidence:
+    docs: [architecture, runbook]
+    looks_like: >-
+      Where progress is saved, how it survives redeploys and code changes, the source retention
+      versus the longest expected outage, and a runbook for resetting a stream.
+  due: {plan: 4, designed: 5, evidenced: 7, proven: 9}
+  fail_fast: >-
+    Stop the stream for longer than a typical outage in test, redeploy a changed version, restart,
+    and compare counts with the source.
+  severity: high
+  related: [DUP-04, ORCH-03]
+  signal_id: null

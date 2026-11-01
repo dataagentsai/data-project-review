@@ -1,0 +1,126 @@
+# Technical checks: first and history load, backfill
+
+- id: HIST-01
+  title: History load scope and approach
+  kind: technical
+  concern: first-and-history-load
+  question: >-
+    How much history will be loaded, from where, and by what approach (one go, in phases, or from
+    archive), and who checks the old numbers?
+  why: >-
+    The plan assumed history would come from the same feed as daily loads, but the source only
+    kept ninety days; five years had to come from an archive in another format, adding six weeks.
+  applies:
+    kind: [any]
+    components: [ingestion]
+    patterns: [any]
+  owner: technical-anchor
+  also: [business-owner, source-owner]
+  evidence:
+    docs: [discovery, architecture, deployment]
+    looks_like: >-
+      The number of years in scope, where each year comes from, the load approach and order, the
+      expected volume, and who signs off that historical numbers are right.
+  signals:
+    - History is not mentioned, or "history to be loaded" appears with no years or source.
+    - The plan has no task or time for the history load.
+  due: {plan: 3, designed: 5, evidenced: 7, proven: 9}
+  fail_fast: >-
+    Ask the source owner how far back the source really holds data, and pull one month of the
+    oldest year in scope through the pipeline.
+  severity: high
+  related: [HIST-02, HIST-03, REC-02]
+  signal_id: null
+
+- id: HIST-02
+  title: Source can bear the history extract
+  kind: technical
+  concern: first-and-history-load
+  question: >-
+    Can the source system take the load of the history extract, and is the extract split into
+    chunks that can each be retried?
+  why: >-
+    A single five-year query against the source database ran for nine hours, hit an undo limit and
+    failed at ninety percent; it failed again the next night and slowed the source for its users.
+  applies:
+    kind: [any]
+    components: [ingestion]
+    patterns: [database, cdc, api, history-load]
+  owner: technical-anchor
+  also: [source-owner]
+  evidence:
+    docs: [architecture, deployment, raid]
+    looks_like: >-
+      An extract split by date or key range, an agreed extract window with the source owner, and an
+      estimate of run time per chunk from a real trial.
+  signals:
+    - The history load is one step with no chunking or restart point.
+    - Source owners are not listed as reviewers of the extract approach.
+  due: {plan: 3, designed: 5, evidenced: 7}
+  fail_fast: >-
+    Time the extract of one realistic chunk against the real source in its normal busy window and
+    multiply out; agree the result with the source owner.
+  severity: medium
+  related: [HIST-01, PERF-01]
+  signal_id: null
+
+- id: HIST-03
+  title: Handing over from history load to incremental loads
+  kind: technical
+  concern: first-and-history-load
+  question: >-
+    How does the switch from the history or full load to incremental loads avoid both a gap and an
+    overlap in the data?
+  why: >-
+    The full snapshot finished at 10:00 but incremental capture was started at 11:00; an hour of
+    changes was never loaded and the totals were quietly short for months.
+  applies:
+    kind: [any]
+    components: [ingestion]
+    patterns: [cdc, database, streaming, history-load]
+  owner: technical-anchor
+  also: [developer]
+  evidence:
+    docs: [architecture, deployment]
+    looks_like: >-
+      A defined high-water mark or change position taken before the snapshot starts, incremental
+      capture starting from it, and overlapping rows absorbed by a merge on key.
+  due: {plan: 3, designed: 5, evidenced: 7, proven: 9}
+  fail_fast: >-
+    In test, change rows in the source while the full load runs, then start incremental; every
+    changed row must appear once with its latest value.
+  severity: high
+  related: [HIST-01, DUP-01, REC-01]
+  signal_id: null
+
+- id: HIST-04
+  title: Reloading or backfilling a past period
+  kind: technical
+  concern: first-and-history-load
+  question: >-
+    Can a single past period (a day, a month) be reloaded or backfilled on demand without
+    touching other periods or rebuilding everything?
+  why: >-
+    A source bug corrupted three days in March; the only way to fix them was a full rebuild that
+    took the platform down for a weekend.
+  applies:
+    kind: [any]
+    components: [ingestion, transformation, modelling]
+    patterns: [batch, cdc, file, database, api]
+  owner: technical-anchor
+  also: [operations, developer]
+  evidence:
+    docs: [architecture, runbook]
+    looks_like: >-
+      Pipelines parameterised by period, writes that replace exactly that period, a runbook step
+      for reloading a period, and a note on which downstream tables must also be rebuilt.
+  signals:
+    - The runbook has no reload or backfill procedure.
+    - Jobs read "today" from the clock instead of taking the period as a parameter.
+  due: {plan: 4, designed: 5, evidenced: 7, proven: 10}
+  fail_fast: >-
+    In test, reload one day from three days ago with a parameter and check that only that day's
+    rows and its downstream aggregates changed.
+  severity: medium
+  related: [DUP-02, LATE-01, OPS-02]
+  signal_id: null
