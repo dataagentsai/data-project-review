@@ -29,6 +29,17 @@ cheapest test to run now.
 | Proof | A sample project with planted gaps and a hidden answer key; a scorer | A repeatable score before any real team relies on it |
 | Where it runs | One folder that is both a Claude Code skill and an uploadable claude.ai skill | No install beyond uv or PyYAML |
 
+## Packs (v0.2, agreed 2 November 2026)
+
+Separation of concerns by discipline. A check lives in the pack of the discipline that maintains that knowledge
+(BA, PM or Tech); its owner role says who must act on it, which can be any role. Each pack is also a standalone
+skill, so a BA can review requirements alone. The conductor skill runs all packs and owns the seams between them,
+because the failures between disciplines are the ones no single pack can see. Test and operations stay as roles
+inside Tech until someone wants to own a separate pack. One repo for now; split later only if outside groups want
+to own a pack. The Tech pack is the project-facing view of the Clean Data Engineering specs; the BA and PM packs
+are new specs in the same style (tech-agnostic, versioned, permanent ids), written data-flavoured rather than as
+generic BA and PM checklists.
+
 ## How it relates to Clean Data Engineering
 
 The Clean Data Engineering plan proposes a Data Assurance Catalog (what must be true of a data platform) and a

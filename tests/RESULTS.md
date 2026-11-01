@@ -43,6 +43,13 @@ Outputs are kept in `tests/run-1/`.
   looks at the headline total, not at sizing tables.
 - SKILL.md says when to use "contradicts" versus "missing", and accepts `roles_present`.
 
+## Restructure into packs (2 November 2026, v0.2)
+
+Checks moved into three packs (BA 11, PM 27, Tech 91) with no content changes; skills split into the conductor plus
+one per pack. Re-scored run 1's review against the restructured catalog: still 27/27 planted gaps and 0/5 false
+alarms, so the move broke nothing.
+
 ## Next
 
-Run 2 on the same sample with the changes, then the first real project.
+Fill the BA and PM packs with data-flavoured checks, write the seam checks, tag the answer key by pack, then run 2
+and the first real project.

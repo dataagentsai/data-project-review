@@ -1,0 +1,2024 @@
+{
+ "summary": "The team has done solid engineering groundwork (clean release pipeline, service principals, written data quality rules, table-driven tests, real volumes from discovery), but the status says green while POS data has never been read from the live source, the history load that FR-10 requires has no design or estimate, and the data model calculates revenue differently from the definition the sponsor signed. Several design gaps (voided sales, Cartwell resends and late files, returns up to 60 days back) will quietly produce wrong numbers unless fixed before the gold build in sprint 4. Re-forecast the plan now: the estimate needs about 35 developer-weeks and the plan has about 28.",
+ "checks": {
+  "COM-01": {
+   "status": "missing",
+   "evidence": [
+    {
+     "doc": "raid-log.md",
+     "section": "Risks R-01",
+     "quote": "InfoSec approval for a new service account plus a firewall change typically takes about 6 weeks end to end"
+    },
+    {
+     "doc": "status-report-week5.md",
+     "section": "1. Overall status",
+     "quote": "Overall | Green | On track for week-12 go-live"
+    }
+   ],
+   "note": "The 6-week access lead time was known at week 0 and POS CDC has never run against a live source, yet the sponsor sees all green and 'M1 Complete'.",
+   "ask": "What do we know today that Claire does not? Tell her this week: POS access is ~5 weeks late, CDC is untested live, customer merge is behind."
+  },
+  "COM-02": {
+   "status": "partly",
+   "evidence": [
+    {
+     "doc": "discovery.md",
+     "section": "6. Constraints",
+     "quote": "POS CDC retention of 3 days means extraction must not be down for more than 2 consecutive days"
+    },
+    {
+     "doc": "requirements.md",
+     "section": "5. Business definitions",
+     "quote": "Revenue | Net sales: value of goods sold after line discounts and after returns, excluding VAT"
+    }
+   ],
+   "note": "Requirements read well for the business; the discovery the sponsor signed states technical constraints without their business consequence.",
+   "ask": "Did the sponsor understand that a 3-day outage means a full POS reload, and that customer home-region trends will restate when customers move?"
+  },
+  "COM-03": {
+   "status": "partly",
+   "evidence": [
+    {
+     "doc": "status-report-week5.md",
+     "section": "7. Notes from this week's meetings",
+     "quote": "Agreed that store managers will only see the dashboard after the first week of production running"
+    }
+   ],
+   "note": "Meeting decisions are noted in the status report (good), but have no owner or date and were not copied into the plan, deployment plan or a decision log, which still say otherwise.",
+   "ask": "Who copies meeting decisions into the plan, deployment plan and decision log, and by when?"
+  },
+  "COM-04": {
+   "status": "partly",
+   "evidence": [
+    {
+     "doc": "stakeholders.md",
+     "section": "5. Escalation path",
+     "quote": "Team member → Technical Anchor / PM → Sponsor"
+    }
+   ],
+   "note": "There is a project escalation path, but no contact list for sources (POS DBA, Cartwell, Brightwave) or for a night-time failure.",
+   "ask": "Who is called when the 05:00 job fails, when Cartwell files are late, or when Brightwave rejects the file? Who is each person's deputy?"
+  },
+  "COM-05": {
+   "status": "missing",
+   "evidence": [
+    {
+     "doc": "raid-log.md",
+     "section": "Assumptions",
+     "quote": "A-02 | POS test instance holds production-like data refreshed monthly | Partly — last refresh was 4 months ago"
+    },
+    {
+     "doc": "status-report-week5.md",
+     "section": "6. Key risks and issues",
+     "quote": "R-07 | Developer leave weeks 8–9 | Planned for"
+    }
+   ],
+   "note": "Assumptions that are already broken or unvalidated (A-02, A-03, access in week 1) do not appear in the status report the sponsor reads.",
+   "ask": "Can the status report carry the key assumptions with holding / at risk / broken each week?"
+  },
+  "COM-06": {
+   "status": "covered",
+   "evidence": [
+    {
+     "doc": "stakeholders.md",
+     "section": "4. Communication plan",
+     "quote": "Status report | Sponsor, Financial Controller, Head of Store Performance, Platform Team Lead, core team | Weekly (Friday)"
+    },
+    {
+     "doc": "status-report-week5.md",
+     "section": "header",
+     "quote": "Distribution: Claire Whitlow, Mark Haddad, Helen Osei, Daniel Reyes, core team"
+    }
+   ],
+   "note": "A clear rhythm (weekly status, fortnightly steering, sprint demos) and the week-5 report follows it."
+  },
+  "DBX-04": {
+   "status": "unknown",
+   "evidence": [],
+   "note": "Nothing on Delta retention or VACUUM settings per table.",
+   "ask": "What retention do bronze/silver/gold tables use, and does it allow RESTORE for a bad release and still meet erasure deadlines for customer data?"
+  },
+  "DBX-05": {
+   "status": "missing",
+   "evidence": [
+    {
+     "doc": "architecture.md",
+     "section": "2.2 Cartwell (files)",
+     "quote": "Schema is inferred by Auto Loader on first run and stored in the checkpoint schema location"
+    },
+    {
+     "doc": "discovery.md",
+     "section": "2.2 Cartwell",
+     "quote": "renamed promo_cd to promotion_code"
+    }
+   ],
+   "note": "No schema evolution mode is chosen, although Cartwell changed layouts twice in 12 months including a rename.",
+   "ask": "Which schemaEvolutionMode is used per Cartwell entity, who watches _rescued_data, and does the task retry after the intentional stop on a new column?"
+  },
+  "DBX-06": {
+   "status": "unknown",
+   "evidence": [
+    {
+     "doc": "architecture.md",
+     "section": "6. Orchestration",
+     "quote": "Job clusters are defined in the asset bundle. Tasks run as the project service principal."
+    }
+   ],
+   "note": "Retries, timeouts and concurrency per task are not stated, and two silver tables are built by append, so a repair run is not obviously safe.",
+   "ask": "What retry, timeout and max-concurrent-runs settings are in the bundle for hp_sales_daily, and is each task safe to rerun from the start?"
+  },
+  "DBX-07": {
+   "status": "covered",
+   "evidence": [
+    {
+     "doc": "data-model.md",
+     "section": "5. Data quality rules (silver)",
+     "quote": "Severity | Action on failure | Threshold to stop the pipeline | Owner"
+    },
+    {
+     "doc": "data-model.md",
+     "section": "5. Data quality rules (silver)",
+     "quote": "Quarantined rows land in silver._quarantine with rule ID, table, row payload and run ID"
+    }
+   ],
+   "note": "Done well: each expectation has an action (quarantine, keep and default, fail) and quarantined rows are kept with their payload."
+  },
+  "DBX-08": {
+   "status": "covered",
+   "evidence": [
+    {
+     "doc": "deployment-plan.md",
+     "section": "4. CI/CD pipeline",
+     "quote": "databricks bundle deploy -t prod using the prod service principal"
+    },
+    {
+     "doc": "deployment-plan.md",
+     "section": "4. CI/CD pipeline",
+     "quote": "Prod deployment runs as sp-hp-sales-prod; no individual has deploy rights to prod"
+    }
+   ],
+   "note": "Bundle with dev/test/prod targets, deployed by CI, prod as a service principal."
+  },
+  "DBX-11": {
+   "status": "not-applicable",
+   "evidence": [
+    {
+     "doc": "architecture.md",
+     "section": "3. Transformation (silver)",
+     "quote": "Ordered by LSN so the latest change wins"
+    }
+   ],
+   "note": "AUTO CDC is not used; silver.sales_line is a hand-written MERGE ordered by the source LSN, credited under SCD-02."
+  },
+  "DEL-01": {
+   "status": "missing",
+   "evidence": [
+    {
+     "doc": "discovery.md",
+     "section": "2.1 StoreLink POS",
+     "quote": "Voided transactions are removed from sales_line and sales_header by the end-of-day process (physical delete)"
+    },
+    {
+     "doc": "architecture.md",
+     "section": "3. Transformation (silver)",
+     "quote": "Rows with operation 2 (insert) are inserted; operation 4 (update after) updates the matching row"
+    }
+   ],
+   "note": "Discovery found physical deletes of voided sales, but the silver MERGE handles only inserts and updates; CDC delete rows (operation 1) are ignored, so voids stay in revenue.",
+   "ask": "What does silver.sales_line do with CDC operation 1? Can we void a transaction in STLK-TST01 and watch it leave gold?"
+  },
+  "DEL-02": {
+   "status": "missing",
+   "evidence": [
+    {
+     "doc": "discovery.md",
+     "section": "2.1 StoreLink POS",
+     "quote": "Voided transactions are removed ... (physical delete)"
+    }
+   ],
+   "note": "Nobody has decided whether a voided sale must disappear from revenue, be flagged, or stay, nor what happens to a customer deleted at source.",
+   "ask": "Does finance want voids removed from revenue entirely? What happens to a deleted loyalty customer in silver, gold and the marketing extract?"
+  },
+  "DEL-03": {
+   "status": "missing",
+   "evidence": [
+    {
+     "doc": "architecture.md",
+     "section": "4. Gold",
+     "quote": "Incremental: each run recomputes business_date = run_date - 1 and replaces that partition"
+    }
+   ],
+   "note": "Gold rebuilds only yesterday, so a delete or correction to any earlier date never reaches the facts.",
+   "ask": "When a sale from three days ago is voided or corrected, which gold partitions are rebuilt?"
+  },
+  "DES-01": {
+   "status": "partly",
+   "evidence": [
+    {
+     "doc": "status-report-week5.md",
+     "section": "2. Summary",
+     "quote": "Bronze ingestion for all Cartwell entities is running nightly in dev, and the silver sales line merge is complete"
+    },
+    {
+     "doc": "status-report-week5.md",
+     "section": "3. Progress",
+     "quote": "POS bronze loading from static extract"
+    }
+   ],
+   "note": "Pieces run in dev, but nothing has gone source → bronze → silver → gold → Power BI, and POS never from the live CDC source.",
+   "ask": "Can one Cartwell entity and one POS table be pushed all the way to a Power BI page in test within two weeks?"
+  },
+  "DES-02": {
+   "status": "partly",
+   "evidence": [
+    {
+     "doc": "requirements.md",
+     "section": "6. Non-functional requirements",
+     "quote": "NFR-02 | Dashboard pages load in under 5 seconds"
+    },
+    {
+     "doc": "requirements.md",
+     "section": "6. Non-functional requirements",
+     "quote": "NFR-01 | Dashboard data should be near real-time"
+    }
+   ],
+   "note": "Some needs have numbers (5 s, 08:00–21:00, 60-minute run); freshness, accuracy, recovery and retention do not.",
+   "ask": "Can we write: data ready by 07:00 on X% of days; reconciled to the ledger within Y; recovery within Z hours; data kept N years?"
+  },
+  "DES-03": {
+   "status": "partly",
+   "evidence": [
+    {
+     "doc": "architecture.md",
+     "section": "7. Design decisions",
+     "quote": "2 | JDBC over CDC tables instead of Lakeflow Connect | Network path not available in MVP timeframe"
+    }
+   ],
+   "note": "Good start: decisions with rationale in the architecture. Missing the options weighed, who decided and when; meeting decisions live only in status notes.",
+   "ask": "Can each decision gain options considered, decider and date (templates/decision-record.md)?"
+  },
+  "DES-04": {
+   "status": "covered",
+   "evidence": [
+    {
+     "doc": "data-model.md",
+     "section": "2. Silver tables",
+     "quote": "silver.sales_line | store_id, txn_id, line_no | One row per POS sales line"
+    },
+    {
+     "doc": "data-model.md",
+     "section": "3.2 Facts",
+     "quote": "fact_sales_daily — grain: business_date × store × product category × channel"
+    }
+   ],
+   "note": "Grain and key are written for every silver and gold table. Only customer_id has a uniqueness test (DQ-07); add one per key.",
+   "ask": "Can a uniqueness check run on each silver key, not just customer_id?"
+  },
+  "DES-06": {
+   "status": "contradicts",
+   "evidence": [
+    {
+     "doc": "architecture.md",
+     "section": "7. Design decisions",
+     "quote": "3 | Daily batch at 05:00 | Fits finance's 09:00 review and store opening"
+    },
+    {
+     "doc": "requirements.md",
+     "section": "6. Non-functional requirements",
+     "quote": "NFR-01 | Dashboard data should be near real-time so store managers can act on the day's trading"
+    }
+   ],
+   "note": "The batch choice is sensible for the stated consumers, but the signed requirement asks for near real-time and was never corrected.",
+   "ask": "Will the sponsor change NFR-01 to 'previous day's trading by 07:00'? Store managers acting on 'the day's trading' cannot be met by a daily batch."
+  },
+  "DQ-01": {
+   "status": "covered",
+   "evidence": [
+    {
+     "doc": "data-model.md",
+     "section": "5. Data quality rules (silver)",
+     "quote": "DQ-01 | sales_line | store_id exists in silver.store | Error | Quarantine row | > 0.5% of day's rows | Aisha"
+    },
+    {
+     "doc": "data-model.md",
+     "section": "5",
+     "quote": "reason codes and thresholds were agreed with the finance controller in week 3"
+    }
+   ],
+   "note": "Done well: ten rules with severity, action, stop threshold and owner, agreed with finance, and running as expectations (status week 5)."
+  },
+  "DQ-02": {
+   "status": "covered",
+   "evidence": [
+    {
+     "doc": "data-model.md",
+     "section": "5",
+     "quote": "The BA reviews quarantine counts weekly with finance"
+    },
+    {
+     "doc": "test-strategy.md",
+     "section": "4. Data quality testing",
+     "quote": "checks that they appear in silver._quarantine with the correct rule ID"
+    }
+   ],
+   "note": "Action per rule, quarantine with payload, weekly review. Only gap: no stated way to reprocess a quarantined row once fixed.",
+   "ask": "How is a quarantined row reprocessed after its store or product arrives?"
+  },
+  "DQ-03": {
+   "status": "partly",
+   "evidence": [
+    {
+     "doc": "raid-log.md",
+     "section": "Issues I-03",
+     "quote": "Cartwell sample files use a different date format (dd/MM/yyyy) to the spec (ISO) | Parsing failures in bronze → silver"
+    }
+   ],
+   "note": "Parsing failures have already happened; there is no stated rescued-data or bad-records handling for malformed CSV rows.",
+   "ask": "Is _rescued_data (or badRecordsPath) captured and watched for Cartwell files? What happens to a row with a broken quote or encoding?"
+  },
+  "DQ-04": {
+   "status": "partly",
+   "evidence": [
+    {
+     "doc": "data-model.md",
+     "section": "5",
+     "quote": "DQ-10 | store, product | Row count within ±10% of previous load | Error | Fail pipeline"
+    },
+    {
+     "doc": "discovery.md",
+     "section": "2.2 Cartwell",
+     "quote": "Arrived after 06:00 on 9 days in the last quarter (latest 07:30)"
+    }
+   ],
+   "note": "Volume check only on reference tables; nothing detects a missing or tiny Cartwell file or a quiet POS feed, which discovery shows happens.",
+   "ask": "What stops the 05:00 run publishing a day with no online sales when Cartwell is late?"
+  },
+  "DQ-05": {
+   "status": "partly",
+   "evidence": [
+    {
+     "doc": "discovery.md",
+     "section": "2. Sources",
+     "quote": "~180,000 sales lines per day across 42 stores; peak ~420,000/day in December"
+    },
+    {
+     "doc": "raid-log.md",
+     "section": "Issues I-04",
+     "quote": "Customer merge logic more complex than expected (multiple loyalty cards per email)"
+    }
+   ],
+   "note": "Discovery captured volumes and behaviour well, but no profile of keys, nulls and duplicates; the week-4 date format and week-5 customer surprises are what a profile finds.",
+   "ask": "Can we profile the POS static extract and Cartwell customers now (key uniqueness, null emails, cards per email) and show Mark?"
+  },
+  "DUP-01": {
+   "status": "missing",
+   "evidence": [
+    {
+     "doc": "discovery.md",
+     "section": "2.2 Cartwell",
+     "quote": "they resend the day's files ... either with the same name or with a _v2 suffix. This happened 4 times in the last 6 months"
+    },
+    {
+     "doc": "architecture.md",
+     "section": "3. Transformation (silver)",
+     "quote": "silver.online_order_line | New bronze rows (since last run, by _ingested_at) are typed, cleaned and appended"
+    }
+   ],
+   "note": "A _v2 resend is a new file to Auto Loader and is appended twice (doubling online sales); a same-name resend is ignored by Auto Loader by default, so the corrected file is lost.",
+   "ask": "What happens to online revenue when orders_YYYYMMDD_v2.csv arrives? Should silver MERGE on order_id, line_no and replace the day?"
+  },
+  "DUP-02": {
+   "status": "partly",
+   "evidence": [
+    {
+     "doc": "architecture.md",
+     "section": "4. Gold",
+     "quote": "replaces that partition (replaceWhere)"
+    },
+    {
+     "doc": "architecture.md",
+     "section": "3",
+     "quote": "silver.online_order_line ... appended"
+    }
+   ],
+   "note": "Gold and the sales MERGE are rerunnable; the appended silver online orders and bronze appends are not obviously safe to rerun.",
+   "ask": "If silver_pipeline fails after writing online orders and is repaired, are rows appended twice?"
+  },
+  "DUP-03": {
+   "status": "partly",
+   "evidence": [
+    {
+     "doc": "raid-log.md",
+     "section": "Issues I-04",
+     "quote": "multiple loyalty cards per email"
+    },
+    {
+     "doc": "data-model.md",
+     "section": "5",
+     "quote": "DQ-07 | customer | customer_id unique | Error | Fail pipeline | any"
+    }
+   ],
+   "note": "Keys are chosen and customer uniqueness fails the pipeline, but the rule for source duplicates (several cards per email) is still open.",
+   "ask": "What is the agreed rule when one email has several loyalty cards, and has Mark signed it?"
+  },
+  "DUP-04": {
+   "status": "not-applicable",
+   "evidence": [
+    {
+     "doc": "architecture.md",
+     "section": "2.2",
+     "quote": "trigger(availableNow=True)"
+    }
+   ],
+   "note": "No event stream; files are read in triggered batches by Auto Loader, covered by DUP-01."
+  },
+  "ENV-02": {
+   "status": "covered",
+   "evidence": [
+    {
+     "doc": "platform-and-environments.md",
+     "section": "4. Access model",
+     "quote": "sp-hp-sales-<env> (service principal) | Runs jobs"
+    },
+    {
+     "doc": "platform-and-environments.md",
+     "section": "4",
+     "quote": "Production jobs run only as the production service principal. Developers cannot run or edit production jobs."
+    }
+   ],
+   "note": "Done well: Entra groups per role, service principals per environment, read-only gold in prod."
+  },
+  "ENV-03": {
+   "status": "missing",
+   "evidence": [
+    {
+     "doc": "raid-log.md",
+     "section": "Dependencies D-01/D-02",
+     "quote": "POS service account (InfoSec approval) | InfoSec | Week 1 | Submitted week 1, pending"
+    },
+    {
+     "doc": "platform-and-environments.md",
+     "section": "6. Network",
+     "quote": "A firewall rule from the prod and test workspace subnets to the POS database port (1433) is required"
+    },
+    {
+     "doc": "platform-and-environments.md",
+     "section": "3. Source connectivity",
+     "quote": "StoreLink POS | POS test instance (STLK-TST01)  [Dev]"
+    }
+   ],
+   "note": "No connection to POS has been made from any environment; Cartwell staging and Brightwave sandbox are not connected either. The firewall request omits the dev subnet that the platform doc says dev uses.",
+   "ask": "Does the firewall request include the dev subnet? When will each of POS test, POS prod, Cartwell staging and Brightwave SFTP get a test connection?"
+  },
+  "ENV-05": {
+   "status": "covered",
+   "evidence": [
+    {
+     "doc": "requirements.md",
+     "section": "NFR-04",
+     "quote": "Solution must follow Harbor & Pine data platform standards"
+    },
+    {
+     "doc": "deployment-plan.md",
+     "section": "4",
+     "quote": "The pipeline uses the Platform Team's YAML templates"
+    },
+    {
+     "doc": "platform-and-environments.md",
+     "section": "header",
+     "quote": "reviewed by Daniel Reyes (Platform Team Lead)"
+    }
+   ],
+   "note": "Fits the existing platform; deviation (Lakeflow Connect dropped) is recorded."
+  },
+  "EST-01": {
+   "status": "partly",
+   "evidence": [
+    {
+     "doc": "estimate.md",
+     "section": "header",
+     "quote": "Prepared | End of discovery (week 0)"
+    },
+    {
+     "doc": "estimate.md",
+     "section": "7. Approval",
+     "quote": "accepted by the Sponsor at discovery sign-off"
+    }
+   ],
+   "note": "The baseline is a discovery estimate (good), but it has not been revisited since, although access, customer merge and history load facts have changed.",
+   "ask": "When will the estimate be redone with week 1–5 actuals?"
+  },
+  "EST-02": {
+   "status": "missing",
+   "evidence": [
+    {
+     "doc": "estimate.md",
+     "section": "1. Summary",
+     "quote": "MVP 1 duration: 12 weeks"
+    }
+   ],
+   "note": "A single number with no range or spread.",
+   "ask": "What is the low and high end, and what moves it (access date, customer merge, history load)?"
+  },
+  "EST-03": {
+   "status": "partly",
+   "evidence": [
+    {
+     "doc": "estimate.md",
+     "section": "1. Summary",
+     "quote": "using the team's experience on the 2025 Inventory Insight project"
+    },
+    {
+     "doc": "raid-log.md",
+     "section": "Assumptions",
+     "quote": "A-01 ... A-05"
+    }
+   ],
+   "note": "The estimate lists no assumptions of its own; some live in the RAID log and requirements, but not the ones it rests on (access by week 1, full team all 12 weeks, JDBC pattern reuse).",
+   "ask": "Which assumption moves the 12 weeks the most, and is it in the RAID log with an owner?"
+  },
+  "EST-04": {
+   "status": "missing",
+   "evidence": [
+    {
+     "doc": "estimate.md",
+     "section": "2. Breakdown by feature",
+     "quote": "Total | | 35"
+    }
+   ],
+   "note": "Only build features are counted: no lines for access, environments, history load, testing/SIT/UAT support, data fixes, deployment, cut-over, runbook or handover.",
+   "ask": "Where are history load, SIT/UAT fixes, cut-over and handover in the 35 developer-weeks?"
+  },
+  "EST-05": {
+   "status": "covered",
+   "evidence": [
+    {
+     "doc": "estimate.md",
+     "section": "2. Breakdown by feature",
+     "quote": "POS CDC ingestion (7 tables, watermark handling) | L | 6"
+    },
+    {
+     "doc": "estimate.md",
+     "section": "4. Sizing guide used",
+     "quote": "S | 1–2 ... M | 3–4 ... L | 5–6"
+    }
+   ],
+   "note": "Counted by feature with a sizing guide and a reference project; another person could rebuild it."
+  },
+  "EST-06": {
+   "status": "missing",
+   "evidence": [
+    {
+     "doc": "status-report-week5.md",
+     "section": "3. Progress",
+     "quote": "M3 ... | 5 | In progress | Sales lines done; online orders 80%; customers 40%"
+    }
+   ],
+   "note": "No comparison of actuals with the estimate or forecast finish; M3 is due now and incomplete but the date is unchanged.",
+   "ask": "What does the real rate over sprints 1–2 forecast for go-live?"
+  },
+  "EST-07": {
+   "status": "missing",
+   "evidence": [
+    {
+     "doc": "discovery.md",
+     "section": "2.1",
+     "quote": "Finance needs 3 years for year-on-year and trend reporting (approx. 200M sales lines)"
+    },
+    {
+     "doc": "estimate.md",
+     "section": "2",
+     "quote": "(no history load line)"
+    }
+   ],
+   "note": "History load of ~200M POS lines plus a Cartwell one-off extract is a Must (FR-10) and has no estimate line.",
+   "ask": "Who estimates the history load and its reconciliation, and from what trial?"
+  },
+  "HAND-01": {
+   "status": "missing",
+   "evidence": [
+    {
+     "doc": "deployment-plan.md",
+     "section": "6. Monitoring after go-live",
+     "quote": "Job failure notifications ... are sent by email to the hp-sales-dev distribution list"
+    }
+   ],
+   "note": "No runbook exists or is planned in the plan or estimate.",
+   "ask": "Who writes the runbook, starting when, and who will test it?"
+  },
+  "HAND-02": {
+   "status": "partly",
+   "evidence": [
+    {
+     "doc": "data-model.md",
+     "section": "header",
+     "quote": "Data Model ... Version 0.7"
+    },
+    {
+     "doc": "architecture.md",
+     "section": "7. Design decisions",
+     "quote": ""
+    }
+   ],
+   "note": "The data model can grow into the data dictionary and the architecture holds decisions; no plan to keep them current for handover.",
+   "ask": "Who owns keeping the data model and decision list current to production?"
+  },
+  "HAND-03": {
+   "status": "missing",
+   "evidence": [],
+   "note": "No knowledge-transfer plan; no support team is named anywhere.",
+   "ask": "Which team will run this, and when will they do one change and one recovery while the project team watches?"
+  },
+  "HAND-04": {
+   "status": "missing",
+   "evidence": [
+    {
+     "doc": "plan.md",
+     "section": "7. Go-live",
+     "quote": "First production run the following night"
+    }
+   ],
+   "note": "Nobody is named to support the system after go-live; alerts go to the developers' list.",
+   "ask": "Who answers a failure on the first weekend in production, in which hours, and for how long does the project team stay?"
+  },
+  "HAND-05": {
+   "status": "missing",
+   "evidence": [
+    {
+     "doc": "requirements.md",
+     "section": "2. Business objectives",
+     "quote": "Analyst effort on the pack reduced from ~3 days to under half a day"
+    }
+   ],
+   "note": "Good measurable objectives with a baseline, but no plan or owner to measure them after go-live.",
+   "ask": "Who measures O1–O4 after go-live, and when?"
+  },
+  "HAND-06": {
+   "status": "missing",
+   "evidence": [],
+   "note": "No early-life support period or exit criteria.",
+   "ask": "What must be true (clean runs, reconciled weeks, no sev 1/2) before the project team steps back?"
+  },
+  "HIST-01": {
+   "status": "missing",
+   "evidence": [
+    {
+     "doc": "requirements.md",
+     "section": "FR-10",
+     "quote": "Load all historical data so trends and year-on-year comparisons work from day one | Must"
+    },
+    {
+     "doc": "discovery.md",
+     "section": "2.1",
+     "quote": "Finance needs 3 years ... (approx. 200M sales lines)"
+    },
+    {
+     "doc": "discovery.md",
+     "section": "2.2",
+     "quote": "Cartwell can provide a one-off extract of historical orders on request"
+    }
+   ],
+   "note": "History is a Must, but architecture, plan, estimate and deployment plan never say how it is loaded, in what order, or who checks it. FR-10 also says 'all' while discovery says 3 years.",
+   "ask": "How will 3 years of POS and Cartwell history be loaded, when, and who signs off the historical numbers? Has the Cartwell extract been requested?"
+  },
+  "HIST-02": {
+   "status": "missing",
+   "evidence": [
+    {
+     "doc": "discovery.md",
+     "section": "2.1",
+     "quote": "SQL Server 2016 Enterprise, HQ data centre (Leeds)"
+    }
+   ],
+   "note": "200M lines over JDBC from an on-premises production POS has no chunking, extract window or agreement with the POS owner.",
+   "ask": "When may the history extract run against STLK-PRD01, in what chunks, and has one chunk been timed?"
+  },
+  "HIST-03": {
+   "status": "missing",
+   "evidence": [
+    {
+     "doc": "discovery.md",
+     "section": "2.1",
+     "quote": "Retention on CDC tables is 3 days"
+    },
+    {
+     "doc": "architecture.md",
+     "section": "2.1",
+     "quote": "from the last processed LSN to the current maximum LSN"
+    }
+   ],
+   "note": "Nothing defines the LSN taken before the history snapshot or how the overlap is absorbed; with 3-day CDC retention the gap risk is real.",
+   "ask": "Which LSN is recorded before the history extract starts, and how is bronze._pos_watermark seeded from it?"
+  },
+  "HIST-04": {
+   "status": "partly",
+   "evidence": [
+    {
+     "doc": "architecture.md",
+     "section": "4. Gold",
+     "quote": "each run recomputes business_date = run_date - 1 and replaces that partition (replaceWhere)"
+    }
+   ],
+   "note": "Gold writes by period, which is the right shape, but no run-date parameter or reload procedure is described for bronze/silver.",
+   "ask": "Can the job be run for a chosen past date, and which tables must be rebuilt with it?"
+  },
+  "LATE-01": {
+   "status": "missing",
+   "evidence": [
+    {
+     "doc": "discovery.md",
+     "section": "3. Returns behaviour",
+     "quote": "Online returns can be logged up to 60 days after the order is delivered"
+    },
+    {
+     "doc": "architecture.md",
+     "section": "4. Gold",
+     "quote": "returns received in the last run are aggregated to their original sale date and written for business_date = run_date - 1"
+    },
+    {
+     "doc": "discovery.md",
+     "section": "2.1",
+     "quote": "Price corrections are applied as updates to existing lines"
+    }
+   ],
+   "note": "Returns are attributed to an original sale date up to 60 days back, but gold writes only yesterday's partition (and replaceWhere would drop earlier returns for that date). Corrections to older sales also never reach gold.",
+   "ask": "Which gold dates are rebuilt when a return arrives for a sale 30 days ago, or a 5-day-old line is price-corrected?"
+  },
+  "LATE-02": {
+   "status": "partly",
+   "evidence": [
+    {
+     "doc": "data-model.md",
+     "section": "5",
+     "quote": "DQ-05 | online_order_line | sku exists in silver.product | Warning | Keep row, product = 'Unknown'"
+    },
+    {
+     "doc": "data-model.md",
+     "section": "5",
+     "quote": "DQ-08 | return_line | original_txn_ref resolves to a sale | Warning | Keep row, original_sale_date = return_date"
+    }
+   ],
+   "note": "Unknown members exist for products, but nothing re-points facts when the product or the original sale arrives later; DQ-08's fallback silently moves returns to the wrong period.",
+   "ask": "When the product or the original sale turns up a day later, are the affected facts corrected?"
+  },
+  "LATE-04": {
+   "status": "unknown",
+   "evidence": [
+    {
+     "doc": "discovery.md",
+     "section": "2.2",
+     "quote": "Normally by 02:00 UK time"
+    }
+   ],
+   "note": "Time zones of POS and Cartwell timestamps and the business-day definition are not stated (BST/GMT changes matter for near-midnight online orders).",
+   "ask": "Which time zone are Cartwell order timestamps in, and is an online order at 23:30 UK time on the day it was placed?"
+  },
+  "OPS-01": {
+   "status": "partly",
+   "evidence": [
+    {
+     "doc": "deployment-plan.md",
+     "section": "6. Monitoring after go-live",
+     "quote": "Job failure notifications from Lakeflow Jobs are sent by email to the hp-sales-dev distribution list"
+    }
+   ],
+   "note": "Failure email exists, but to the developers' list, with no lateness alert against 07:00 and no response time.",
+   "ask": "Who receives the alert at 05:30 and must act before the 07:00 refresh?"
+  },
+  "OPS-02": {
+   "status": "missing",
+   "evidence": [],
+   "note": "No runbook (signal confirmed).",
+   "ask": "Who writes the per-task rerun/reload steps, including the 3-day CDC recovery?"
+  },
+  "OPS-03": {
+   "status": "partly",
+   "evidence": [
+    {
+     "doc": "data-model.md",
+     "section": "5",
+     "quote": "Rule results are written to silver._dq_results per run"
+    },
+    {
+     "doc": "architecture.md",
+     "section": "2.2",
+     "quote": "File name and ingestion time are captured as _source_file and _ingested_at"
+    }
+   ],
+   "note": "DQ results and file lineage per run are recorded; no audit of rows read/written per task.",
+   "ask": "Can each task write counts read and written per run?"
+  },
+  "OPS-04": {
+   "status": "missing",
+   "evidence": [],
+   "note": "No support team named or asked to accept the system.",
+   "ask": "Which team takes this on after go-live, and have they agreed?"
+  },
+  "OPS-05": {
+   "status": "missing",
+   "evidence": [
+    {
+     "doc": "deployment-plan.md",
+     "section": "5. Go-live steps",
+     "quote": "First nightly run; check job succeeded and row counts are non-zero"
+    }
+   ],
+   "note": "Go-live ends after the first run; no hypercare period.",
+   "ask": "How many weeks of daily checks follow go-live, and who does them?"
+  },
+  "ORCH-01": {
+   "status": "missing",
+   "evidence": [
+    {
+     "doc": "architecture.md",
+     "section": "6. Orchestration",
+     "quote": "A single Lakeflow Job, hp_sales_daily, scheduled at 05:00 UK time"
+    },
+    {
+     "doc": "discovery.md",
+     "section": "2.2",
+     "quote": "Arrived after 06:00 on 9 days in the last quarter (latest 07:30)"
+    }
+   ],
+   "note": "The job starts on the clock; on roughly one day in ten Cartwell files are not there, so the day publishes without online sales and nobody is told.",
+   "ask": "Should the Cartwell task wait for all three files (file-arrival trigger) with a cut-off, and what does finance see if they are late?"
+  },
+  "ORCH-02": {
+   "status": "unknown",
+   "evidence": [],
+   "note": "No retry policy described.",
+   "ask": "Which failures are retried (JDBC timeout, SFTP) and how many times?"
+  },
+  "ORCH-03": {
+   "status": "partly",
+   "evidence": [
+    {
+     "doc": "architecture.md",
+     "section": "6. Orchestration",
+     "quote": "pos_extract and cartwell_autoloader (in parallel) → silver_pipeline → gold_build → marketing_extract"
+    }
+   ],
+   "note": "Split into tasks with atomic Delta writes; restart behaviour and whether Power BI can read a half-finished run are not described.",
+   "ask": "If gold_build fails at 06:50, what does the 07:00 refresh show?"
+  },
+  "ORCH-04": {
+   "status": "unknown",
+   "evidence": [],
+   "note": "Concurrency not stated.",
+   "ask": "Is max concurrent runs 1 for hp_sales_daily, and what is the rule for manual reruns?"
+  },
+  "ORCH-05": {
+   "status": "missing",
+   "evidence": [
+    {
+     "doc": "discovery.md",
+     "section": "6. Constraints",
+     "quote": "POS CDC retention of 3 days means extraction must not be down for more than 2 consecutive days"
+    }
+   ],
+   "note": "Discovery names a hard recovery limit, but there is no agreed recovery time, no plan if CDC retention is exceeded (full re-snapshot), and no backup approach.",
+   "ask": "If extraction is down for 3 days, how is POS recovered, and how long may the dashboard be stale?"
+  },
+  "ORCH-06": {
+   "status": "partly",
+   "evidence": [
+    {
+     "doc": "architecture.md",
+     "section": "2.1",
+     "quote": "The last processed LSN per table is stored in bronze._pos_watermark"
+    },
+    {
+     "doc": "architecture.md",
+     "section": "2.2",
+     "quote": "stored in the checkpoint schema location"
+    }
+   ],
+   "note": "Saved positions exist for both sources; the CDC 3-day retention versus outage and a reset procedure are not covered.",
+   "ask": "What happens if the saved LSN is older than CDC retention?"
+  },
+  "PERF-01": {
+   "status": "covered",
+   "evidence": [
+    {
+     "doc": "discovery.md",
+     "section": "2.1",
+     "quote": "~180,000 sales lines per day ... peak ~420,000/day in December. ~6,500 return lines per day."
+    },
+    {
+     "doc": "discovery.md",
+     "section": "2.2",
+     "quote": "~12,000 orders/day (~31,000 lines), up to 60,000 orders/day in Black Friday week"
+    }
+   ],
+   "note": "Done well: real volumes and peaks per source. Growth over 2–3 years is not stated.",
+   "ask": "What growth should we plan for (new stores, online share)?"
+  },
+  "PERF-02": {
+   "status": "partly",
+   "evidence": [
+    {
+     "doc": "test-strategy.md",
+     "section": "6",
+     "quote": "Pass criterion: total job completes in under 60 minutes, leaving time for the 07:00 Power BI refresh"
+    },
+    {
+     "doc": "discovery.md",
+     "section": "4",
+     "quote": "Finance: daily review each morning by 09:00"
+    }
+   ],
+   "note": "A time budget exists; the end-to-end path including late Cartwell arrival and the refresh has not been timed.",
+   "ask": "What freshness do we promise on a day Cartwell arrives at 07:30?"
+  },
+  "PERF-03": {
+   "status": "partly",
+   "evidence": [
+    {
+     "doc": "test-strategy.md",
+     "section": "6. Performance testing",
+     "quote": "1% of POS history (~2M sales lines) plus one week of Cartwell files"
+    },
+    {
+     "doc": "raid-log.md",
+     "section": "R-04",
+     "quote": "December peak volume (2.3× normal) may extend nightly run"
+    }
+   ],
+   "note": "A nightly-run test is planned and an early 9-minute run exists (good), but no peak-day test, no production compute check and no test of the 200M-line history load.",
+   "ask": "Can we time a December peak day and one month of history on the bundle's job clusters?"
+  },
+  "PERF-04": {
+   "status": "unknown",
+   "evidence": [
+    {
+     "doc": "architecture.md",
+     "section": "3",
+     "quote": "Matched on loyalty number, else email"
+    }
+   ],
+   "note": "Customer matching on email may hit null or shared emails as a hot key.",
+   "ask": "How many customers have null or shared emails, and how is the match join handled for them?"
+  },
+  "PERF-05": {
+   "status": "partly",
+   "evidence": [
+    {
+     "doc": "architecture.md",
+     "section": "4. Gold",
+     "quote": "Gold facts are partitioned by business_date"
+    }
+   ],
+   "note": "Daily partitions on small aggregate tables create many small files; no compaction or clustering approach stated.",
+   "ask": "Are gold tables managed (predictive optimization on) or should they use liquid clustering instead of date partitions?"
+  },
+  "PM-01": {
+   "status": "contradicts",
+   "evidence": [
+    {
+     "doc": "plan.md",
+     "section": "4. Dependencies",
+     "quote": "POS service account and firewall rule | Week 1 | Platform Team / InfoSec"
+    },
+    {
+     "doc": "raid-log.md",
+     "section": "R-01",
+     "quote": "typically takes about 6 weeks end to end"
+    }
+   ],
+   "note": "The plan needs POS access in week 1 while the RAID log knew at week 0 it takes about six weeks; the critical path starts with source access.",
+   "ask": "With access likely in week 7 or later, what moves on the critical path?"
+  },
+  "PM-02": {
+   "status": "missing",
+   "evidence": [
+    {
+     "doc": "raid-log.md",
+     "section": "Risks",
+     "quote": "6 of 7 risks have no owner"
+    },
+    {
+     "doc": "raid-log.md",
+     "section": "R-01",
+     "quote": "escalate through Platform Team if not approved by week 4"
+    }
+   ],
+   "note": "Risks are listed but 6 of 7 have no owner, no triggers, and R-01's own week-4 escalation trigger has passed with no escalation recorded.",
+   "ask": "Who owns each risk, and was R-01 escalated in week 4?"
+  },
+  "PM-03": {
+   "status": "partly",
+   "evidence": [
+    {
+     "doc": "architecture.md",
+     "section": "7. Design decisions",
+     "quote": "5 | Returns attributed to original sale date | Finance requirement"
+    }
+   ],
+   "note": "Decisions exist in the architecture and in meeting notes, but no decision log with options, decider and date (the signal missed the architecture table).",
+   "ask": "Can one decision log collect architecture §7 and the week-5 meeting decisions?"
+  },
+  "PM-04": {
+   "status": "contradicts",
+   "evidence": [
+    {
+     "doc": "status-report-week5.md",
+     "section": "1. Overall status",
+     "quote": "Schedule | Green | Sprint 3 started Monday as planned"
+    },
+    {
+     "doc": "status-report-week5.md",
+     "section": "3. Progress",
+     "quote": "M1 ... | Complete | Environments ready; POS work proceeding using DBA extract"
+    },
+    {
+     "doc": "plan.md",
+     "section": "2. Milestones",
+     "quote": "M1 ... | Developers can query POS test instance"
+    }
+   ],
+   "note": "Status is green everywhere while M1's exit criterion is not met, M3 (due week 5) is incomplete, and I-02/I-04 threaten the critical path.",
+   "ask": "What rule sets the RAG colour? On forecast versus baseline, schedule is amber at least."
+  },
+  "PM-05": {
+   "status": "partly",
+   "evidence": [
+    {
+     "doc": "test-strategy.md",
+     "section": "2. Test levels",
+     "quote": "Unit | ... | Every pull request"
+    },
+    {
+     "doc": "plan.md",
+     "section": "3. Sprint plan",
+     "quote": "SIT and performance (week 11); UAT and production deployment (week 12)"
+    }
+   ],
+   "note": "Unit tests in CI from day one (good); but first deployment to test is week 7–8 and SIT, performance and UAT are squeezed into the last two weeks.",
+   "ask": "Can a thin slice be deployed to test and run against real sources by week 6?"
+  },
+  "PM-06": {
+   "status": "partly",
+   "evidence": [
+    {
+     "doc": "stakeholders.md",
+     "section": "2. Core team",
+     "quote": "Jun Park | Developer (customer merge, extract, CI/CD)"
+    },
+    {
+     "doc": "raid-log.md",
+     "section": "R-07",
+     "quote": "Developer annual leave in weeks 8–9"
+    }
+   ],
+   "note": "Each area has one developer; one technical anchor; a part-time tester. Leave is logged (good) but no second person per critical area.",
+   "ask": "Who is the second person for POS CDC, customer merge and CI/CD?"
+  },
+  "PM-07": {
+   "status": "contradicts",
+   "evidence": [
+    {
+     "doc": "estimate.md",
+     "section": "3",
+     "quote": "35 developer-weeks across 3 developers ≈ 11.7 weeks, rounded to 12 weeks"
+    },
+    {
+     "doc": "plan.md",
+     "section": "3. Sprint plan",
+     "quote": "SIT and performance (week 11); UAT and production deployment (week 12)"
+    },
+    {
+     "doc": "raid-log.md",
+     "section": "R-07",
+     "quote": "one developer, 2 weeks"
+    }
+   ],
+   "note": "The estimate uses all 12 weeks of 3 developers for build; the plan needs build finished by week 10 (30 developer-weeks) and leave removes 2 more, leaving ~28 for 35 weeks of work, before history load or access delay.",
+   "ask": "Where do the missing ~7 developer-weeks come from?"
+  },
+  "PM-08": {
+   "status": "missing",
+   "evidence": [
+    {
+     "doc": "status-report-week5.md",
+     "section": "8. Decisions needed",
+     "quote": "None this week."
+    },
+    {
+     "doc": "data-model.md",
+     "section": "6. Open points",
+     "quote": "Product category hierarchy for online-only SKUs — waiting on the e-commerce team"
+    }
+   ],
+   "note": "Open decisions exist (customer matching rule, online SKU categories, 2027 calendar, returns-by-reason page, revenue definition) with no owner, date or default.",
+   "ask": "Can each open point get an owner, a needed-by date and a default?"
+  },
+  "PM-09": {
+   "status": "covered",
+   "evidence": [
+    {
+     "doc": "discovery.md",
+     "section": "header",
+     "quote": "Discovery period | 3 weeks before project start"
+    },
+    {
+     "doc": "discovery.md",
+     "section": "8. Sign-off",
+     "quote": "Claire Whitlow | Finance Director, Sponsor | Week 0"
+    }
+   ],
+   "note": "Discovery was timeboxed and signed off. No written exit criteria, a minor gap."
+  },
+  "PM-10": {
+   "status": "covered",
+   "evidence": [
+    {
+     "doc": "raid-log.md",
+     "section": "Dependencies",
+     "quote": "D-01 ... D-06 with On, Needed by, Status"
+    },
+    {
+     "doc": "status-report-week5.md",
+     "section": "6",
+     "quote": "Chasing weekly"
+    }
+   ],
+   "note": "Access requested in week 1 and tracked with owners and state; the problem is the plan date (PM-01), not the tracking."
+  },
+  "REC-01": {
+   "status": "partly",
+   "evidence": [
+    {
+     "doc": "data-model.md",
+     "section": "5",
+     "quote": "Rule results are written to silver._dq_results per run"
+    }
+   ],
+   "note": "Quarantine and reference-row counts are recorded, but no source-to-gold count and sum comparison per run.",
+   "ask": "Can each run record POS and Cartwell counts and sums at source, bronze, silver and gold?"
+  },
+  "REC-02": {
+   "status": "missing",
+   "evidence": [
+    {
+     "doc": "requirements.md",
+     "section": "NFR-03",
+     "quote": "Data must be accurate and consistent with the finance ledger"
+    },
+    {
+     "doc": "test-strategy.md",
+     "section": "7. UAT",
+     "quote": "navigate each page, apply filters, check row-level security"
+    }
+   ],
+   "note": "The requirement names the ledger, but no test compares any figure with the ledger or the current weekly pack.",
+   "ask": "Which weekly pack or ledger figure will each measure be matched to, and when is the first comparison?"
+  },
+  "REC-03": {
+   "status": "missing",
+   "evidence": [
+    {
+     "doc": "requirements.md",
+     "section": "NFR-03",
+     "quote": "consistent with the finance ledger"
+    }
+   ],
+   "note": "No tolerance per measure or named approver.",
+   "ask": "What difference from the ledger is acceptable, and who signs it off (Mark?)"
+  },
+  "REC-04": {
+   "status": "missing",
+   "evidence": [
+    {
+     "doc": "deployment-plan.md",
+     "section": "5",
+     "quote": "check job succeeded and row counts are non-zero"
+    }
+   ],
+   "note": "The first production run is checked only for non-zero counts; no reconciliation of history or first loads before users rely on them.",
+   "ask": "Who reconciles the first production week and the history load before store managers get access?"
+  },
+  "REL-01": {
+   "status": "covered",
+   "evidence": [
+    {
+     "doc": "deployment-plan.md",
+     "section": "2. Repository and branching",
+     "quote": "databricks.yml ... resources/ ... src/ ... conf/ ... powerbi/ ... tests/"
+    }
+   ],
+   "note": "Code, jobs, config and the Power BI project are all in the repo."
+  },
+  "REL-02": {
+   "status": "covered",
+   "evidence": [
+    {
+     "doc": "deployment-plan.md",
+     "section": "2",
+     "quote": "Pull requests need one approving review ... and a green CI build. main is protected"
+    }
+   ],
+   "note": "Trunk-based, protected main, review and CI required."
+  },
+  "REL-03": {
+   "status": "covered",
+   "evidence": [
+    {
+     "doc": "deployment-plan.md",
+     "section": "4. CI/CD pipeline",
+     "quote": "Deploy test | Manual approval ... Deploy prod | ... release tag vX.Y.Z"
+    }
+   ],
+   "note": "Same bundle promoted dev → test → prod with approvals and tagged releases."
+  },
+  "REL-04": {
+   "status": "covered",
+   "evidence": [
+    {
+     "doc": "deployment-plan.md",
+     "section": "3. Configuration",
+     "quote": "Environment-specific settings live in conf/<env>.yaml"
+    }
+   ],
+   "note": "Environment values in config per environment."
+  },
+  "REL-05": {
+   "status": "missing",
+   "evidence": [
+    {
+     "doc": "deployment-plan.md",
+     "section": "3. Configuration",
+     "quote": "pos.user / pos.password | service account credentials for the POS instance"
+    }
+   ],
+   "note": "Config files in the repo hold the POS password; no secret scope or secret scan is mentioned.",
+   "ask": "Can the POS and SFTP credentials move to a secret scope (or a UC connection) before the service account is issued, and is the repo history clean?"
+  },
+  "REL-07": {
+   "status": "unknown",
+   "evidence": [
+    {
+     "doc": "deployment-plan.md",
+     "section": "7. Release notes",
+     "quote": "any manual steps"
+    }
+   ],
+   "note": "No rollback plan for code or data.",
+   "ask": "If v1.0.x writes wrong gold data, how do we redeploy the previous bundle and RESTORE the tables?"
+  },
+  "REQ-01": {
+   "status": "missing",
+   "evidence": [
+    {
+     "doc": "requirements.md",
+     "section": "NFR-01",
+     "quote": "near real-time"
+    },
+    {
+     "doc": "requirements.md",
+     "section": "FR-10",
+     "quote": "Load all historical data"
+    },
+    {
+     "doc": "requirements.md",
+     "section": "NFR-03",
+     "quote": "accurate and consistent"
+    }
+   ],
+   "note": "Three vague phrases in signed requirements; two already contradict other documents.",
+   "ask": "Replace with numbers: 'previous day by 07:00', '3 years', 'within X of the ledger'."
+  },
+  "REQ-02": {
+   "status": "missing",
+   "evidence": [
+    {
+     "doc": "requirements.md",
+     "section": "4. Functional requirements",
+     "quote": "ID | Requirement | Priority"
+    }
+   ],
+   "note": "No acceptance criteria for any FR.",
+   "ask": "For FR-04, FR-05, FR-07: given last week's data, what figure must the dashboard show?"
+  },
+  "REQ-03": {
+   "status": "contradicts",
+   "evidence": [
+    {
+     "doc": "requirements.md",
+     "section": "5. Business definitions",
+     "quote": "Revenue | ... after line discounts and after returns, excluding VAT. This is the figure finance reports to the board."
+    },
+    {
+     "doc": "data-model.md",
+     "section": "3.2 Facts",
+     "quote": "revenue | gross_sales - discount (i.e. amount paid by the customer, including VAT)"
+    },
+    {
+     "doc": "requirements.md",
+     "section": "5",
+     "quote": "Units | Number of items sold, net of returned items"
+    },
+    {
+     "doc": "data-model.md",
+     "section": "3.2",
+     "quote": "units | Sum of quantity sold"
+    }
+   ],
+   "note": "Definitions are written and signed (good), but the data model builds revenue including VAT and before returns, and units gross of returns, so the headline number will not match the board figure.",
+   "ask": "Which revenue is right? If the signed one, the gold model and DAX must change now, before gold is built in sprint 4."
+  },
+  "REQ-04": {
+   "status": "partly",
+   "evidence": [
+    {
+     "doc": "discovery.md",
+     "section": "2. Sources",
+     "quote": "Tables of interest | sales_header, sales_line, customer, return_header, return_line, store, product"
+    }
+   ],
+   "note": "Requirements map to known sources, but there is no field-level check; e.g. FR-06 home region from address and FR-09 contact details were not checked against real data.",
+   "ask": "Which source field supplies home_region, and how complete is it?"
+  },
+  "REQ-05": {
+   "status": "partly",
+   "evidence": [
+    {
+     "doc": "test-strategy.md",
+     "section": "7. UAT",
+     "quote": "two finance analysts, one regional manager, two store managers"
+    },
+    {
+     "doc": "stakeholders.md",
+     "section": "1",
+     "quote": "Store managers (42) | ... | Influence Low | ... | Guide; go-live comms"
+    }
+   ],
+   "note": "Store managers test in UAT, but none were asked what they need; sprint reviews show finance only. Marketing users are not engaged at all.",
+   "ask": "Can two store managers and someone from marketing see the wireframes before sprint 5?"
+  },
+  "REQ-06": {
+   "status": "partly",
+   "evidence": [
+    {
+     "doc": "requirements.md",
+     "section": "6. Non-functional requirements",
+     "quote": "NFR-02 ... NFR-05"
+    }
+   ],
+   "note": "Page speed and availability have numbers; volume, recovery, data loss, retention and access to personal data do not.",
+   "ask": "Can recovery time, retention and who may see customer contact details be added to the NFRs?"
+  },
+  "REQ-07": {
+   "status": "covered",
+   "evidence": [
+    {
+     "doc": "requirements.md",
+     "section": "2. Business objectives",
+     "quote": "O1 | Remove the manual weekly pack | Analyst effort on the pack reduced from ~3 days to under half a day"
+    }
+   ],
+   "note": "Done well: each objective has a measure, and O1 has a baseline."
+  },
+  "SCD-01": {
+   "status": "partly",
+   "evidence": [
+    {
+     "doc": "data-model.md",
+     "section": "3.1 Dimensions",
+     "quote": "attributes hold the latest values from source"
+    }
+   ],
+   "note": "Customer is latest-only; nobody has asked finance whether FR-06's 12-month trend by home region should restate when 2% of customers move each month.",
+   "ask": "Does finance accept that past sales move to a customer's new region when they move?"
+  },
+  "SCD-02": {
+   "status": "covered",
+   "evidence": [
+    {
+     "doc": "architecture.md",
+     "section": "3",
+     "quote": "Ordered by LSN so the latest change wins"
+    },
+    {
+     "doc": "test-strategy.md",
+     "section": "3. Unit testing approach",
+     "quote": "Two updates same night | op=4 at LSN 10 and LSN 12 | LSN 12 values kept"
+    }
+   ],
+   "note": "Done well: sales MERGE ordered by source LSN with table-driven tests for out-of-order updates. Customer MERGE across two sources has no stated ordering.",
+   "ask": "When POS and Cartwell both change the same customer the same night, which wins?"
+  },
+  "SCD-03": {
+   "status": "partly",
+   "evidence": [
+    {
+     "doc": "data-model.md",
+     "section": "2",
+     "quote": "silver.customer | customer_id (surrogate)"
+    },
+    {
+     "doc": "discovery.md",
+     "section": "2.1",
+     "quote": "Around 2% update their address or contact details each month"
+    }
+   ],
+   "note": "A surrogate key exists (good), but matching falls back to email, which customers change; no mapping keeps identity across that.",
+   "ask": "When a customer changes email, do they become a new customer_id?"
+  },
+  "SCD-04": {
+   "status": "partly",
+   "evidence": [
+    {
+     "doc": "data-model.md",
+     "section": "3.1",
+     "quote": "One row per customer, rebuilt nightly"
+    }
+   ],
+   "note": "'As it is now' by design, but not confirmed as what consumers expect.",
+   "ask": "Is 'as it is now' what finance wants for region trends?"
+  },
+  "SCH-01": {
+   "status": "missing",
+   "evidence": [
+    {
+     "doc": "architecture.md",
+     "section": "2.2",
+     "quote": "Schema is inferred by Auto Loader on first run"
+    }
+   ],
+   "note": "No policy per layer for new columns.",
+   "ask": "When Cartwell adds a column, should bronze carry it and silver ignore it until reviewed?"
+  },
+  "SCH-02": {
+   "status": "missing",
+   "evidence": [
+    {
+     "doc": "discovery.md",
+     "section": "2.2",
+     "quote": "renamed promo_cd to promotion_code"
+    }
+   ],
+   "note": "A rename has happened before; nothing makes the load stop loudly, and inferred schemas would load nulls into the old column.",
+   "ask": "Will a renamed or retyped Cartwell column fail the load with an alert?"
+  },
+  "SCH-03": {
+   "status": "partly",
+   "evidence": [
+    {
+     "doc": "discovery.md",
+     "section": "2.2",
+     "quote": "with about one week's notice by email to the e-commerce team"
+    }
+   ],
+   "note": "Changes are announced to the e-commerce team, not the data team, and there is no written agreement.",
+   "ask": "Can Leo's team forward Cartwell change notices to the data team, and can POS changes be agreed the same way?"
+  },
+  "SCOPE-01": {
+   "status": "missing",
+   "evidence": [
+    {
+     "doc": "requirements.md",
+     "section": "7. In scope",
+     "quote": "StoreLink POS: sales header and lines, customers, returns"
+    }
+   ],
+   "note": "Only an in-scope list.",
+   "ask": "What is explicitly out (e.g. returns-by-reason page, stock, other channels) and later?"
+  },
+  "SCOPE-02": {
+   "status": "missing",
+   "evidence": [],
+   "note": "Of the ten traps, only history (vaguely) and reports are stated; deletes, late data, changes over time, bad rows, personal data, access and recovery are silent.",
+   "ask": "Can we write in/out/later for each trap with the sponsor?"
+  },
+  "SCOPE-03": {
+   "status": "missing",
+   "evidence": [
+    {
+     "doc": "status-report-week5.md",
+     "section": "7",
+     "quote": "Finance analysts asked for a 'returns by reason' page; BA to check against FR-05"
+    }
+   ],
+   "note": "Requests are arriving with no change process.",
+   "ask": "Who decides new requests, and how are their size and date impact recorded?"
+  },
+  "SCOPE-04": {
+   "status": "partly",
+   "evidence": [
+    {
+     "doc": "status-report-week5.md",
+     "section": "7",
+     "quote": "revisit Lakeflow Connect for MVP 2"
+    }
+   ],
+   "note": "MVP 2 is referenced but no later list exists.",
+   "ask": "What is in MVP 2, and is it funded?"
+  },
+  "SCOPE-05": {
+   "status": "partly",
+   "evidence": [
+    {
+     "doc": "requirements.md",
+     "section": "4",
+     "quote": "FR-09 ... FR-10 ..."
+    }
+   ],
+   "note": "MVP 1 combines two sources, customer merge, a personal-data extract and a 3-year history load in 12 weeks; the marketing extract could be split out.",
+   "ask": "Would MVP 1 still meet O1–O3 without the marketing extract (FR-09)?"
+  },
+  "SCOPE-06": {
+   "status": "partly",
+   "evidence": [
+    {
+     "doc": "requirements.md",
+     "section": "header",
+     "quote": "Approved by | Claire Whitlow, Finance Director (Sponsor) — week 0"
+    }
+   ],
+   "note": "Scope is signed and dated (good), but only the in-list exists to sign.",
+   "ask": "Can the sponsor sign the out and later lists too?"
+  },
+  "SEC-01": {
+   "status": "missing",
+   "evidence": [
+    {
+     "doc": "data-model.md",
+     "section": "4. Marketing extract layout",
+     "quote": "one row per active customer (purchase in last 24 months) ... email ... phone ... postcode"
+    },
+    {
+     "doc": "data-model.md",
+     "section": "2",
+     "quote": "marketing_opt_in"
+    }
+   ],
+   "note": "No classification of personal columns; the marketing extract sends names, emails and phones to a third party without filtering on marketing_opt_in.",
+   "ask": "Has data protection approved the Brightwave extract, and must it include only customers with marketing_opt_in = true?"
+  },
+  "SEC-02": {
+   "status": "partly",
+   "evidence": [
+    {
+     "doc": "requirements.md",
+     "section": "FR-08",
+     "quote": "Store managers see only their own store"
+    },
+    {
+     "doc": "raid-log.md",
+     "section": "D-04",
+     "quote": "RLS mapping table | Finance | Week 9 | Not started"
+    }
+   ],
+   "note": "Group grants and Power BI RLS are designed; the mapping is not started and no persona tests or access rules for silver customer PII exist.",
+   "ask": "Who may read silver.customer in prod, and will RLS be tested as a store manager?"
+  },
+  "SEC-03": {
+   "status": "unknown",
+   "evidence": [],
+   "note": "Retention and erasure are not mentioned.",
+   "ask": "How long is customer data kept, and how is an erasure request applied across silver, gold, history and sent extracts?"
+  },
+  "SERV-01": {
+   "status": "partly",
+   "evidence": [
+    {
+     "doc": "data-model.md",
+     "section": "4. Marketing extract layout",
+     "quote": "File hp_customers_YYYYMMDD.csv, comma-separated, UTF-8, header row"
+    },
+    {
+     "doc": "status-report-week5.md",
+     "section": "7",
+     "quote": "the marketing extract will be a full file every day"
+    }
+   ],
+   "note": "The extract layout is defined (good); no delivery time, contact or agreement with Brightwave/marketing.",
+   "ask": "Who in marketing owns the extract, and what time must it arrive?"
+  },
+  "SERV-02": {
+   "status": "missing",
+   "evidence": [
+    {
+     "doc": "deployment-plan.md",
+     "section": "6",
+     "quote": "The DQ results page in the dashboard shows quarantine counts per run"
+    }
+   ],
+   "note": "No 'data as of' or completeness flag, though partial days are likely when Cartwell is late.",
+   "ask": "Will the dashboard show last refresh time and whether online data is complete for yesterday?"
+  },
+  "SERV-03": {
+   "status": "unknown",
+   "evidence": [],
+   "note": "Nothing on announcing changes to the dataset or extract.",
+   "ask": "How will a change to the extract columns be announced to Brightwave?"
+  },
+  "SERV-04": {
+   "status": "partly",
+   "evidence": [
+    {
+     "doc": "data-model.md",
+     "section": "3.3 Power BI measures",
+     "quote": "Revenue | SUM(fact_sales_daily[revenue])"
+    }
+   ],
+   "note": "Measures are defined once in one Power BI dataset (good), but the definition differs from the signed one (see REQ-03)."
+  },
+  "SERV-05": {
+   "status": "partly",
+   "evidence": [
+    {
+     "doc": "requirements.md",
+     "section": "NFR-02",
+     "quote": "under 5 seconds"
+    },
+    {
+     "doc": "architecture.md",
+     "section": "7",
+     "quote": "Power BI Import mode"
+    }
+   ],
+   "note": "Target and Import mode set; no concurrency test with 50+ users at store opening.",
+   "ask": "Will we test page load with the expected morning users?"
+  },
+  "STK-01": {
+   "status": "partly",
+   "evidence": [
+    {
+     "doc": "stakeholders.md",
+     "section": "1. Stakeholder map",
+     "quote": "Leo Grant ... Daniel Reyes ... InfoSec (Nadia Kowalski)"
+    }
+   ],
+   "note": "A broad map (good), but missing the POS system owner/DBA, marketing and Brightwave, the support team, and data protection, all named in other documents.",
+   "ask": "Who owns StoreLink, who owns the marketing extract, and who will support the system?"
+  },
+  "STK-02": {
+   "status": "covered",
+   "evidence": [
+    {
+     "doc": "stakeholders.md",
+     "section": "3. RACI",
+     "quote": "Requirements and definitions | A [Sponsor] ... UAT sign-off | A/R [Sponsor]"
+    }
+   ],
+   "note": "One accountable person per deliverable, plus an escalation path."
+  },
+  "STK-03": {
+   "status": "covered",
+   "evidence": [
+    {
+     "doc": "status-report-week5.md",
+     "section": "7",
+     "quote": "Wednesday — sprint review (team, Mark, finance analysts)"
+    },
+    {
+     "doc": "status-report-week5.md",
+     "section": "2",
+     "quote": "demoed the first silver tables to Mark"
+    }
+   ],
+   "note": "Fortnightly demos of real silver data to finance with feedback recorded. Gold numbers still to come."
+  },
+  "STK-04": {
+   "status": "partly",
+   "evidence": [
+    {
+     "doc": "status-report-week5.md",
+     "section": "7",
+     "quote": "Asked for the dashboard to be ready for the January trading review"
+    }
+   ],
+   "note": "The NFR-01 versus daily-batch conflict and the new January date are not written as open decisions.",
+   "ask": "What calendar date is week 12, and is it before the January trading review?"
+  },
+  "STK-05": {
+   "status": "unknown",
+   "evidence": [
+    {
+     "doc": "requirements.md",
+     "section": "9. Approval",
+     "quote": "Approved by the Sponsor on behalf of the business at the end of week 0"
+    }
+   ],
+   "note": "No record of review time or findings; the sponsor signed definitions that the data model now differs from.",
+   "ask": "Did Mark review the definitions before Claire signed?"
+  },
+  "STK-06": {
+   "status": "covered",
+   "evidence": [
+    {
+     "doc": "stakeholders.md",
+     "section": "1",
+     "quote": "What they need from us"
+    }
+   ],
+   "note": "Each stakeholder's need is recorded."
+  },
+  "TEST-01": {
+   "status": "partly",
+   "evidence": [
+    {
+     "doc": "test-strategy.md",
+     "section": "2. Test levels",
+     "quote": "Unit ... Component ... SIT ... Performance ... UAT"
+    }
+   ],
+   "note": "All levels with owners (good), and DQ tests; no reconciliation test level.",
+   "ask": "Where do source-to-gold and gold-to-ledger reconciliation tests sit?"
+  },
+  "TEST-02": {
+   "status": "partly",
+   "evidence": [
+    {
+     "doc": "test-strategy.md",
+     "section": "5. Test data",
+     "quote": "POS test instance STLK-TST01 (last refreshed from production 4 months ago)"
+    },
+    {
+     "doc": "test-strategy.md",
+     "section": "5",
+     "quote": "masked production sample files"
+    }
+   ],
+   "note": "Sources are named; test POS is stale and the masking of the POS DBA extract is not stated.",
+   "ask": "Is the static POS extract masked, and can STLK-TST01 be refreshed before SIT?"
+  },
+  "TEST-03": {
+   "status": "partly",
+   "evidence": [
+    {
+     "doc": "test-strategy.md",
+     "section": "3",
+     "quote": "run in the Azure DevOps CI pipeline on every pull request"
+    }
+   ],
+   "note": "Code tests gate every PR (good); data tests are not in the pipeline.",
+   "ask": "Can a CI job run the DQ and reconciliation checks in test?"
+  },
+  "TEST-04": {
+   "status": "partly",
+   "evidence": [
+    {
+     "doc": "test-strategy.md",
+     "section": "7. UAT",
+     "quote": "navigate each page, apply filters, check row-level security"
+    }
+   ],
+   "note": "UAT checks screens, not figures users already know.",
+   "ask": "Can finance supply last month's pack figures as UAT expected results?"
+  },
+  "TEST-05": {
+   "status": "partly",
+   "evidence": [
+    {
+     "doc": "test-strategy.md",
+     "section": "4",
+     "quote": "the tester injects known bad rows ... thresholds stop the pipeline"
+    }
+   ],
+   "note": "Bad-row tests exist; no tests for reruns, duplicate files, late files, schema changes, empty files or a killed run.",
+   "ask": "Can SIT add: _v2 resend, late Cartwell file, renamed column, empty file, mid-run cancel?"
+  },
+  "COST-01": {
+   "status": "unknown",
+   "evidence": [],
+   "note": "No running-cost estimate.",
+   "ask": "What will the nightly job, serverless pipeline and SQL warehouse cost per month, from the week-4 run?"
+  },
+  "COST-03": {
+   "status": "unknown",
+   "evidence": [],
+   "note": "No tagging mentioned.",
+   "ask": "Does the platform's tagging standard apply to the bundle's job clusters and serverless pipeline?"
+  },
+  "COST-04": {
+   "status": "covered",
+   "evidence": [
+    {
+     "doc": "platform-and-environments.md",
+     "section": "5. Compute",
+     "quote": "auto-terminate 30 min ... Job clusters ... serverless"
+    }
+   ],
+   "note": "Job compute and serverless for scheduled work, auto-termination for dev."
+  }
+ },
+ "contradictions": [
+  {
+   "docs": [
+    "requirements.md §5",
+    "data-model.md §3.2"
+   ],
+   "issue": "Revenue is signed as excluding VAT and net of returns; the data model builds it including VAT and before returns. Units are 'net of returns' vs 'sum of quantity sold'.",
+   "checks": [
+    "REQ-03",
+    "SERV-04",
+    "REC-02"
+   ]
+  },
+  {
+   "docs": [
+    "requirements.md NFR-01",
+    "architecture.md §7"
+   ],
+   "issue": "'Near real-time so store managers can act on the day's trading' vs a daily 05:00 batch.",
+   "checks": [
+    "DES-06",
+    "REQ-01"
+   ]
+  },
+  {
+   "docs": [
+    "requirements.md FR-10",
+    "discovery.md §2.1",
+    "architecture.md / plan.md / estimate.md / deployment-plan.md"
+   ],
+   "issue": "History is 'all' in requirements, 3 years (~200M lines) in discovery, and absent from architecture, plan, estimate and go-live steps.",
+   "checks": [
+    "HIST-01",
+    "EST-07",
+    "EST-04"
+   ]
+  },
+  {
+   "docs": [
+    "plan.md §4",
+    "raid-log.md R-01"
+   ],
+   "issue": "Plan needs POS access in week 1; the RAID log knew at week 0 that it takes about 6 weeks.",
+   "checks": [
+    "PM-01"
+   ]
+  },
+  {
+   "docs": [
+    "status-report-week5.md §1, §3",
+    "plan.md §2"
+   ],
+   "issue": "M1 reported Complete and everything green, while M1's exit criterion (query the POS test instance) is unmet and M3 is behind.",
+   "checks": [
+    "PM-04",
+    "COM-01"
+   ]
+  },
+  {
+   "docs": [
+    "estimate.md §3",
+    "plan.md §3",
+    "raid-log.md R-07"
+   ],
+   "issue": "35 developer-weeks assume 3 developers for all 12 weeks; the plan reserves weeks 11–12 for SIT/UAT and one developer is on leave weeks 8–9 (~28 available).",
+   "checks": [
+    "PM-07"
+   ]
+  },
+  {
+   "docs": [
+    "discovery.md §2.1",
+    "architecture.md §3"
+   ],
+   "issue": "Voided sales are physically deleted at source; silver MERGE handles only inserts and updates.",
+   "checks": [
+    "DEL-01"
+   ]
+  },
+  {
+   "docs": [
+    "discovery.md §2.2",
+    "architecture.md §2.2–3"
+   ],
+   "issue": "Cartwell resends files (same name or _v2); ingestion appends and silver online orders append, so resends double or are ignored.",
+   "checks": [
+    "DUP-01"
+   ]
+  },
+  {
+   "docs": [
+    "discovery.md §2.2",
+    "architecture.md §6"
+   ],
+   "issue": "Cartwell files arrive after 06:00 on 9 days a quarter; the job runs at a fixed 05:00.",
+   "checks": [
+    "ORCH-01",
+    "DQ-04"
+   ]
+  },
+  {
+   "docs": [
+    "discovery.md §3",
+    "architecture.md §4"
+   ],
+   "issue": "Returns are attributed to an original sale up to 60 days back, but fact_returns_daily writes only business_date = run_date - 1.",
+   "checks": [
+    "LATE-01"
+   ]
+  },
+  {
+   "docs": [
+    "platform-and-environments.md §3",
+    "platform-and-environments.md §6"
+   ],
+   "issue": "Dev is meant to read the POS test instance, but the firewall request covers only test and prod subnets.",
+   "checks": [
+    "ENV-03"
+   ]
+  },
+  {
+   "docs": [
+    "plan.md §7 / deployment-plan.md §5 step 8",
+    "status-report-week5.md §7"
+   ],
+   "issue": "Plan shares the dashboard with store managers after the first refresh; steering agreed to wait one week so finance can check numbers.",
+   "checks": [
+    "COM-03",
+    "REC-04"
+   ]
+  },
+  {
+   "docs": [
+    "data-model.md §2",
+    "data-model.md §4"
+   ],
+   "issue": "silver.customer holds marketing_opt_in, but the marketing extract selects all active customers.",
+   "checks": [
+    "SEC-01"
+   ]
+  },
+  {
+   "docs": [
+    "stakeholders.md §1",
+    "requirements.md §3 / discovery.md §4"
+   ],
+   "issue": "Marketing (an extract consumer), the POS owner/DBA and a support team appear in other documents but not in the stakeholder map.",
+   "checks": [
+    "STK-01"
+   ]
+  }
+ ],
+ "fail_fast_plan": [
+  {
+   "risk": "The dashboard's headline revenue will not match the figure finance reports to the board.",
+   "test": "Take last week's POS static extract and Cartwell files, compute revenue both ways (data model vs signed definition) and put both next to last week's manual pack in front of Mark Haddad.",
+   "kill_line": "If the gold definition differs from the pack by more than the tolerance Mark sets, change the gold model and DAX before sprint 4 starts.",
+   "owner": "business-analyst",
+   "by": "this week"
+  },
+  {
+   "risk": "POS CDC has never run against a live source, and access may not arrive before gold is due.",
+   "test": "Escalate R-01 to the sponsor now (its week-4 trigger passed); the day the account lands, run pos_extract against STLK-TST01 for all seven tables and compare with the DBA extract.",
+   "kill_line": "No live POS connection by end of week 7 means go-live moves, and the sponsor is told this week rather than in week 10.",
+   "owner": "project-manager",
+   "by": "this week"
+  },
+  {
+   "risk": "Voids, price corrections and late returns leave gold wrong for past days.",
+   "test": "On the static extract (or STLK-TST01), void a 3-day-old transaction, correct a 5-day-old line and add a return for a 30-day-old sale, run the job and compare silver detail with gold totals.",
+   "kill_line": "Any gold date that does not equal its silver detail means gold must rebuild affected dates (not just run_date - 1) before it is built in sprint 4.",
+   "owner": "technical-anchor",
+   "by": "week 6"
+  },
+  {
+   "risk": "Cartwell resends and late files double or drop online sales without anyone noticing.",
+   "test": "In dev, drop orders_YYYYMMDD_v2.csv, then a same-name resend with a changed amount, then start the job with one file missing; check silver and gold totals.",
+   "kill_line": "If totals double, the correction is ignored, or the day publishes without a warning, switch silver to MERGE/replace-by-day and gate the job on file arrival before sprint 4.",
+   "owner": "developer",
+   "by": "week 6"
+  },
+  {
+   "risk": "The 3-year history load (FR-10, ~200M lines) has no design, estimate, source window or reconciliation and could alone delay go-live.",
+   "test": "Request the Cartwell history extract now; extract one month of POS sales_line over JDBC in an agreed window, time it, and record the LSN before and after.",
+   "kill_line": "If one month scaled to 36 takes longer than the windows the POS owner allows before week 11, or Cartwell cannot supply 3 years, re-scope FR-10 with the sponsor now.",
+   "owner": "technical-anchor",
+   "by": "week 6"
+  },
+  {
+   "risk": "The 12-week date cannot hold: ~35 developer-weeks of build in ~28 available, with no history, deployment or handover work counted.",
+   "test": "Re-forecast from sprint 1–2 actuals with the leave, access delay and missing work added, and show a range to the sponsor at the next steering.",
+   "kill_line": "If the likely end is after week 12 (or after the January trading review), agree now what drops from MVP 1 (for example the marketing extract).",
+   "owner": "project-manager",
+   "by": "next steering"
+  },
+  {
+   "risk": "Customer personal data goes to a third party without consent filtering, and credentials sit in the repo.",
+   "test": "Ask the data protection lead to review the Brightwave extract layout and the opt-in rule; scan the repo for passwords and move POS/SFTP credentials to a secret scope.",
+   "kill_line": "If consent filtering or a lawful basis is not confirmed by week 9, the extract does not go live with MVP 1.",
+   "owner": "security",
+   "by": "week 7"
+  },
+  {
+   "risk": "Nobody can run or recover the system after go-live.",
+   "test": "Name the support team, show them the job, and have them do one rerun and one past-day reload in test with a draft runbook.",
+   "kill_line": "No support team named by week 8 means go-live is held or the project team commits to hypercare for an agreed period.",
+   "owner": "technical-anchor",
+   "by": "week 8"
+  }
+ ],
+ "premortem": [
+  "POS access arrived around week 8, CDC was first run against a live source in SIT, and its problems (deletes, the 3-day retention) surfaced in the last two weeks.",
+  "Finance compared the dashboard with the board pack in UAT and revenue was off by VAT and returns; trust was lost before go-live.",
+  "The history load was discovered as unplanned work in week 10; year-on-year pages (FR-07, a Must) were empty at launch.",
+  "Online revenue was double-counted after a Cartwell _v2 resend, or missing on late-file days, and store managers saw it first.",
+  "The plan never had room: 35 developer-weeks in about 28, reported green until week 10."
+ ]
+}

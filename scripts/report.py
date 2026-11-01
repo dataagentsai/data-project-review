@@ -57,6 +57,10 @@ def build(prof):
          f"{len(due)} checks due now, {len(later)} coming up", "", rv.get("summary", ""), "",
          "| Covered | Partly | Missing | Documents disagree | Not mentioned |", "|---|---|---|---|---|",
          f"| {counts['covered']} | {counts['partly']} | {counts['missing']} | {counts['contradicts']} | {counts['unknown']} |", ""]
+    packs = cat.vocab()["packs"]
+    L += ["| Pack | Checks due | Gaps |", "|---|---|---|"] + [
+        f"| {p.upper()}: {packs[p].split('.')[0]} | {sum(1 for r in due if r.get('pack') == p)} | {sum(1 for r in gaps if r.get('pack') == p)} |"
+        for p in packs if any(r.get("pack") == p for r in due)] + [""]
     if rv.get("fail_fast_plan"):
         L += ["## Fail fast: do these first", "", "| Risk | Cheapest test now | Kill line (what would change the plan) | Owner | By |",
               "|---|---|---|---|---|"]

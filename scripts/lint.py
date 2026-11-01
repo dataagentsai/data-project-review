@@ -42,6 +42,8 @@ def main():
             errs.append(f"{where}: id must look like ABC-01")
         if ids.count(c.get("id")) > 1:
             errs.append(f"{where}: duplicate id")
+        if not c.get("binding") and c.get("pack") not in v["packs"]:
+            errs.append(f"{where}: pack folder '{c.get('pack')}' is not listed in core/vocab.yaml packs")
         if c.get("kind") not in ("technical", "delivery"):
             errs.append(f"{where}: kind must be technical or delivery")
         if c.get("concern") not in concerns:
@@ -91,6 +93,8 @@ def main():
     n_t = sum(1 for c in checks if c.get("kind") == "technical")
     n_d = sum(1 for c in checks if c.get("kind") == "delivery")
     n_b = sum(len(b.get("checks") or []) for b in binds.values())
+    per = {p: sum(1 for c in checks if c.get("pack") == p) for p in v["packs"]}
+    print("packs: " + ", ".join(f"{p} {n}" for p, n in per.items()))
     print(f"{len(checks)} common checks ({n_t} technical, {n_d} delivery), {n_b} technology-only, "
           f"{len(binds)} binding(s): {', '.join(binds) or 'none'}")
     for w in warns:

@@ -1,0 +1,66 @@
+# Delivery checks: handover.
+
+- id: HAND-04
+  title: Support model not agreed
+  kind: delivery
+  concern: handover
+  question: >-
+    Is it agreed who supports the system after go-live, in which hours, how fast they respond, how long the
+    project team stays during the early weeks, and who pays? On the first weekend in production, who answers a failure?
+  why: >-
+    The project assumed the central support team would take over; the support team assumed the project
+    would. After go-live a failed weekend load went unnoticed until Monday morning.
+  applies: {kind: [any], components: [any], patterns: [any]}
+  owner: project-manager
+  also: [operations, business-owner, technical-anchor]
+  evidence:
+    docs: [runbook, plan]
+    looks_like: >-
+      A signed support model: support team, hours, response times, escalation, early-life support period,
+      and the criteria for ending it.
+  signals:
+    - No support model, or one that says "business as usual support".
+    - The support team has not been asked to accept the system.
+    - Support hours do not match the freshness promised to users.
+  contradiction: >-
+    Compare the support model with the non-functional requirements: data promised by 7 a.m. but support
+    starting at 9 a.m. means nobody fixes a night failure in time.
+  due: {plan: 4, designed: 6, evidenced: 9}
+  fail_fast: >-
+    Ask the support team lead whether they have agreed to take this system, and on what terms.
+  severity: high
+  related: [REQ-06, HAND-01, COM-04]
+  signal_id: null
+
+- id: HAND-05
+  title: Benefits never measured
+  kind: delivery
+  concern: handover
+  question: >-
+    Is there a plan to measure, after go-live, the benefits promised at the start, against the baseline
+    taken before? A year after closure, can anyone prove the project was worth its cost?
+  why: >-
+    The business case promised hours saved each month. Nobody measured hours before or after, so the
+    project could not show any return and the platform's next phase was refused.
+  applies: {kind: [any], components: [any], patterns: [any]}
+  owner: business-owner
+  also: [project-manager, business-analyst]
+  evidence:
+    docs: [discovery, status]
+    looks_like: >-
+      A benefits list with baseline values, the date and method of measurement after go-live, and an owner
+      who will report the result.
+  signals:
+    - The business case or goals have no baseline figures.
+    - No benefits review is planned after go-live.
+    - The project closure report does not mention benefits.
+  contradiction: >-
+    Compare the goals in the discovery document with the closure or status reports: goals that are never
+    reported on were never measured.
+  due: {plan: 3, evidenced: 10}
+  fail_fast: >-
+    Record today's value of each promised benefit, so there is something to compare against later.
+  severity: medium
+  related: [REQ-07]
+  signal_id: null
+

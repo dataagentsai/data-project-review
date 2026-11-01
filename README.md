@@ -19,42 +19,60 @@ Part of [Clean Data Engineering](https://cleandataengineering.ai/). The thinking
 [the technical anchor](https://cleandataengineering.ai/learn/technical-anchor/) and
 [discovery](https://cleandataengineering.ai/learn/technical-anchor/discovery/).
 
-## How it stays generic and still specific
+## Four skills, three disciplines
 
-| Layer | What it holds | Where |
+Projects fail between disciplines as often as inside them, so the checks are split by who maintains the knowledge,
+and one skill brings them together:
+
+| Skill | What it reviews | Checks |
 |---|---|---|
-| Common checks | Questions every data project faces, with no product names | `catalog/checks/` |
-| When they apply | Kind of work, components (ingestion, serving…), patterns (CDC, streaming…), lifecycle stage, role | each check's `applies`, `due`, `owner` |
-| Technology bindings | How each check is done on one product, its traps, and product-only checks | `bindings/<tech>.yaml` |
+| `data-review-ba` | Business analysis: requirements, definitions, scope content, acceptance | `packs/ba/` |
+| `data-review-pm` | Project management: plan, dependencies, risks, decisions, stakeholders, communication, support, benefits | `packs/pm/` |
+| `data-review-tech` | Technical: data, design, platform, testing, release, operations, the effort estimate | `packs/tech/` |
+| `data-project-review` | All three, plus the seams between them (scope against estimate, estimate against plan, requirements against tests, definitions against the data model) | all packs |
 
-Switching technology means adding one binding file. The common checks don't change.
+Each check also says when it applies (kind of work, components such as ingestion or serving, patterns such as CDC
+or streaming), what is due by each of the ten lifecycle stages, and which role owns it, so a developer, tester,
+BA or PM sees their own part. Common checks never name a product; `bindings/<tech>.yaml` (Databricks first) says
+how each check is done on one technology. Switching technology means adding one binding file.
 
-## Use it
+## Install
 
-**Claude Code:** copy or clone this folder into `~/.claude/skills/data-project-review/` (or a project's
-`.claude/skills/`), then ask: *"Review our project documents in ./docs with the data-project-review skill."*
+**Claude Code (plugin, all four skills):**
+```
+/plugin marketplace add dataagentsai/data-project-review
+/plugin install data-project-review@data-project-review
+```
+Then ask: *"Review our project documents in ./docs with data-project-review"* (or `data-review-ba` for BA only).
+To try a local clone without installing: `claude --plugin-dir ./data-project-review`.
 
-**claude.ai:** upload the folder as a skill (Settings, Capabilities, Skills), then attach your documents.
+**claude.ai:** run `python3 scripts/package.py` and upload a zip from `dist/` (Settings, Capabilities, Skills).
+Code execution must be on. The scripts run with plain Python there, reading `catalog.json`.
 
 **By hand:**
 ```
-uv run scripts/lint.py                                   # check the catalog
-uv run scripts/select.py path/to/project.yaml --md       # which checks apply, what is due now
-uv run scripts/signals.py path/to/project.yaml           # gaps a script can see in the documents
-# Claude writes review.json (see SKILL.md), then:
-uv run scripts/report.py path/to/project.yaml            # REVIEW.md
+uv run scripts/lint.py                                       # check the catalog
+uv run scripts/select.py path/to/project.yaml --md           # which checks apply, what is due now
+uv run scripts/select.py path/to/project.yaml --pack ba      # one discipline only
+uv run scripts/signals.py path/to/project.yaml               # gaps a script can see in the documents
+# Claude writes review.json (see skills/data-project-review/SKILL.md), then:
+uv run scripts/report.py path/to/project.yaml                # REVIEW.md
+uv run scripts/export.py                                     # catalog.json for other tools and claude.ai
 ```
 
 ## What's here
 
 ```
-SKILL.md                 the playbook Claude follows
-catalog/                 SCHEMA.md, vocab.yaml, stages.yaml, roles.yaml, checks/technical, checks/delivery
+.claude-plugin/          plugin.json and marketplace.json (Claude Code install)
+skills/                  the four skills' playbooks (SKILL.md)
+core/                    shared: SCHEMA.md, vocab.yaml (packs, components, patterns, concerns, doc types),
+                         stages.yaml, roles.yaml, shared templates (discovery document, pre-mortem)
+packs/ba|pm|tech/        each discipline's checks/ and templates/
 bindings/                one file per technology (databricks.yaml first)
-templates/               fill-in templates for missing documents (discovery, estimate, scope, RAID, tests…)
-scripts/                 select, signals, report, lint, score
-examples/sample-project/ an invented project with planted gaps, used to test the skill
-tests/                   the answer key and how to score a review against it
+scripts/                 select, signals, report, lint, score, export, package
+catalog.json             the whole catalog as one file (generated by export.py)
+examples/sample-project/ an invented project with planted gaps, used to test the skills
+tests/                   the answer key, the scoring map and results
 docs/DESIGN.md           why it is built this way
 ```
 
@@ -65,4 +83,5 @@ some by vague words, some only visible when two documents disagree) and a few th
 must not flag. Claude reviews it blind; `scripts/score.py` reports how many gaps it caught and how many false
 alarms it raised. See `tests/RESULTS.md`.
 
-Status: v0.1, a working draft.
+Status: v0.2, a working draft. Checks: BA 11, PM 27, Tech 91, Databricks 12; the BA and PM packs are being
+filled out next.

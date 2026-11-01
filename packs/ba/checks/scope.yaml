@@ -64,39 +64,6 @@
   related: [SCOPE-01, EST-07]
   signal_id: null
 
-- id: SCOPE-03
-  title: Scope creep with no change process
-  kind: delivery
-  concern: scope
-  question: >-
-    Is there an agreed way to handle a new request: who can raise it, how it is sized, who decides, and how
-    the plan and estimate change? If the project ends late, how much of the lateness will be work that was
-    added without anyone deciding to add it?
-  why: >-
-    Each request was small and agreed in a meeting. After three months, a fifth of the work had never been
-    estimated, the date had not moved, and the team was blamed for the slip.
-  applies: {kind: [any], components: [any], patterns: [any]}
-  owner: project-manager
-  also: [business-owner, technical-anchor]
-  evidence:
-    docs: [plan, decisions]
-    looks_like: >-
-      A written change process and a change log where each change shows the request, its size, its effect
-      on date and cost, the decision and who made it.
-  signals:
-    - No "change control", "change request" or "change process" in the plan.
-    - Status reports mention new items that do not appear in the original scope or in any change log.
-    - Meeting notes include "can we also add" with no follow-up decision.
-  contradiction: >-
-    Compare the latest status report or backlog with the signed scope: items in the backlog that are not in
-    the scope and have no change record are unmanaged creep.
-  due: {plan: 4, evidenced: 6}
-  fail_fast: >-
-    Count backlog items added since sign-off and check how many have a recorded decision.
-  severity: high
-  related: [SCOPE-04, PM-03]
-  signal_id: null
-
 - id: SCOPE-04
   title: '"Phase 2" used as a hiding place'
   kind: delivery
@@ -127,38 +94,6 @@
     Ask the sponsor: "If there is no phase 2, would you still pay for phase 1 as written?"
   severity: medium
   related: [SCOPE-05, REQ-07]
-  signal_id: null
-
-- id: SCOPE-05
-  title: MVP 1 is too big
-  kind: delivery
-  concern: scope
-  question: >-
-    Is the first MVP the smallest slice that gives real value and proves the hardest parts work end to end?
-    If the first release slips by months, will it be because it tried to do everything at once?
-  why: >-
-    MVP 1 contained eight sources and every report. Nothing reached production for nine months, so no
-    real feedback arrived until it was too late to change direction.
-  applies: {kind: [any], components: [any], patterns: [any]}
-  owner: project-manager
-  also: [technical-anchor, business-owner]
-  evidence:
-    docs: [plan]
-    looks_like: >-
-      An MVP 1 that can reach production within a few months, chosen for value and for testing the riskiest
-      beliefs, with later MVPs listed in order of dependency and value.
-  signals:
-    - MVP 1 contains most or all of the in-scope items.
-    - The first production release date is more than about three months after build starts.
-    - The reason for the MVP order is not written down.
-  contradiction: >-
-    Compare the plan's MVP 1 with the estimate: if MVP 1 holds most of the estimated effort, it is the
-    whole project with a different label.
-  due: {plan: 3, designed: 4}
-  fail_fast: >-
-    Ask what could be removed from MVP 1 while it still gives one group of users a real answer.
-  severity: medium
-  related: [SCOPE-04, PM-05]
   signal_id: null
 
 - id: SCOPE-06

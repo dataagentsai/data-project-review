@@ -1,5 +1,10 @@
 {
  "vocab": {
+  "packs": {
+   "ba": "Business analysis. What the business needs, in testable terms - requirements, definitions, scope content, acceptance",
+   "pm": "Project management. How the work runs - plan, dependencies, risks, decisions, stakeholders, communication, budget, benefits",
+   "tech": "Technical. Whether it will work - data, design, platform, testing, release, operations, and the effort estimate"
+  },
   "kinds": {
    "new-platform": "Building a new data platform (environments, standards, frameworks and the first data products)",
    "project-on-existing": "A new project or data product on a platform that already exists"
@@ -181,6 +186,559 @@
  },
  "checks": [
   {
+   "id": "REQ-01",
+   "title": "Vague words in the requirements",
+   "kind": "delivery",
+   "concern": "requirements",
+   "question": "Has every vague word in the requirements, such as \"real-time\", \"fast\", \"all data\", \"user-friendly\", \"accurate\" or \"complete\", been replaced with a number or a test? If the users reject the system at the end, will it be because we each read those words differently?",
+   "why": "\"Real-time\" meant within a second to the sponsor and by the next morning to the team. The design was built for daily loads and had to be rebuilt late in the project.",
+   "applies": {
+    "kind": [
+     "any"
+    ],
+    "components": [
+     "any"
+    ],
+    "patterns": [
+     "any"
+    ]
+   },
+   "owner": "business-analyst",
+   "also": [
+    "technical-anchor",
+    "test-lead"
+   ],
+   "evidence": {
+    "docs": [
+     "requirements"
+    ],
+    "looks_like": "Every quality word paired with a measure, for example \"available by 7 a.m. on working days\" instead of \"timely\", or \"the last three years\" instead of \"all history\"."
+   },
+   "signals": [
+    "Words such as real-time, near real-time, fast, quickly, timely, all data, complete, accurate, user-friendly, intuitive, seamless, scalable or robust appear without a number next to them.",
+    "Lists of required data or reports end with \"etc.\" or \"and so on\"."
+   ],
+   "contradiction": "Compare the requirements with the architecture: if the requirement says \"real-time\" and the architecture schedules a daily batch, someone's reading of the word is wrong.",
+   "due": {
+    "plan": 1,
+    "designed": 4
+   },
+   "fail_fast": "Ask the requester to put a number on each vague word in a fifteen-minute call, and write the answers down.",
+   "severity": "high",
+   "related": [
+    "REQ-02",
+    "REQ-06"
+   ],
+   "signal_id": "vague-words",
+   "pack": "ba",
+   "file": "packs/ba/checks/requirements.yaml"
+  },
+  {
+   "id": "REQ-02",
+   "title": "No acceptance criteria",
+   "kind": "delivery",
+   "concern": "requirements",
+   "question": "Does every requirement have acceptance criteria that the data can be tested against? At user acceptance, how will we and the business agree that a requirement is met?",
+   "why": "Requirements said \"show monthly sales by region\". At user acceptance the business compared it with their own report, got a different number, and nobody had agreed in advance which one was right.",
+   "applies": {
+    "kind": [
+     "any"
+    ],
+    "components": [
+     "any"
+    ],
+    "patterns": [
+     "any"
+    ]
+   },
+   "owner": "business-analyst",
+   "also": [
+    "test-lead",
+    "technical-anchor"
+   ],
+   "evidence": {
+    "docs": [
+     "requirements",
+     "test-strategy"
+    ],
+    "looks_like": "For each requirement, one or more criteria in the form \"given this data, the result is this\", ideally with a known figure the business already trusts."
+   },
+   "signals": [
+    "Requirements or user stories have no \"acceptance criteria\" or \"done when\" section.",
+    "Acceptance criteria repeat the requirement in other words rather than describing a test.",
+    "Backlog items are marked ready for build without criteria."
+   ],
+   "contradiction": "Compare the requirements with the test strategy: requirements that have no matching test, or tests that trace to no requirement, show the two were written apart.",
+   "due": {
+    "plan": 3,
+    "designed": 5,
+    "evidenced": 7
+   },
+   "fail_fast": "Take the three most important requirements and write a test for each with the business owner, using a figure from a report they already trust.",
+   "severity": "high",
+   "related": [
+    "REQ-01",
+    "REQ-03"
+   ],
+   "signal_id": "no-acceptance-criteria",
+   "pack": "ba",
+   "file": "packs/ba/checks/requirements.yaml"
+  },
+  {
+   "id": "REQ-03",
+   "title": "Business definitions not agreed and signed",
+   "kind": "delivery",
+   "concern": "requirements",
+   "question": "Are the key business definitions (for example revenue, active customer, order date) written down and signed by the person who owns each one? If two departments see different numbers after go-live, which signed definition settles it?",
+   "why": "Sales counted revenue when the order was booked; finance counted it when it was paid. Both signed the requirements, which said \"revenue\", and the dashboard was disowned by one of them in the first week.",
+   "applies": {
+    "kind": [
+     "any"
+    ],
+    "components": [
+     "modelling",
+     "serving"
+    ],
+    "patterns": [
+     "any"
+    ]
+   },
+   "owner": "business-analyst",
+   "also": [
+    "business-owner",
+    "data-consumer",
+    "technical-anchor"
+   ],
+   "evidence": {
+    "docs": [
+     "data-model",
+     "decisions"
+    ],
+    "looks_like": "A definitions list with the exact rule for each term, the grain, the owner who signed it and the date."
+   },
+   "signals": [
+    "The data dictionary has names but no rules, owners or sign-off.",
+    "The same term is used in requirements from different departments with no definition.",
+    "Definitions are marked \"to be confirmed\" in a document that has passed discovery sign-off."
+   ],
+   "contradiction": "Compare the requirements with the data model: if a term in the requirements has a different rule, or no rule, in the data model, the definition was never agreed.",
+   "due": {
+    "plan": 3,
+    "designed": 4
+   },
+   "fail_fast": "Ask two of the main consumers to write their own definition of the top five terms separately, then compare the answers.",
+   "severity": "high",
+   "related": [
+    "REQ-02",
+    "STK-02"
+   ],
+   "signal_id": null,
+   "pack": "ba",
+   "file": "packs/ba/checks/requirements.yaml"
+  },
+  {
+   "id": "REQ-04",
+   "title": "Requirements written without looking at the data",
+   "kind": "delivery",
+   "concern": "requirements",
+   "question": "Were the requirements checked against a profile of the real source data? If a requirement turns out to be impossible, will we find out in discovery or in testing?",
+   "why": "The requirement asked for sales by product category. The source had no category for a third of products, which only came to light when the report was tested.",
+   "applies": {
+    "kind": [
+     "any"
+    ],
+    "components": [
+     "any"
+    ],
+    "patterns": [
+     "any"
+    ]
+   },
+   "owner": "business-analyst",
+   "also": [
+    "technical-anchor",
+    "source-owner"
+   ],
+   "evidence": {
+    "docs": [
+     "discovery",
+     "requirements"
+    ],
+    "looks_like": "A data profile per source (volumes, keys, nulls, odd values) and a note against each requirement saying which source fields support it and any gaps found."
+   },
+   "signals": [
+    "No data profiling section or results in the discovery document.",
+    "Requirements name fields or attributes that do not appear in any source description.",
+    "Phrases such as \"data to be confirmed\" or \"assumed available\" against required fields."
+   ],
+   "contradiction": "Compare the requirements with the data model or source mapping: a required field with no source mapped to it is a requirement nobody checked against the data.",
+   "due": {
+    "plan": 3,
+    "evidenced": 4
+   },
+   "fail_fast": "Pull one real extract from each source and map the top ten requirements to actual columns in an afternoon.",
+   "severity": "high",
+   "related": [
+    "EST-07",
+    "REQ-03"
+   ],
+   "signal_id": null,
+   "pack": "ba",
+   "file": "packs/ba/checks/requirements.yaml"
+  },
+  {
+   "id": "REQ-05",
+   "title": "The users are not the requesters",
+   "kind": "delivery",
+   "concern": "requirements",
+   "question": "Have the people who will use the output every day been asked what they need, or only the people who requested it? If nobody uses the system three months after go-live, will it be because it answered the requester's question and not the users'?",
+   "why": "A director requested a dashboard and approved the design. The analysts who were meant to use it needed row-level detail to act on, kept their old reports, and the dashboard went unused.",
+   "applies": {
+    "kind": [
+     "any"
+    ],
+    "components": [
+     "serving",
+     "modelling"
+    ],
+    "patterns": [
+     "any"
+    ]
+   },
+   "owner": "business-analyst",
+   "also": [
+    "data-consumer",
+    "business-owner"
+   ],
+   "evidence": {
+    "docs": [
+     "requirements",
+     "stakeholders"
+    ],
+    "looks_like": "Named users or user groups, how they will use the output, which decisions it supports, and evidence that some of them took part in workshops and will take part in user acceptance testing."
+   },
+   "signals": [
+    "Requirements name only a sponsor or requester, not users.",
+    "No user workshops, interviews or user personas are mentioned.",
+    "User acceptance testers are not named, or are the same person as the requester."
+   ],
+   "contradiction": "Compare the stakeholder map with the requirements sources: user groups on the map who are not listed as contributors to the requirements were never asked.",
+   "due": {
+    "plan": 1,
+    "designed": 4,
+    "evidenced": 7
+   },
+   "fail_fast": "Show a rough mock-up or a real sample of the output to three actual users and ask what decision they would make with it.",
+   "severity": "medium",
+   "related": [
+    "STK-01",
+    "STK-03"
+   ],
+   "signal_id": null,
+   "pack": "ba",
+   "file": "packs/ba/checks/requirements.yaml"
+  },
+  {
+   "id": "REQ-06",
+   "title": "Non-functional needs missing",
+   "kind": "delivery",
+   "concern": "requirements",
+   "question": "Are freshness, volume and growth, recovery time and acceptable data loss, retention, and who may see what written as requirements with numbers? If the system works but is rejected, will it be because it is too slow, too stale, or unrecoverable?",
+   "why": "Nobody asked how fresh the data had to be or how quickly it had to recover. After the first overnight failure the business found out it would take a day to recover, and the system was not accepted.",
+   "applies": {
+    "kind": [
+     "any"
+    ],
+    "components": [
+     "any"
+    ],
+    "patterns": [
+     "any"
+    ]
+   },
+   "owner": "business-analyst",
+   "also": [
+    "technical-anchor",
+    "operations",
+    "security"
+   ],
+   "evidence": {
+    "docs": [
+     "requirements",
+     "architecture"
+    ],
+    "looks_like": "A short non-functional list: freshness deadline, expected volume and growth, how long it may be down, how much data may be lost, how long data is kept, and access rules."
+   },
+   "signals": [
+    "No \"non-functional\" heading in the requirements.",
+    "Freshness, recovery or retention are mentioned only as \"to be agreed\".",
+    "Volume is described in words (\"large\") rather than numbers."
+   ],
+   "contradiction": "Compare the requirements with the runbook or support model: if the runbook promises recovery within hours but no requirement says what is needed, or the reverse, the two disagree on what was promised.",
+   "due": {
+    "plan": 3,
+    "designed": 4,
+    "evidenced": 7
+   },
+   "fail_fast": "Ask the business owner: \"If this is down for a day, what happens?\" and write down the answer as a number.",
+   "severity": "high",
+   "related": [
+    "REQ-01",
+    "HAND-04"
+   ],
+   "signal_id": null,
+   "pack": "ba",
+   "file": "packs/ba/checks/requirements.yaml"
+  },
+  {
+   "id": "REQ-07",
+   "title": "Goals with no measure of success",
+   "kind": "delivery",
+   "concern": "requirements",
+   "question": "What business result is this project for, how will it be measured, and what is the measure today? A year after go-live, how will anyone know whether it was worth it?",
+   "why": "The goal was \"better insight into customers\". No measure was agreed, so at closure the project could not show any benefit, and the next request for funding was refused.",
+   "applies": {
+    "kind": [
+     "any"
+    ],
+    "components": [
+     "any"
+    ],
+    "patterns": [
+     "any"
+    ]
+   },
+   "owner": "business-analyst",
+   "also": [
+    "business-owner"
+   ],
+   "evidence": {
+    "docs": [
+     "discovery",
+     "requirements"
+    ],
+    "looks_like": "Two or three goals, each with a measure, today's value (the baseline), a target, and where the data for measuring it will come from."
+   },
+   "signals": [
+    "Goals are written as activities (\"build a data platform\") rather than results.",
+    "No baseline figures are given for any goal.",
+    "Success measures need data the project does not collect."
+   ],
+   "contradiction": "Compare the goals in the discovery document with the scope: a goal whose measure depends on data or reports that are out of scope cannot be measured.",
+   "due": {
+    "plan": 3,
+    "designed": 4,
+    "proven": 10
+   },
+   "fail_fast": "Ask the sponsor to state the one number they hope will change, and check today whether that number can be produced.",
+   "severity": "medium",
+   "related": [
+    "HAND-05"
+   ],
+   "signal_id": null,
+   "pack": "ba",
+   "file": "packs/ba/checks/requirements.yaml"
+  },
+  {
+   "id": "SCOPE-01",
+   "title": "Scope written only as \"in\"",
+   "kind": "delivery",
+   "concern": "scope",
+   "question": "Is there a written list of what is out of scope, as well as what is in? When someone says \"I assumed that was included\", which document will we point to?",
+   "why": "The scope listed the tables to build. The business assumed the reports on top were included too, and the argument cost a month and the sponsor's trust.",
+   "applies": {
+    "kind": [
+     "any"
+    ],
+    "components": [
+     "any"
+    ],
+    "patterns": [
+     "any"
+    ]
+   },
+   "owner": "business-analyst",
+   "also": [
+    "project-manager",
+    "technical-anchor",
+    "business-owner"
+   ],
+   "evidence": {
+    "docs": [
+     "discovery",
+     "requirements"
+    ],
+    "looks_like": "Three lists, in scope, out of scope and later, each item specific enough that a stranger could say which list a new request belongs to."
+   },
+   "signals": [
+    "No \"out of scope\" heading or list in the discovery, scope or requirements document.",
+    "The out-of-scope list is generic (\"anything not listed above\")."
+   ],
+   "contradiction": "Compare the scope with the requirements: a requirement that is neither in the in-scope list nor explicitly out is a future argument.",
+   "due": {
+    "plan": 3,
+    "designed": 4
+   },
+   "fail_fast": "Ask the business owner to read only the out-of-scope list and say which item surprises them.",
+   "severity": "high",
+   "related": [
+    "SCOPE-02",
+    "SCOPE-06"
+   ],
+   "signal_id": "no-out-of-scope",
+   "pack": "ba",
+   "file": "packs/ba/checks/scope.yaml"
+  },
+  {
+   "id": "SCOPE-02",
+   "title": "The data scope traps left silent",
+   "kind": "delivery",
+   "concern": "scope",
+   "question": "Has each of the ten data scope traps been written down as in, out or later: history and backfill, deletes at the source, late and corrected data, changes over time, bad rows, source data quality, personal data, reports and dashboards, access and onboarding, and recovery? Which of them will someone assume was included?",
+   "why": "Nobody wrote down whether deleted customers should disappear from the reports. The business assumed yes, the team assumed no, and the gap was found by an auditor.",
+   "applies": {
+    "kind": [
+     "any"
+    ],
+    "components": [
+     "any"
+    ],
+    "patterns": [
+     "any"
+    ]
+   },
+   "owner": "technical-anchor",
+   "also": [
+    "business-analyst",
+    "business-owner"
+   ],
+   "evidence": {
+    "docs": [
+     "discovery",
+     "requirements"
+    ],
+    "looks_like": "A table with one row per trap, the decision (in, out or later), who decided and why."
+   },
+   "signals": [
+    "Several of the words history, backfill, delete, late, correction, bad rows, quality, personal data, reports, access and recovery do not appear in the scope section.",
+    "Traps are mentioned but marked \"to be confirmed\" after discovery sign-off."
+   ],
+   "contradiction": "Compare the scope with the architecture: a trap the architecture handles (for example history kept) that the scope does not mention, or the reverse, shows the two were never reconciled.",
+   "due": {
+    "plan": 3,
+    "designed": 4
+   },
+   "fail_fast": "Walk the ten traps with the business owner in thirty minutes and record each answer.",
+   "severity": "high",
+   "related": [
+    "SCOPE-01",
+    "EST-07"
+   ],
+   "signal_id": null,
+   "pack": "ba",
+   "file": "packs/ba/checks/scope.yaml"
+  },
+  {
+   "id": "SCOPE-04",
+   "title": "\"Phase 2\" used as a hiding place",
+   "kind": "delivery",
+   "concern": "scope",
+   "question": "Is everything labelled \"phase 2\" or \"later\" actually planned, funded and owned, and does the business know that phase 2 may never happen? If phase 2 is cancelled, will the first phase still be useful on its own?",
+   "why": "Hard items such as history and data quality were moved to phase 2 to make the first phase look affordable. Phase 2 was never funded, and phase 1 was unusable without them.",
+   "applies": {
+    "kind": [
+     "any"
+    ],
+    "components": [
+     "any"
+    ],
+    "patterns": [
+     "any"
+    ]
+   },
+   "owner": "project-manager",
+   "also": [
+    "business-owner",
+    "business-analyst"
+   ],
+   "evidence": {
+    "docs": [
+     "plan",
+     "discovery"
+    ],
+    "looks_like": "A \"later\" list in which each item states whether phase 1 depends on it, an owner, and whether funding exists, plus a statement that phase 1 is usable without them."
+   },
+   "signals": [
+    "Many items marked \"phase 2\", \"future phase\" or \"later\" with no dates or owners.",
+    "Phase 2 has no estimate or budget.",
+    "Items that the main goal depends on are listed under phase 2."
+   ],
+   "contradiction": "Compare the goals or success measures with the phase-2 list: a goal that can only be met by phase-2 items means phase 1 alone does not deliver the value promised.",
+   "due": {
+    "plan": 3,
+    "designed": 4
+   },
+   "fail_fast": "Ask the sponsor: \"If there is no phase 2, would you still pay for phase 1 as written?\"",
+   "severity": "medium",
+   "related": [
+    "SCOPE-05",
+    "REQ-07"
+   ],
+   "signal_id": null,
+   "pack": "ba",
+   "file": "packs/ba/checks/scope.yaml"
+  },
+  {
+   "id": "SCOPE-06",
+   "title": "Scope not signed by the business owner",
+   "kind": "delivery",
+   "concern": "scope",
+   "question": "Has the person who will judge success signed the in, out and later lists, and is that signature recorded with a date? If scope is disputed later, whose signature ends the argument?",
+   "why": "The scope was agreed with a delegate. The real business owner saw it for the first time at user acceptance and rejected half of the out-of-scope list.",
+   "applies": {
+    "kind": [
+     "any"
+    ],
+    "components": [
+     "any"
+    ],
+    "patterns": [
+     "any"
+    ]
+   },
+   "owner": "project-manager",
+   "also": [
+    "business-owner",
+    "business-analyst"
+   ],
+   "evidence": {
+    "docs": [
+     "decisions",
+     "discovery"
+    ],
+    "looks_like": "A dated sign-off record naming the business owner, the version of the scope signed, and any conditions."
+   },
+   "signals": [
+    "The scope document has no approver, approval date or version.",
+    "Approval is recorded as \"agreed in meeting\" without a name.",
+    "The approver is not the business owner named in the stakeholder map."
+   ],
+   "contradiction": "Compare the scope sign-off with the stakeholder map: if the person who signed is not the one the map names as the decision owner, the sign-off may not hold.",
+   "due": {
+    "plan": 4,
+    "evidenced": 4
+   },
+   "fail_fast": "Send the out-of-scope list to the business owner today and ask for a written yes.",
+   "severity": "medium",
+   "related": [
+    "SCOPE-01",
+    "STK-05"
+   ],
+   "signal_id": null,
+   "pack": "ba",
+   "file": "packs/ba/checks/scope.yaml"
+  },
+  {
    "id": "COM-01",
    "title": "Bad news held back",
    "kind": "delivery",
@@ -226,7 +784,8 @@
     "STK-04"
    ],
    "signal_id": null,
-   "file": "catalog/checks/delivery/communication.yaml"
+   "pack": "pm",
+   "file": "packs/pm/checks/communication.yaml"
   },
   {
    "id": "COM-02",
@@ -275,7 +834,8 @@
     "STK-05"
    ],
    "signal_id": null,
-   "file": "catalog/checks/delivery/communication.yaml"
+   "pack": "pm",
+   "file": "packs/pm/checks/communication.yaml"
   },
   {
    "id": "COM-03",
@@ -322,7 +882,8 @@
     "PM-03"
    ],
    "signal_id": null,
-   "file": "catalog/checks/delivery/communication.yaml"
+   "pack": "pm",
+   "file": "packs/pm/checks/communication.yaml"
   },
   {
    "id": "COM-04",
@@ -371,7 +932,8 @@
     "HAND-04"
    ],
    "signal_id": null,
-   "file": "catalog/checks/delivery/communication.yaml"
+   "pack": "pm",
+   "file": "packs/pm/checks/communication.yaml"
   },
   {
    "id": "COM-05",
@@ -419,7 +981,8 @@
     "PM-07"
    ],
    "signal_id": null,
-   "file": "catalog/checks/delivery/communication.yaml"
+   "pack": "pm",
+   "file": "packs/pm/checks/communication.yaml"
   },
   {
    "id": "COM-06",
@@ -466,253 +1029,8 @@
     "COM-01"
    ],
    "signal_id": null,
-   "file": "catalog/checks/delivery/communication.yaml"
-  },
-  {
-   "id": "EST-01",
-   "title": "The rough guess became the promise",
-   "kind": "delivery",
-   "concern": "estimation",
-   "question": "Has the estimate been redone since the first rough guess, and does everyone quoting a date or a budget know which version they are quoting? Imagine it is six months from now and the project is late: was the date we are judged against the one somebody guessed before anyone looked at the data?",
-   "why": "A number given in a corridor before discovery was written into the budget. Discovery found twice the work, but the plan was expected to confirm the guess, so the project was \"late\" from its first week.",
-   "applies": {
-    "kind": [
-     "any"
-    ],
-    "components": [
-     "any"
-    ],
-    "patterns": [
-     "any"
-    ]
-   },
-   "owner": "technical-anchor",
-   "also": [
-    "project-manager",
-    "business-owner"
-   ],
-   "evidence": {
-    "docs": [
-     "estimate",
-     "plan",
-     "status"
-    ],
-    "looks_like": "An estimate history showing the rough estimate, the discovery estimate and later re-estimates, each dated, with the baseline that sign-off accepted clearly marked."
-   },
-   "signals": [
-    "The same number appears in the first brief, the discovery document and the plan, unchanged.",
-    "The estimate has no date or version, so nobody can tell whether it came before or after discovery.",
-    "Status reports measure progress against a figure that is older than the discovery document.",
-    "Phrases such as \"as agreed at the outset\" or \"the approved budget\" with no link to how it was built."
-   ],
-   "contradiction": "Compare the estimate with the plan: if the plan's end date or budget matches the stage-2 rough estimate rather than the discovery estimate, the guess has become the promise.",
-   "due": {
-    "plan": 2,
-    "evidenced": 4
-   },
-   "fail_fast": "Put the rough estimate and the discovery estimate side by side in front of the sponsor and ask which one the plan is built on.",
-   "severity": "high",
-   "related": [
-    "EST-02",
-    "EST-06"
-   ],
-   "signal_id": null,
-   "file": "catalog/checks/delivery/estimation.yaml"
-  },
-  {
-   "id": "EST-02",
-   "title": "One number instead of a range",
-   "kind": "delivery",
-   "concern": "estimation",
-   "question": "Is the estimate given as a range, with the reason for its width? If the project overruns, will anyone be able to say whether the overrun was inside the range we said was possible?",
-   "why": "\"Six weeks\" was heard as a commitment. \"Five to eight weeks if access arrives in week one\" would have been a plan, and the slip to seven weeks would have been expected rather than a crisis.",
-   "applies": {
-    "kind": [
-     "any"
-    ],
-    "components": [
-     "any"
-    ],
-    "patterns": [
-     "any"
-    ]
-   },
-   "owner": "technical-anchor",
-   "also": [
-    "project-manager"
-   ],
-   "evidence": {
-    "docs": [
-     "estimate"
-    ],
-    "looks_like": "A low and a high figure (or a most-likely figure with a stated spread), and a sentence on what would move it toward either end."
-   },
-   "signals": [
-    "The estimate is a single figure in days, weeks or money with no low and high value.",
-    "The width of the range does not narrow from the rough estimate to the discovery estimate.",
-    "The range is the same percentage on every item, which suggests it was added, not reasoned."
-   ],
-   "contradiction": "Compare the estimate with the status reports: a range in the estimate but a single committed date in every status report means the range was dropped on the way to the stakeholders.",
-   "due": {
-    "plan": 2,
-    "evidenced": 4
-   },
-   "fail_fast": "Ask the person who wrote the estimate for the worst realistic case. If they can name one without hesitating, it belongs in the document.",
-   "severity": "high",
-   "related": [
-    "EST-01",
-    "EST-03"
-   ],
-   "signal_id": "single-number-estimate",
-   "file": "catalog/checks/delivery/estimation.yaml"
-  },
-  {
-   "id": "EST-03",
-   "title": "An estimate with no written assumptions",
-   "kind": "delivery",
-   "concern": "estimation",
-   "question": "Which assumptions does the estimate depend on, and which one, if wrong, would move it the most? If the estimate turns out wrong, will we be able to point to the assumption that broke?",
-   "why": "The estimate assumed the source data was clean and that one person would test. Neither was written down, so when both failed, the overrun looked like the team's fault instead of a known risk.",
-   "applies": {
-    "kind": [
-     "any"
-    ],
-    "components": [
-     "any"
-    ],
-    "patterns": [
-     "any"
-    ]
-   },
-   "owner": "technical-anchor",
-   "also": [
-    "project-manager",
-    "business-owner"
-   ],
-   "evidence": {
-    "docs": [
-     "estimate",
-     "raid"
-    ],
-    "looks_like": "A numbered list of assumptions next to the estimate, the most sensitive ones marked, and each one also logged in the RAID log with an owner."
-   },
-   "signals": [
-    "No \"assumptions\" heading or list anywhere in or near the estimate.",
-    "Assumptions are written as one line, such as \"standard assumptions apply\".",
-    "Assumptions exist in the estimate but none of them appear in the RAID log."
-   ],
-   "contradiction": "Compare the estimate's assumptions with the RAID log: an assumption in one but not the other is either unmanaged or was never the real basis of the estimate.",
-   "due": {
-    "plan": 2,
-    "evidenced": 4
-   },
-   "fail_fast": "Pick the riskiest assumption and test it this week, for example by requesting the access or pulling one real extract.",
-   "severity": "high",
-   "related": [
-    "EST-02",
-    "COM-05",
-    "PM-07"
-   ],
-   "signal_id": "no-assumptions",
-   "file": "catalog/checks/delivery/estimation.yaml"
-  },
-  {
-   "id": "EST-04",
-   "title": "Invisible work left out of the estimate",
-   "kind": "delivery",
-   "concern": "estimation",
-   "question": "Does the estimate include the work that is not building: getting access, setting up environments, testing, fixing data, rehearsing the cut-over, documentation and handover? If we run out of time, will it be because the build took longer, or because this work was never counted?",
-   "why": "The build finished on time. Then access approvals, test data, two cut-over rehearsals and the runbook took another five weeks that nobody had planned for.",
-   "applies": {
-    "kind": [
-     "any"
-    ],
-    "components": [
-     "any"
-    ],
-    "patterns": [
-     "any"
-    ]
-   },
-   "owner": "technical-anchor",
-   "also": [
-    "project-manager",
-    "test-lead",
-    "operations"
-   ],
-   "evidence": {
-    "docs": [
-     "estimate",
-     "plan"
-    ],
-    "looks_like": "Separate lines for access and onboarding, environments, testing (including reconciliation and user acceptance), data fixes, history load, cut-over and rollback rehearsal, runbook, handover and hypercare."
-   },
-   "signals": [
-    "The estimate lists only build items (pipelines, tables, reports).",
-    "Testing is a fixed percentage added at the end rather than counted per item.",
-    "Words such as \"cut-over\", \"handover\", \"access\", \"environment\" or \"hypercare\" do not appear in the estimate."
-   ],
-   "contradiction": "Compare the estimate with the plan: plan tasks for testing, cut-over or handover that have no matching line in the estimate are unfunded work.",
-   "due": {
-    "plan": 2,
-    "evidenced": 4
-   },
-   "fail_fast": "Read the estimate against the ten lifecycle stages and ask, for each stage after build, which line pays for it.",
-   "severity": "high",
-   "related": [
-    "EST-05",
-    "EST-07",
-    "PM-05"
-   ],
-   "signal_id": "no-invisible-work",
-   "file": "catalog/checks/delivery/estimation.yaml"
-  },
-  {
-   "id": "EST-05",
-   "title": "Guessed, not counted",
-   "kind": "delivery",
-   "concern": "estimation",
-   "question": "Was the estimate built by counting the things the project will deliver (sources, tables, rules, reports, interfaces) and multiplying by a rate, or was it a total someone felt was right? Could another person rebuild the number from the document?",
-   "why": "The estimate was \"about three months\" for the whole project. When it was finally counted there were forty tables and twelve reports, which at the team's real rate was nearer six months.",
-   "applies": {
-    "kind": [
-     "any"
-    ],
-    "components": [
-     "any"
-    ],
-    "patterns": [
-     "any"
-    ]
-   },
-   "owner": "technical-anchor",
-   "also": [
-    "project-manager"
-   ],
-   "evidence": {
-    "docs": [
-     "estimate"
-    ],
-    "looks_like": "A table of counted items by type and complexity, a rate per item, where the rate came from, and the total."
-   },
-   "signals": [
-    "The estimate is a total with no breakdown, or a breakdown by phase only.",
-    "No counts of sources, tables, rules or reports appear anywhere in the documents.",
-    "The rate per item is not stated or not explained."
-   ],
-   "contradiction": "Compare the estimate with the requirements or data model: if they list more sources, tables or reports than the estimate counted, the estimate is short.",
-   "due": {
-    "plan": 2,
-    "designed": 4
-   },
-   "fail_fast": "Count the items in the requirements yourself and divide the estimate by the count. If the effort per item looks implausibly small, it probably is.",
-   "severity": "medium",
-   "related": [
-    "EST-04",
-    "EST-06"
-   ],
-   "signal_id": null,
-   "file": "catalog/checks/delivery/estimation.yaml"
+   "pack": "pm",
+   "file": "packs/pm/checks/communication.yaml"
   },
   {
    "id": "EST-06",
@@ -760,205 +1078,8 @@
     "PM-04"
    ],
    "signal_id": null,
-   "file": "catalog/checks/delivery/estimation.yaml"
-  },
-  {
-   "id": "EST-07",
-   "title": "History load and data fixing underestimated",
-   "kind": "delivery",
-   "concern": "estimation",
-   "question": "Has the work of loading history and dealing with poor source data been estimated separately, using a profile of the real data? If the history load is what delays go-live, will that surprise anyone?",
-   "why": "The pipelines worked on a month of data. Ten years of history held old codes, broken keys and a format change, and checking the old numbers with the business took longer than building the pipelines.",
-   "applies": {
-    "kind": [
-     "any"
-    ],
-    "components": [
-     "any"
-    ],
-    "patterns": [
-     "any"
-    ]
-   },
-   "owner": "technical-anchor",
-   "also": [
-    "business-analyst",
-    "source-owner"
-   ],
-   "evidence": {
-    "docs": [
-     "estimate",
-     "discovery"
-    ],
-    "looks_like": "Separate estimate lines for the history load (volume, number of runs, reconciliation with the business) and for data fixes, sized from a profile of real data."
-   },
-   "signals": [
-    "The history load is not mentioned in the estimate, or it is one line with a small number.",
-    "The estimate says data quality is \"assumed acceptable\" with no profile behind it.",
-    "There is no data profiling section in the discovery document."
-   ],
-   "contradiction": "Compare the discovery profiling results with the estimate: if the profile found quality problems but the estimate has no line for fixing or handling them, the estimate ignored the evidence.",
-   "due": {
-    "plan": 3,
-    "evidenced": 4
-   },
-   "fail_fast": "Load one year of real history in a test environment and time it, and count the rows that fail basic rules.",
-   "severity": "high",
-   "related": [
-    "EST-04",
-    "REQ-04"
-   ],
-   "signal_id": null,
-   "file": "catalog/checks/delivery/estimation.yaml"
-  },
-  {
-   "id": "HAND-01",
-   "title": "Runbook missing or written at the end",
-   "kind": "delivery",
-   "concern": "handover",
-   "question": "Is there a runbook that operations have read and used: what runs when, how to tell it failed, how to rerun safely, and who to call? If a load fails on the first night after the team has gone, can operations fix it?",
-   "why": "The runbook was written in the last week and never tried. On the first failure operations reran the whole load, which doubled a month of figures.",
-   "applies": {
-    "kind": [
-     "any"
-    ],
-    "components": [
-     "any"
-    ],
-    "patterns": [
-     "any"
-    ]
-   },
-   "owner": "technical-anchor",
-   "also": [
-    "operations"
-   ],
-   "evidence": {
-    "docs": [
-     "runbook"
-    ],
-    "looks_like": "A runbook started in build and finished before deploy, covering schedule, monitoring, alerts, common failures with fixes, safe rerun steps and contacts, used in at least one failure drill."
-   },
-   "signals": [
-    "No runbook or operations guide among the documents.",
-    "The runbook is planned only for the last week before go-live.",
-    "The runbook has headings but sections marked \"to be completed\"."
-   ],
-   "contradiction": "Compare the runbook with the architecture: jobs, sources or failure points in the architecture that the runbook does not mention will be unsupported.",
-   "due": {
-    "plan": 4,
-    "designed": 6,
-    "evidenced": 8,
-    "proven": 9
-   },
-   "fail_fast": "Break one job in the test environment and ask operations to recover it using only the runbook.",
-   "severity": "high",
-   "related": [
-    "HAND-03",
-    "HAND-04"
-   ],
-   "signal_id": "missing-doc-type",
-   "file": "catalog/checks/delivery/handover.yaml"
-  },
-  {
-   "id": "HAND-02",
-   "title": "Decision log and data dictionary not ready to hand over",
-   "kind": "delivery",
-   "concern": "handover",
-   "question": "Will the support team receive a current decision log and data dictionary that explain why things are the way they are? When someone asks \"why does this table work like this?\" after the team has left, where is the answer?",
-   "why": "The support team \"fixed\" a rule that looked wrong. It had been agreed with finance a year before, but the decision was only in an old e-mail thread, and the change broke month-end reporting.",
-   "applies": {
-    "kind": [
-     "any"
-    ],
-    "components": [
-     "any"
-    ],
-    "patterns": [
-     "any"
-    ]
-   },
-   "owner": "technical-anchor",
-   "also": [
-    "project-manager",
-    "operations"
-   ],
-   "evidence": {
-    "docs": [
-     "decisions",
-     "data-model"
-    ],
-    "looks_like": "A decision log and a data dictionary that match what is in production, reviewed as part of project closure."
-   },
-   "signals": [
-    "The decision log stops well before the end of build.",
-    "The data dictionary does not cover tables or rules added during build.",
-    "Handover lists code and access but not decisions or definitions."
-   ],
-   "contradiction": "Compare the data dictionary with the delivered data model or test results: rules in production that are not in the dictionary are unexplained.",
-   "due": {
-    "plan": 4,
-    "evidenced": 9,
-    "proven": 10
-   },
-   "fail_fast": "Ask someone outside the team to explain one business rule using only the handed-over documents.",
-   "severity": "medium",
-   "related": [
-    "PM-03",
-    "HAND-03"
-   ],
-   "signal_id": null,
-   "file": "catalog/checks/delivery/handover.yaml"
-  },
-  {
-   "id": "HAND-03",
-   "title": "Knowledge transfer never tested",
-   "kind": "delivery",
-   "concern": "handover",
-   "question": "Has the support team made at least one real change and one real recovery while the project team watched? If the project team left tomorrow, could the support team run and change this system?",
-   "why": "Knowledge transfer was two presentation sessions. The first change request after closure took the support team a month, and the project team had to be called back.",
-   "applies": {
-    "kind": [
-     "any"
-    ],
-    "components": [
-     "any"
-    ],
-    "patterns": [
-     "any"
-    ]
-   },
-   "owner": "technical-anchor",
-   "also": [
-    "operations",
-    "project-manager"
-   ],
-   "evidence": {
-    "docs": [
-     "plan",
-     "runbook"
-    ],
-    "looks_like": "Planned handover sessions with hands-on tasks, and a record of a change and a recovery done by the support team themselves."
-   },
-   "signals": [
-    "Knowledge transfer is a single line or a few presentation sessions in the plan.",
-    "The support team is not named, or joins only at the end.",
-    "No hands-on tasks are planned for the support team."
-   ],
-   "contradiction": "Compare the plan's handover time with the size of the system in the architecture: a short handover for a large system means much will not transfer.",
-   "due": {
-    "plan": 4,
-    "evidenced": 9,
-    "proven": 10
-   },
-   "fail_fast": "Ask the support team to make one small real change this sprint, with the project team only watching.",
-   "severity": "high",
-   "related": [
-    "PM-06",
-    "HAND-01"
-   ],
-   "signal_id": null,
-   "file": "catalog/checks/delivery/handover.yaml"
+   "pack": "pm",
+   "file": "packs/pm/checks/estimation.yaml"
   },
   {
    "id": "HAND-04",
@@ -1010,7 +1131,8 @@
     "COM-04"
    ],
    "signal_id": null,
-   "file": "catalog/checks/delivery/handover.yaml"
+   "pack": "pm",
+   "file": "packs/pm/checks/handover.yaml"
   },
   {
    "id": "HAND-05",
@@ -1058,55 +1180,8 @@
     "REQ-07"
    ],
    "signal_id": null,
-   "file": "catalog/checks/delivery/handover.yaml"
-  },
-  {
-   "id": "HAND-06",
-   "title": "No exit criteria for early-life support",
-   "kind": "delivery",
-   "concern": "handover",
-   "question": "Are there written criteria for ending the early weeks of close support after go-live (for example a number of clean runs, reconciled loads and no critical defects)? How will we know the system is ready to be left alone, rather than the team simply running out of time?",
-   "why": "The project team left after two weeks because the budget ended. Month-end processing, which had never run in production, failed the following week with nobody who knew the system.",
-   "applies": {
-    "kind": [
-     "any"
-    ],
-    "components": [
-     "any"
-    ],
-    "patterns": [
-     "any"
-    ]
-   },
-   "owner": "technical-anchor",
-   "also": [
-    "operations",
-    "project-manager"
-   ],
-   "evidence": {
-    "docs": [
-     "deployment",
-     "plan"
-    ],
-    "looks_like": "Written exit criteria for early-life support, covering at least one full business cycle, reconciled production loads and agreed defect levels."
-   },
-   "signals": [
-    "The plan ends at go-live, or has a fixed support period with no criteria.",
-    "Period-end or yearly processes are not mentioned in the early-life support period."
-   ],
-   "contradiction": "Compare the plan's early-life support period with the business calendar in the requirements: if the period ends before a month-end or other key cycle has run, the riskiest run happens unsupported.",
-   "due": {
-    "plan": 4,
-    "designed": 8,
-    "evidenced": 9
-   },
-   "fail_fast": "Ask: \"Which business cycle has not yet run in production?\" and keep support in place until it has.",
-   "severity": "medium",
-   "related": [
-    "HAND-04"
-   ],
-   "signal_id": null,
-   "file": "catalog/checks/delivery/handover.yaml"
+   "pack": "pm",
+   "file": "packs/pm/checks/handover.yaml"
   },
   {
    "id": "PM-01",
@@ -1156,7 +1231,8 @@
     "PM-10"
    ],
    "signal_id": null,
-   "file": "catalog/checks/delivery/project-management.yaml"
+   "pack": "pm",
+   "file": "packs/pm/checks/project-management.yaml"
   },
   {
    "id": "PM-02",
@@ -1203,7 +1279,8 @@
     "EST-03"
    ],
    "signal_id": "risks-without-owner",
-   "file": "catalog/checks/delivery/project-management.yaml"
+   "pack": "pm",
+   "file": "packs/pm/checks/project-management.yaml"
   },
   {
    "id": "PM-03",
@@ -1252,7 +1329,8 @@
     "HAND-02"
    ],
    "signal_id": "no-decision-log",
-   "file": "catalog/checks/delivery/project-management.yaml"
+   "pack": "pm",
+   "file": "packs/pm/checks/project-management.yaml"
   },
   {
    "id": "PM-04",
@@ -1301,7 +1379,8 @@
     "COM-01"
    ],
    "signal_id": "status-always-green",
-   "file": "catalog/checks/delivery/project-management.yaml"
+   "pack": "pm",
+   "file": "packs/pm/checks/project-management.yaml"
   },
   {
    "id": "PM-05",
@@ -1353,7 +1432,8 @@
     "SCOPE-05"
    ],
    "signal_id": "missing-doc-type",
-   "file": "catalog/checks/delivery/project-management.yaml"
+   "pack": "pm",
+   "file": "packs/pm/checks/project-management.yaml"
   },
   {
    "id": "PM-06",
@@ -1400,7 +1480,8 @@
     "HAND-03"
    ],
    "signal_id": null,
-   "file": "catalog/checks/delivery/project-management.yaml"
+   "pack": "pm",
+   "file": "packs/pm/checks/project-management.yaml"
   },
   {
    "id": "PM-07",
@@ -1447,7 +1528,8 @@
     "PM-01"
    ],
    "signal_id": null,
-   "file": "catalog/checks/delivery/project-management.yaml"
+   "pack": "pm",
+   "file": "packs/pm/checks/project-management.yaml"
   },
   {
    "id": "PM-08",
@@ -1496,7 +1578,8 @@
     "STK-02"
    ],
    "signal_id": null,
-   "file": "catalog/checks/delivery/project-management.yaml"
+   "pack": "pm",
+   "file": "packs/pm/checks/project-management.yaml"
   },
   {
    "id": "PM-09",
@@ -1544,7 +1627,8 @@
     "EST-01"
    ],
    "signal_id": null,
-   "file": "catalog/checks/delivery/project-management.yaml"
+   "pack": "pm",
+   "file": "packs/pm/checks/project-management.yaml"
   },
   {
    "id": "PM-10",
@@ -1594,451 +1678,8 @@
     "EST-04"
    ],
    "signal_id": null,
-   "file": "catalog/checks/delivery/project-management.yaml"
-  },
-  {
-   "id": "REQ-01",
-   "title": "Vague words in the requirements",
-   "kind": "delivery",
-   "concern": "requirements",
-   "question": "Has every vague word in the requirements, such as \"real-time\", \"fast\", \"all data\", \"user-friendly\", \"accurate\" or \"complete\", been replaced with a number or a test? If the users reject the system at the end, will it be because we each read those words differently?",
-   "why": "\"Real-time\" meant within a second to the sponsor and by the next morning to the team. The design was built for daily loads and had to be rebuilt late in the project.",
-   "applies": {
-    "kind": [
-     "any"
-    ],
-    "components": [
-     "any"
-    ],
-    "patterns": [
-     "any"
-    ]
-   },
-   "owner": "business-analyst",
-   "also": [
-    "technical-anchor",
-    "test-lead"
-   ],
-   "evidence": {
-    "docs": [
-     "requirements"
-    ],
-    "looks_like": "Every quality word paired with a measure, for example \"available by 7 a.m. on working days\" instead of \"timely\", or \"the last three years\" instead of \"all history\"."
-   },
-   "signals": [
-    "Words such as real-time, near real-time, fast, quickly, timely, all data, complete, accurate, user-friendly, intuitive, seamless, scalable or robust appear without a number next to them.",
-    "Lists of required data or reports end with \"etc.\" or \"and so on\"."
-   ],
-   "contradiction": "Compare the requirements with the architecture: if the requirement says \"real-time\" and the architecture schedules a daily batch, someone's reading of the word is wrong.",
-   "due": {
-    "plan": 1,
-    "designed": 4
-   },
-   "fail_fast": "Ask the requester to put a number on each vague word in a fifteen-minute call, and write the answers down.",
-   "severity": "high",
-   "related": [
-    "REQ-02",
-    "REQ-06"
-   ],
-   "signal_id": "vague-words",
-   "file": "catalog/checks/delivery/requirements.yaml"
-  },
-  {
-   "id": "REQ-02",
-   "title": "No acceptance criteria",
-   "kind": "delivery",
-   "concern": "requirements",
-   "question": "Does every requirement have acceptance criteria that the data can be tested against? At user acceptance, how will we and the business agree that a requirement is met?",
-   "why": "Requirements said \"show monthly sales by region\". At user acceptance the business compared it with their own report, got a different number, and nobody had agreed in advance which one was right.",
-   "applies": {
-    "kind": [
-     "any"
-    ],
-    "components": [
-     "any"
-    ],
-    "patterns": [
-     "any"
-    ]
-   },
-   "owner": "business-analyst",
-   "also": [
-    "test-lead",
-    "technical-anchor"
-   ],
-   "evidence": {
-    "docs": [
-     "requirements",
-     "test-strategy"
-    ],
-    "looks_like": "For each requirement, one or more criteria in the form \"given this data, the result is this\", ideally with a known figure the business already trusts."
-   },
-   "signals": [
-    "Requirements or user stories have no \"acceptance criteria\" or \"done when\" section.",
-    "Acceptance criteria repeat the requirement in other words rather than describing a test.",
-    "Backlog items are marked ready for build without criteria."
-   ],
-   "contradiction": "Compare the requirements with the test strategy: requirements that have no matching test, or tests that trace to no requirement, show the two were written apart.",
-   "due": {
-    "plan": 3,
-    "designed": 5,
-    "evidenced": 7
-   },
-   "fail_fast": "Take the three most important requirements and write a test for each with the business owner, using a figure from a report they already trust.",
-   "severity": "high",
-   "related": [
-    "REQ-01",
-    "REQ-03"
-   ],
-   "signal_id": "no-acceptance-criteria",
-   "file": "catalog/checks/delivery/requirements.yaml"
-  },
-  {
-   "id": "REQ-03",
-   "title": "Business definitions not agreed and signed",
-   "kind": "delivery",
-   "concern": "requirements",
-   "question": "Are the key business definitions (for example revenue, active customer, order date) written down and signed by the person who owns each one? If two departments see different numbers after go-live, which signed definition settles it?",
-   "why": "Sales counted revenue when the order was booked; finance counted it when it was paid. Both signed the requirements, which said \"revenue\", and the dashboard was disowned by one of them in the first week.",
-   "applies": {
-    "kind": [
-     "any"
-    ],
-    "components": [
-     "modelling",
-     "serving"
-    ],
-    "patterns": [
-     "any"
-    ]
-   },
-   "owner": "business-analyst",
-   "also": [
-    "business-owner",
-    "data-consumer",
-    "technical-anchor"
-   ],
-   "evidence": {
-    "docs": [
-     "data-model",
-     "decisions"
-    ],
-    "looks_like": "A definitions list with the exact rule for each term, the grain, the owner who signed it and the date."
-   },
-   "signals": [
-    "The data dictionary has names but no rules, owners or sign-off.",
-    "The same term is used in requirements from different departments with no definition.",
-    "Definitions are marked \"to be confirmed\" in a document that has passed discovery sign-off."
-   ],
-   "contradiction": "Compare the requirements with the data model: if a term in the requirements has a different rule, or no rule, in the data model, the definition was never agreed.",
-   "due": {
-    "plan": 3,
-    "designed": 4
-   },
-   "fail_fast": "Ask two of the main consumers to write their own definition of the top five terms separately, then compare the answers.",
-   "severity": "high",
-   "related": [
-    "REQ-02",
-    "STK-02"
-   ],
-   "signal_id": null,
-   "file": "catalog/checks/delivery/requirements.yaml"
-  },
-  {
-   "id": "REQ-04",
-   "title": "Requirements written without looking at the data",
-   "kind": "delivery",
-   "concern": "requirements",
-   "question": "Were the requirements checked against a profile of the real source data? If a requirement turns out to be impossible, will we find out in discovery or in testing?",
-   "why": "The requirement asked for sales by product category. The source had no category for a third of products, which only came to light when the report was tested.",
-   "applies": {
-    "kind": [
-     "any"
-    ],
-    "components": [
-     "any"
-    ],
-    "patterns": [
-     "any"
-    ]
-   },
-   "owner": "business-analyst",
-   "also": [
-    "technical-anchor",
-    "source-owner"
-   ],
-   "evidence": {
-    "docs": [
-     "discovery",
-     "requirements"
-    ],
-    "looks_like": "A data profile per source (volumes, keys, nulls, odd values) and a note against each requirement saying which source fields support it and any gaps found."
-   },
-   "signals": [
-    "No data profiling section or results in the discovery document.",
-    "Requirements name fields or attributes that do not appear in any source description.",
-    "Phrases such as \"data to be confirmed\" or \"assumed available\" against required fields."
-   ],
-   "contradiction": "Compare the requirements with the data model or source mapping: a required field with no source mapped to it is a requirement nobody checked against the data.",
-   "due": {
-    "plan": 3,
-    "evidenced": 4
-   },
-   "fail_fast": "Pull one real extract from each source and map the top ten requirements to actual columns in an afternoon.",
-   "severity": "high",
-   "related": [
-    "EST-07",
-    "REQ-03"
-   ],
-   "signal_id": null,
-   "file": "catalog/checks/delivery/requirements.yaml"
-  },
-  {
-   "id": "REQ-05",
-   "title": "The users are not the requesters",
-   "kind": "delivery",
-   "concern": "requirements",
-   "question": "Have the people who will use the output every day been asked what they need, or only the people who requested it? If nobody uses the system three months after go-live, will it be because it answered the requester's question and not the users'?",
-   "why": "A director requested a dashboard and approved the design. The analysts who were meant to use it needed row-level detail to act on, kept their old reports, and the dashboard went unused.",
-   "applies": {
-    "kind": [
-     "any"
-    ],
-    "components": [
-     "serving",
-     "modelling"
-    ],
-    "patterns": [
-     "any"
-    ]
-   },
-   "owner": "business-analyst",
-   "also": [
-    "data-consumer",
-    "business-owner"
-   ],
-   "evidence": {
-    "docs": [
-     "requirements",
-     "stakeholders"
-    ],
-    "looks_like": "Named users or user groups, how they will use the output, which decisions it supports, and evidence that some of them took part in workshops and will take part in user acceptance testing."
-   },
-   "signals": [
-    "Requirements name only a sponsor or requester, not users.",
-    "No user workshops, interviews or user personas are mentioned.",
-    "User acceptance testers are not named, or are the same person as the requester."
-   ],
-   "contradiction": "Compare the stakeholder map with the requirements sources: user groups on the map who are not listed as contributors to the requirements were never asked.",
-   "due": {
-    "plan": 1,
-    "designed": 4,
-    "evidenced": 7
-   },
-   "fail_fast": "Show a rough mock-up or a real sample of the output to three actual users and ask what decision they would make with it.",
-   "severity": "medium",
-   "related": [
-    "STK-01",
-    "STK-03"
-   ],
-   "signal_id": null,
-   "file": "catalog/checks/delivery/requirements.yaml"
-  },
-  {
-   "id": "REQ-06",
-   "title": "Non-functional needs missing",
-   "kind": "delivery",
-   "concern": "requirements",
-   "question": "Are freshness, volume and growth, recovery time and acceptable data loss, retention, and who may see what written as requirements with numbers? If the system works but is rejected, will it be because it is too slow, too stale, or unrecoverable?",
-   "why": "Nobody asked how fresh the data had to be or how quickly it had to recover. After the first overnight failure the business found out it would take a day to recover, and the system was not accepted.",
-   "applies": {
-    "kind": [
-     "any"
-    ],
-    "components": [
-     "any"
-    ],
-    "patterns": [
-     "any"
-    ]
-   },
-   "owner": "business-analyst",
-   "also": [
-    "technical-anchor",
-    "operations",
-    "security"
-   ],
-   "evidence": {
-    "docs": [
-     "requirements",
-     "architecture"
-    ],
-    "looks_like": "A short non-functional list: freshness deadline, expected volume and growth, how long it may be down, how much data may be lost, how long data is kept, and access rules."
-   },
-   "signals": [
-    "No \"non-functional\" heading in the requirements.",
-    "Freshness, recovery or retention are mentioned only as \"to be agreed\".",
-    "Volume is described in words (\"large\") rather than numbers."
-   ],
-   "contradiction": "Compare the requirements with the runbook or support model: if the runbook promises recovery within hours but no requirement says what is needed, or the reverse, the two disagree on what was promised.",
-   "due": {
-    "plan": 3,
-    "designed": 4,
-    "evidenced": 7
-   },
-   "fail_fast": "Ask the business owner: \"If this is down for a day, what happens?\" and write down the answer as a number.",
-   "severity": "high",
-   "related": [
-    "REQ-01",
-    "HAND-04"
-   ],
-   "signal_id": null,
-   "file": "catalog/checks/delivery/requirements.yaml"
-  },
-  {
-   "id": "REQ-07",
-   "title": "Goals with no measure of success",
-   "kind": "delivery",
-   "concern": "requirements",
-   "question": "What business result is this project for, how will it be measured, and what is the measure today? A year after go-live, how will anyone know whether it was worth it?",
-   "why": "The goal was \"better insight into customers\". No measure was agreed, so at closure the project could not show any benefit, and the next request for funding was refused.",
-   "applies": {
-    "kind": [
-     "any"
-    ],
-    "components": [
-     "any"
-    ],
-    "patterns": [
-     "any"
-    ]
-   },
-   "owner": "business-analyst",
-   "also": [
-    "business-owner"
-   ],
-   "evidence": {
-    "docs": [
-     "discovery",
-     "requirements"
-    ],
-    "looks_like": "Two or three goals, each with a measure, today's value (the baseline), a target, and where the data for measuring it will come from."
-   },
-   "signals": [
-    "Goals are written as activities (\"build a data platform\") rather than results.",
-    "No baseline figures are given for any goal.",
-    "Success measures need data the project does not collect."
-   ],
-   "contradiction": "Compare the goals in the discovery document with the scope: a goal whose measure depends on data or reports that are out of scope cannot be measured.",
-   "due": {
-    "plan": 3,
-    "designed": 4,
-    "proven": 10
-   },
-   "fail_fast": "Ask the sponsor to state the one number they hope will change, and check today whether that number can be produced.",
-   "severity": "medium",
-   "related": [
-    "HAND-05"
-   ],
-   "signal_id": null,
-   "file": "catalog/checks/delivery/requirements.yaml"
-  },
-  {
-   "id": "SCOPE-01",
-   "title": "Scope written only as \"in\"",
-   "kind": "delivery",
-   "concern": "scope",
-   "question": "Is there a written list of what is out of scope, as well as what is in? When someone says \"I assumed that was included\", which document will we point to?",
-   "why": "The scope listed the tables to build. The business assumed the reports on top were included too, and the argument cost a month and the sponsor's trust.",
-   "applies": {
-    "kind": [
-     "any"
-    ],
-    "components": [
-     "any"
-    ],
-    "patterns": [
-     "any"
-    ]
-   },
-   "owner": "business-analyst",
-   "also": [
-    "project-manager",
-    "technical-anchor",
-    "business-owner"
-   ],
-   "evidence": {
-    "docs": [
-     "discovery",
-     "requirements"
-    ],
-    "looks_like": "Three lists, in scope, out of scope and later, each item specific enough that a stranger could say which list a new request belongs to."
-   },
-   "signals": [
-    "No \"out of scope\" heading or list in the discovery, scope or requirements document.",
-    "The out-of-scope list is generic (\"anything not listed above\")."
-   ],
-   "contradiction": "Compare the scope with the requirements: a requirement that is neither in the in-scope list nor explicitly out is a future argument.",
-   "due": {
-    "plan": 3,
-    "designed": 4
-   },
-   "fail_fast": "Ask the business owner to read only the out-of-scope list and say which item surprises them.",
-   "severity": "high",
-   "related": [
-    "SCOPE-02",
-    "SCOPE-06"
-   ],
-   "signal_id": "no-out-of-scope",
-   "file": "catalog/checks/delivery/scope.yaml"
-  },
-  {
-   "id": "SCOPE-02",
-   "title": "The data scope traps left silent",
-   "kind": "delivery",
-   "concern": "scope",
-   "question": "Has each of the ten data scope traps been written down as in, out or later: history and backfill, deletes at the source, late and corrected data, changes over time, bad rows, source data quality, personal data, reports and dashboards, access and onboarding, and recovery? Which of them will someone assume was included?",
-   "why": "Nobody wrote down whether deleted customers should disappear from the reports. The business assumed yes, the team assumed no, and the gap was found by an auditor.",
-   "applies": {
-    "kind": [
-     "any"
-    ],
-    "components": [
-     "any"
-    ],
-    "patterns": [
-     "any"
-    ]
-   },
-   "owner": "technical-anchor",
-   "also": [
-    "business-analyst",
-    "business-owner"
-   ],
-   "evidence": {
-    "docs": [
-     "discovery",
-     "requirements"
-    ],
-    "looks_like": "A table with one row per trap, the decision (in, out or later), who decided and why."
-   },
-   "signals": [
-    "Several of the words history, backfill, delete, late, correction, bad rows, quality, personal data, reports, access and recovery do not appear in the scope section.",
-    "Traps are mentioned but marked \"to be confirmed\" after discovery sign-off."
-   ],
-   "contradiction": "Compare the scope with the architecture: a trap the architecture handles (for example history kept) that the scope does not mention, or the reverse, shows the two were never reconciled.",
-   "due": {
-    "plan": 3,
-    "designed": 4
-   },
-   "fail_fast": "Walk the ten traps with the business owner in thirty minutes and record each answer.",
-   "severity": "high",
-   "related": [
-    "SCOPE-01",
-    "EST-07"
-   ],
-   "signal_id": null,
-   "file": "catalog/checks/delivery/scope.yaml"
+   "pack": "pm",
+   "file": "packs/pm/checks/project-management.yaml"
   },
   {
    "id": "SCOPE-03",
@@ -2087,56 +1728,8 @@
     "PM-03"
    ],
    "signal_id": null,
-   "file": "catalog/checks/delivery/scope.yaml"
-  },
-  {
-   "id": "SCOPE-04",
-   "title": "\"Phase 2\" used as a hiding place",
-   "kind": "delivery",
-   "concern": "scope",
-   "question": "Is everything labelled \"phase 2\" or \"later\" actually planned, funded and owned, and does the business know that phase 2 may never happen? If phase 2 is cancelled, will the first phase still be useful on its own?",
-   "why": "Hard items such as history and data quality were moved to phase 2 to make the first phase look affordable. Phase 2 was never funded, and phase 1 was unusable without them.",
-   "applies": {
-    "kind": [
-     "any"
-    ],
-    "components": [
-     "any"
-    ],
-    "patterns": [
-     "any"
-    ]
-   },
-   "owner": "project-manager",
-   "also": [
-    "business-owner",
-    "business-analyst"
-   ],
-   "evidence": {
-    "docs": [
-     "plan",
-     "discovery"
-    ],
-    "looks_like": "A \"later\" list in which each item states whether phase 1 depends on it, an owner, and whether funding exists, plus a statement that phase 1 is usable without them."
-   },
-   "signals": [
-    "Many items marked \"phase 2\", \"future phase\" or \"later\" with no dates or owners.",
-    "Phase 2 has no estimate or budget.",
-    "Items that the main goal depends on are listed under phase 2."
-   ],
-   "contradiction": "Compare the goals or success measures with the phase-2 list: a goal that can only be met by phase-2 items means phase 1 alone does not deliver the value promised.",
-   "due": {
-    "plan": 3,
-    "designed": 4
-   },
-   "fail_fast": "Ask the sponsor: \"If there is no phase 2, would you still pay for phase 1 as written?\"",
-   "severity": "medium",
-   "related": [
-    "SCOPE-05",
-    "REQ-07"
-   ],
-   "signal_id": null,
-   "file": "catalog/checks/delivery/scope.yaml"
+   "pack": "pm",
+   "file": "packs/pm/checks/scope.yaml"
   },
   {
    "id": "SCOPE-05",
@@ -2184,56 +1777,8 @@
     "PM-05"
    ],
    "signal_id": null,
-   "file": "catalog/checks/delivery/scope.yaml"
-  },
-  {
-   "id": "SCOPE-06",
-   "title": "Scope not signed by the business owner",
-   "kind": "delivery",
-   "concern": "scope",
-   "question": "Has the person who will judge success signed the in, out and later lists, and is that signature recorded with a date? If scope is disputed later, whose signature ends the argument?",
-   "why": "The scope was agreed with a delegate. The real business owner saw it for the first time at user acceptance and rejected half of the out-of-scope list.",
-   "applies": {
-    "kind": [
-     "any"
-    ],
-    "components": [
-     "any"
-    ],
-    "patterns": [
-     "any"
-    ]
-   },
-   "owner": "project-manager",
-   "also": [
-    "business-owner",
-    "business-analyst"
-   ],
-   "evidence": {
-    "docs": [
-     "decisions",
-     "discovery"
-    ],
-    "looks_like": "A dated sign-off record naming the business owner, the version of the scope signed, and any conditions."
-   },
-   "signals": [
-    "The scope document has no approver, approval date or version.",
-    "Approval is recorded as \"agreed in meeting\" without a name.",
-    "The approver is not the business owner named in the stakeholder map."
-   ],
-   "contradiction": "Compare the scope sign-off with the stakeholder map: if the person who signed is not the one the map names as the decision owner, the sign-off may not hold.",
-   "due": {
-    "plan": 4,
-    "evidenced": 4
-   },
-   "fail_fast": "Send the out-of-scope list to the business owner today and ask for a written yes.",
-   "severity": "medium",
-   "related": [
-    "SCOPE-01",
-    "STK-05"
-   ],
-   "signal_id": null,
-   "file": "catalog/checks/delivery/scope.yaml"
+   "pack": "pm",
+   "file": "packs/pm/checks/scope.yaml"
   },
   {
    "id": "STK-01",
@@ -2280,7 +1825,8 @@
     "COM-04"
    ],
    "signal_id": "missing-doc-type",
-   "file": "catalog/checks/delivery/stakeholders.yaml"
+   "pack": "pm",
+   "file": "packs/pm/checks/stakeholders.yaml"
   },
   {
    "id": "STK-02",
@@ -2328,7 +1874,8 @@
     "REQ-03"
    ],
    "signal_id": null,
-   "file": "catalog/checks/delivery/stakeholders.yaml"
+   "pack": "pm",
+   "file": "packs/pm/checks/stakeholders.yaml"
   },
   {
    "id": "STK-03",
@@ -2377,7 +1924,8 @@
     "REQ-04"
    ],
    "signal_id": null,
-   "file": "catalog/checks/delivery/stakeholders.yaml"
+   "pack": "pm",
+   "file": "packs/pm/checks/stakeholders.yaml"
   },
   {
    "id": "STK-04",
@@ -2426,7 +1974,8 @@
     "COM-01"
    ],
    "signal_id": null,
-   "file": "catalog/checks/delivery/stakeholders.yaml"
+   "pack": "pm",
+   "file": "packs/pm/checks/stakeholders.yaml"
   },
   {
    "id": "STK-05",
@@ -2474,7 +2023,8 @@
     "SCOPE-06"
    ],
    "signal_id": null,
-   "file": "catalog/checks/delivery/stakeholders.yaml"
+   "pack": "pm",
+   "file": "packs/pm/checks/stakeholders.yaml"
   },
   {
    "id": "STK-06",
@@ -2521,7 +2071,8 @@
     "STK-01"
    ],
    "signal_id": null,
-   "file": "catalog/checks/delivery/stakeholders.yaml"
+   "pack": "pm",
+   "file": "packs/pm/checks/stakeholders.yaml"
   },
   {
    "id": "COST-01",
@@ -2571,7 +2122,8 @@
     "DES-06"
    ],
    "signal_id": null,
-   "file": "catalog/checks/technical/cost.yaml"
+   "pack": "tech",
+   "file": "packs/tech/checks/cost.yaml"
   },
   {
    "id": "COST-02",
@@ -2617,7 +2169,8 @@
     "ENV-02"
    ],
    "signal_id": null,
-   "file": "catalog/checks/technical/cost.yaml"
+   "pack": "tech",
+   "file": "packs/tech/checks/cost.yaml"
   },
   {
    "id": "COST-03",
@@ -2662,7 +2215,8 @@
     "OPS-03"
    ],
    "signal_id": null,
-   "file": "catalog/checks/technical/cost.yaml"
+   "pack": "tech",
+   "file": "packs/tech/checks/cost.yaml"
   },
   {
    "id": "COST-04",
@@ -2711,7 +2265,8 @@
     "PERF-05"
    ],
    "signal_id": null,
-   "file": "catalog/checks/technical/cost.yaml"
+   "pack": "tech",
+   "file": "packs/tech/checks/cost.yaml"
   },
   {
    "id": "DQ-01",
@@ -2763,7 +2318,8 @@
     "TEST-01"
    ],
    "signal_id": null,
-   "file": "catalog/checks/technical/data-quality.yaml"
+   "pack": "tech",
+   "file": "packs/tech/checks/data-quality.yaml"
   },
   {
    "id": "DQ-02",
@@ -2811,7 +2367,8 @@
     "OPS-01"
    ],
    "signal_id": null,
-   "file": "catalog/checks/technical/data-quality.yaml"
+   "pack": "tech",
+   "file": "packs/tech/checks/data-quality.yaml"
   },
   {
    "id": "DQ-03",
@@ -2854,7 +2411,8 @@
     "ORCH-02"
    ],
    "signal_id": null,
-   "file": "catalog/checks/technical/data-quality.yaml"
+   "pack": "tech",
+   "file": "packs/tech/checks/data-quality.yaml"
   },
   {
    "id": "DQ-04",
@@ -2901,7 +2459,8 @@
     "DQ-01"
    ],
    "signal_id": null,
-   "file": "catalog/checks/technical/data-quality.yaml"
+   "pack": "tech",
+   "file": "packs/tech/checks/data-quality.yaml"
   },
   {
    "id": "DQ-05",
@@ -2950,7 +2509,8 @@
     "DES-01"
    ],
    "signal_id": null,
-   "file": "catalog/checks/technical/data-quality.yaml"
+   "pack": "tech",
+   "file": "packs/tech/checks/data-quality.yaml"
   },
   {
    "id": "DEL-01",
@@ -3001,7 +2561,8 @@
     "REC-01"
    ],
    "signal_id": null,
-   "file": "catalog/checks/technical/deletes.yaml"
+   "pack": "tech",
+   "file": "packs/tech/checks/deletes.yaml"
   },
   {
    "id": "DEL-02",
@@ -3048,7 +2609,8 @@
     "SEC-03"
    ],
    "signal_id": null,
-   "file": "catalog/checks/technical/deletes.yaml"
+   "pack": "tech",
+   "file": "packs/tech/checks/deletes.yaml"
   },
   {
    "id": "DEL-03",
@@ -3094,7 +2656,8 @@
     "REC-01"
    ],
    "signal_id": null,
-   "file": "catalog/checks/technical/deletes.yaml"
+   "pack": "tech",
+   "file": "packs/tech/checks/deletes.yaml"
   },
   {
    "id": "DES-01",
@@ -3141,7 +2704,8 @@
     "PERF-02"
    ],
    "signal_id": null,
-   "file": "catalog/checks/technical/design.yaml"
+   "pack": "tech",
+   "file": "packs/tech/checks/design.yaml"
   },
   {
    "id": "DES-02",
@@ -3189,7 +2753,8 @@
     "DES-06"
    ],
    "signal_id": null,
-   "file": "catalog/checks/technical/design.yaml"
+   "pack": "tech",
+   "file": "packs/tech/checks/design.yaml"
   },
   {
    "id": "DES-04",
@@ -3235,7 +2800,8 @@
     "SCD-03"
    ],
    "signal_id": null,
-   "file": "catalog/checks/technical/design.yaml"
+   "pack": "tech",
+   "file": "packs/tech/checks/design.yaml"
   },
   {
    "id": "DES-05",
@@ -3282,7 +2848,8 @@
     "ENV-05"
    ],
    "signal_id": null,
-   "file": "catalog/checks/technical/design.yaml"
+   "pack": "tech",
+   "file": "packs/tech/checks/design.yaml"
   },
   {
    "id": "DES-06",
@@ -3330,7 +2897,8 @@
     "PERF-02"
    ],
    "signal_id": null,
-   "file": "catalog/checks/technical/design.yaml"
+   "pack": "tech",
+   "file": "packs/tech/checks/design.yaml"
   },
   {
    "id": "DUP-01",
@@ -3383,7 +2951,8 @@
     "REC-01"
    ],
    "signal_id": null,
-   "file": "catalog/checks/technical/duplicates.yaml"
+   "pack": "tech",
+   "file": "packs/tech/checks/duplicates.yaml"
   },
   {
    "id": "DUP-02",
@@ -3436,7 +3005,8 @@
     "TEST-05"
    ],
    "signal_id": null,
-   "file": "catalog/checks/technical/duplicates.yaml"
+   "pack": "tech",
+   "file": "packs/tech/checks/duplicates.yaml"
   },
   {
    "id": "DUP-03",
@@ -3486,7 +3056,8 @@
     "SCD-03"
    ],
    "signal_id": null,
-   "file": "catalog/checks/technical/duplicates.yaml"
+   "pack": "tech",
+   "file": "packs/tech/checks/duplicates.yaml"
   },
   {
    "id": "DUP-04",
@@ -3536,7 +3107,8 @@
     "LATE-03"
    ],
    "signal_id": null,
-   "file": "catalog/checks/technical/duplicates.yaml"
+   "pack": "tech",
+   "file": "packs/tech/checks/duplicates.yaml"
   },
   {
    "id": "ENV-01",
@@ -3583,7 +3155,8 @@
     "TEST-02"
    ],
    "signal_id": null,
-   "file": "catalog/checks/technical/environments-and-access.yaml"
+   "pack": "tech",
+   "file": "packs/tech/checks/environments-and-access.yaml"
   },
   {
    "id": "ENV-02",
@@ -3631,7 +3204,8 @@
     "REL-05"
    ],
    "signal_id": null,
-   "file": "catalog/checks/technical/environments-and-access.yaml"
+   "pack": "tech",
+   "file": "packs/tech/checks/environments-and-access.yaml"
   },
   {
    "id": "ENV-03",
@@ -3681,7 +3255,8 @@
     "ENV-01"
    ],
    "signal_id": null,
-   "file": "catalog/checks/technical/environments-and-access.yaml"
+   "pack": "tech",
+   "file": "packs/tech/checks/environments-and-access.yaml"
   },
   {
    "id": "ENV-04",
@@ -3726,7 +3301,8 @@
     "ENV-01"
    ],
    "signal_id": null,
-   "file": "catalog/checks/technical/environments-and-access.yaml"
+   "pack": "tech",
+   "file": "packs/tech/checks/environments-and-access.yaml"
   },
   {
    "id": "ENV-05",
@@ -3770,7 +3346,309 @@
     "ENV-04"
    ],
    "signal_id": null,
-   "file": "catalog/checks/technical/environments-and-access.yaml"
+   "pack": "tech",
+   "file": "packs/tech/checks/environments-and-access.yaml"
+  },
+  {
+   "id": "EST-01",
+   "title": "The rough guess became the promise",
+   "kind": "delivery",
+   "concern": "estimation",
+   "question": "Has the estimate been redone since the first rough guess, and does everyone quoting a date or a budget know which version they are quoting? Imagine it is six months from now and the project is late: was the date we are judged against the one somebody guessed before anyone looked at the data?",
+   "why": "A number given in a corridor before discovery was written into the budget. Discovery found twice the work, but the plan was expected to confirm the guess, so the project was \"late\" from its first week.",
+   "applies": {
+    "kind": [
+     "any"
+    ],
+    "components": [
+     "any"
+    ],
+    "patterns": [
+     "any"
+    ]
+   },
+   "owner": "technical-anchor",
+   "also": [
+    "project-manager",
+    "business-owner"
+   ],
+   "evidence": {
+    "docs": [
+     "estimate",
+     "plan",
+     "status"
+    ],
+    "looks_like": "An estimate history showing the rough estimate, the discovery estimate and later re-estimates, each dated, with the baseline that sign-off accepted clearly marked."
+   },
+   "signals": [
+    "The same number appears in the first brief, the discovery document and the plan, unchanged.",
+    "The estimate has no date or version, so nobody can tell whether it came before or after discovery.",
+    "Status reports measure progress against a figure that is older than the discovery document.",
+    "Phrases such as \"as agreed at the outset\" or \"the approved budget\" with no link to how it was built."
+   ],
+   "contradiction": "Compare the estimate with the plan: if the plan's end date or budget matches the stage-2 rough estimate rather than the discovery estimate, the guess has become the promise.",
+   "due": {
+    "plan": 2,
+    "evidenced": 4
+   },
+   "fail_fast": "Put the rough estimate and the discovery estimate side by side in front of the sponsor and ask which one the plan is built on.",
+   "severity": "high",
+   "related": [
+    "EST-02",
+    "EST-06"
+   ],
+   "signal_id": null,
+   "pack": "tech",
+   "file": "packs/tech/checks/estimation.yaml"
+  },
+  {
+   "id": "EST-02",
+   "title": "One number instead of a range",
+   "kind": "delivery",
+   "concern": "estimation",
+   "question": "Is the estimate given as a range, with the reason for its width? If the project overruns, will anyone be able to say whether the overrun was inside the range we said was possible?",
+   "why": "\"Six weeks\" was heard as a commitment. \"Five to eight weeks if access arrives in week one\" would have been a plan, and the slip to seven weeks would have been expected rather than a crisis.",
+   "applies": {
+    "kind": [
+     "any"
+    ],
+    "components": [
+     "any"
+    ],
+    "patterns": [
+     "any"
+    ]
+   },
+   "owner": "technical-anchor",
+   "also": [
+    "project-manager"
+   ],
+   "evidence": {
+    "docs": [
+     "estimate"
+    ],
+    "looks_like": "A low and a high figure (or a most-likely figure with a stated spread), and a sentence on what would move it toward either end."
+   },
+   "signals": [
+    "The estimate is a single figure in days, weeks or money with no low and high value.",
+    "The width of the range does not narrow from the rough estimate to the discovery estimate.",
+    "The range is the same percentage on every item, which suggests it was added, not reasoned."
+   ],
+   "contradiction": "Compare the estimate with the status reports: a range in the estimate but a single committed date in every status report means the range was dropped on the way to the stakeholders.",
+   "due": {
+    "plan": 2,
+    "evidenced": 4
+   },
+   "fail_fast": "Ask the person who wrote the estimate for the worst realistic case. If they can name one without hesitating, it belongs in the document.",
+   "severity": "high",
+   "related": [
+    "EST-01",
+    "EST-03"
+   ],
+   "signal_id": "single-number-estimate",
+   "pack": "tech",
+   "file": "packs/tech/checks/estimation.yaml"
+  },
+  {
+   "id": "EST-03",
+   "title": "An estimate with no written assumptions",
+   "kind": "delivery",
+   "concern": "estimation",
+   "question": "Which assumptions does the estimate depend on, and which one, if wrong, would move it the most? If the estimate turns out wrong, will we be able to point to the assumption that broke?",
+   "why": "The estimate assumed the source data was clean and that one person would test. Neither was written down, so when both failed, the overrun looked like the team's fault instead of a known risk.",
+   "applies": {
+    "kind": [
+     "any"
+    ],
+    "components": [
+     "any"
+    ],
+    "patterns": [
+     "any"
+    ]
+   },
+   "owner": "technical-anchor",
+   "also": [
+    "project-manager",
+    "business-owner"
+   ],
+   "evidence": {
+    "docs": [
+     "estimate",
+     "raid"
+    ],
+    "looks_like": "A numbered list of assumptions next to the estimate, the most sensitive ones marked, and each one also logged in the RAID log with an owner."
+   },
+   "signals": [
+    "No \"assumptions\" heading or list anywhere in or near the estimate.",
+    "Assumptions are written as one line, such as \"standard assumptions apply\".",
+    "Assumptions exist in the estimate but none of them appear in the RAID log."
+   ],
+   "contradiction": "Compare the estimate's assumptions with the RAID log: an assumption in one but not the other is either unmanaged or was never the real basis of the estimate.",
+   "due": {
+    "plan": 2,
+    "evidenced": 4
+   },
+   "fail_fast": "Pick the riskiest assumption and test it this week, for example by requesting the access or pulling one real extract.",
+   "severity": "high",
+   "related": [
+    "EST-02",
+    "COM-05",
+    "PM-07"
+   ],
+   "signal_id": "no-assumptions",
+   "pack": "tech",
+   "file": "packs/tech/checks/estimation.yaml"
+  },
+  {
+   "id": "EST-04",
+   "title": "Invisible work left out of the estimate",
+   "kind": "delivery",
+   "concern": "estimation",
+   "question": "Does the estimate include the work that is not building: getting access, setting up environments, testing, fixing data, rehearsing the cut-over, documentation and handover? If we run out of time, will it be because the build took longer, or because this work was never counted?",
+   "why": "The build finished on time. Then access approvals, test data, two cut-over rehearsals and the runbook took another five weeks that nobody had planned for.",
+   "applies": {
+    "kind": [
+     "any"
+    ],
+    "components": [
+     "any"
+    ],
+    "patterns": [
+     "any"
+    ]
+   },
+   "owner": "technical-anchor",
+   "also": [
+    "project-manager",
+    "test-lead",
+    "operations"
+   ],
+   "evidence": {
+    "docs": [
+     "estimate",
+     "plan"
+    ],
+    "looks_like": "Separate lines for access and onboarding, environments, testing (including reconciliation and user acceptance), data fixes, history load, cut-over and rollback rehearsal, runbook, handover and hypercare."
+   },
+   "signals": [
+    "The estimate lists only build items (pipelines, tables, reports).",
+    "Testing is a fixed percentage added at the end rather than counted per item.",
+    "Words such as \"cut-over\", \"handover\", \"access\", \"environment\" or \"hypercare\" do not appear in the estimate."
+   ],
+   "contradiction": "Compare the estimate with the plan: plan tasks for testing, cut-over or handover that have no matching line in the estimate are unfunded work.",
+   "due": {
+    "plan": 2,
+    "evidenced": 4
+   },
+   "fail_fast": "Read the estimate against the ten lifecycle stages and ask, for each stage after build, which line pays for it.",
+   "severity": "high",
+   "related": [
+    "EST-05",
+    "EST-07",
+    "PM-05"
+   ],
+   "signal_id": "no-invisible-work",
+   "pack": "tech",
+   "file": "packs/tech/checks/estimation.yaml"
+  },
+  {
+   "id": "EST-05",
+   "title": "Guessed, not counted",
+   "kind": "delivery",
+   "concern": "estimation",
+   "question": "Was the estimate built by counting the things the project will deliver (sources, tables, rules, reports, interfaces) and multiplying by a rate, or was it a total someone felt was right? Could another person rebuild the number from the document?",
+   "why": "The estimate was \"about three months\" for the whole project. When it was finally counted there were forty tables and twelve reports, which at the team's real rate was nearer six months.",
+   "applies": {
+    "kind": [
+     "any"
+    ],
+    "components": [
+     "any"
+    ],
+    "patterns": [
+     "any"
+    ]
+   },
+   "owner": "technical-anchor",
+   "also": [
+    "project-manager"
+   ],
+   "evidence": {
+    "docs": [
+     "estimate"
+    ],
+    "looks_like": "A table of counted items by type and complexity, a rate per item, where the rate came from, and the total."
+   },
+   "signals": [
+    "The estimate is a total with no breakdown, or a breakdown by phase only.",
+    "No counts of sources, tables, rules or reports appear anywhere in the documents.",
+    "The rate per item is not stated or not explained."
+   ],
+   "contradiction": "Compare the estimate with the requirements or data model: if they list more sources, tables or reports than the estimate counted, the estimate is short.",
+   "due": {
+    "plan": 2,
+    "designed": 4
+   },
+   "fail_fast": "Count the items in the requirements yourself and divide the estimate by the count. If the effort per item looks implausibly small, it probably is.",
+   "severity": "medium",
+   "related": [
+    "EST-04",
+    "EST-06"
+   ],
+   "signal_id": null,
+   "pack": "tech",
+   "file": "packs/tech/checks/estimation.yaml"
+  },
+  {
+   "id": "EST-07",
+   "title": "History load and data fixing underestimated",
+   "kind": "delivery",
+   "concern": "estimation",
+   "question": "Has the work of loading history and dealing with poor source data been estimated separately, using a profile of the real data? If the history load is what delays go-live, will that surprise anyone?",
+   "why": "The pipelines worked on a month of data. Ten years of history held old codes, broken keys and a format change, and checking the old numbers with the business took longer than building the pipelines.",
+   "applies": {
+    "kind": [
+     "any"
+    ],
+    "components": [
+     "any"
+    ],
+    "patterns": [
+     "any"
+    ]
+   },
+   "owner": "technical-anchor",
+   "also": [
+    "business-analyst",
+    "source-owner"
+   ],
+   "evidence": {
+    "docs": [
+     "estimate",
+     "discovery"
+    ],
+    "looks_like": "Separate estimate lines for the history load (volume, number of runs, reconciliation with the business) and for data fixes, sized from a profile of real data."
+   },
+   "signals": [
+    "The history load is not mentioned in the estimate, or it is one line with a small number.",
+    "The estimate says data quality is \"assumed acceptable\" with no profile behind it.",
+    "There is no data profiling section in the discovery document."
+   ],
+   "contradiction": "Compare the discovery profiling results with the estimate: if the profile found quality problems but the estimate has no line for fixing or handling them, the estimate ignored the evidence.",
+   "due": {
+    "plan": 3,
+    "evidenced": 4
+   },
+   "fail_fast": "Load one year of real history in a test environment and time it, and count the rows that fail basic rules.",
+   "severity": "high",
+   "related": [
+    "EST-04",
+    "REQ-04"
+   ],
+   "signal_id": null,
+   "pack": "tech",
+   "file": "packs/tech/checks/estimation.yaml"
   },
   {
    "id": "HIST-01",
@@ -3821,7 +3699,8 @@
     "REC-02"
    ],
    "signal_id": null,
-   "file": "catalog/checks/technical/first-and-history-load.yaml"
+   "pack": "tech",
+   "file": "packs/tech/checks/first-and-history-load.yaml"
   },
   {
    "id": "HIST-02",
@@ -3872,7 +3751,8 @@
     "PERF-01"
    ],
    "signal_id": null,
-   "file": "catalog/checks/technical/first-and-history-load.yaml"
+   "pack": "tech",
+   "file": "packs/tech/checks/first-and-history-load.yaml"
   },
   {
    "id": "HIST-03",
@@ -3920,7 +3800,8 @@
     "REC-01"
    ],
    "signal_id": null,
-   "file": "catalog/checks/technical/first-and-history-load.yaml"
+   "pack": "tech",
+   "file": "packs/tech/checks/first-and-history-load.yaml"
   },
   {
    "id": "HIST-04",
@@ -3976,7 +3857,209 @@
     "HAND-01"
    ],
    "signal_id": null,
-   "file": "catalog/checks/technical/first-and-history-load.yaml"
+   "pack": "tech",
+   "file": "packs/tech/checks/first-and-history-load.yaml"
+  },
+  {
+   "id": "HAND-01",
+   "title": "Runbook missing or written at the end",
+   "kind": "delivery",
+   "concern": "handover",
+   "question": "Is there a runbook that operations have read and used: what runs when, how to tell it failed, how to rerun safely, and who to call? If a load fails on the first night after the team has gone, can operations fix it?",
+   "why": "The runbook was written in the last week and never tried. On the first failure operations reran the whole load, which doubled a month of figures.",
+   "applies": {
+    "kind": [
+     "any"
+    ],
+    "components": [
+     "any"
+    ],
+    "patterns": [
+     "any"
+    ]
+   },
+   "owner": "technical-anchor",
+   "also": [
+    "operations"
+   ],
+   "evidence": {
+    "docs": [
+     "runbook"
+    ],
+    "looks_like": "A runbook started in build and finished before deploy, covering schedule, monitoring, alerts, common failures with fixes, safe rerun steps and contacts, used in at least one failure drill."
+   },
+   "signals": [
+    "No runbook or operations guide among the documents.",
+    "The runbook is planned only for the last week before go-live.",
+    "The runbook has headings but sections marked \"to be completed\"."
+   ],
+   "contradiction": "Compare the runbook with the architecture: jobs, sources or failure points in the architecture that the runbook does not mention will be unsupported.",
+   "due": {
+    "plan": 4,
+    "designed": 6,
+    "evidenced": 8,
+    "proven": 9
+   },
+   "fail_fast": "Break one job in the test environment and ask operations to recover it using only the runbook.",
+   "severity": "high",
+   "related": [
+    "HAND-03",
+    "HAND-04"
+   ],
+   "signal_id": "missing-doc-type",
+   "pack": "tech",
+   "file": "packs/tech/checks/handover.yaml"
+  },
+  {
+   "id": "HAND-02",
+   "title": "Decision log and data dictionary not ready to hand over",
+   "kind": "delivery",
+   "concern": "handover",
+   "question": "Will the support team receive a current decision log and data dictionary that explain why things are the way they are? When someone asks \"why does this table work like this?\" after the team has left, where is the answer?",
+   "why": "The support team \"fixed\" a rule that looked wrong. It had been agreed with finance a year before, but the decision was only in an old e-mail thread, and the change broke month-end reporting.",
+   "applies": {
+    "kind": [
+     "any"
+    ],
+    "components": [
+     "any"
+    ],
+    "patterns": [
+     "any"
+    ]
+   },
+   "owner": "technical-anchor",
+   "also": [
+    "project-manager",
+    "operations"
+   ],
+   "evidence": {
+    "docs": [
+     "decisions",
+     "data-model"
+    ],
+    "looks_like": "A decision log and a data dictionary that match what is in production, reviewed as part of project closure."
+   },
+   "signals": [
+    "The decision log stops well before the end of build.",
+    "The data dictionary does not cover tables or rules added during build.",
+    "Handover lists code and access but not decisions or definitions."
+   ],
+   "contradiction": "Compare the data dictionary with the delivered data model or test results: rules in production that are not in the dictionary are unexplained.",
+   "due": {
+    "plan": 4,
+    "evidenced": 9,
+    "proven": 10
+   },
+   "fail_fast": "Ask someone outside the team to explain one business rule using only the handed-over documents.",
+   "severity": "medium",
+   "related": [
+    "PM-03",
+    "HAND-03"
+   ],
+   "signal_id": null,
+   "pack": "tech",
+   "file": "packs/tech/checks/handover.yaml"
+  },
+  {
+   "id": "HAND-03",
+   "title": "Knowledge transfer never tested",
+   "kind": "delivery",
+   "concern": "handover",
+   "question": "Has the support team made at least one real change and one real recovery while the project team watched? If the project team left tomorrow, could the support team run and change this system?",
+   "why": "Knowledge transfer was two presentation sessions. The first change request after closure took the support team a month, and the project team had to be called back.",
+   "applies": {
+    "kind": [
+     "any"
+    ],
+    "components": [
+     "any"
+    ],
+    "patterns": [
+     "any"
+    ]
+   },
+   "owner": "technical-anchor",
+   "also": [
+    "operations",
+    "project-manager"
+   ],
+   "evidence": {
+    "docs": [
+     "plan",
+     "runbook"
+    ],
+    "looks_like": "Planned handover sessions with hands-on tasks, and a record of a change and a recovery done by the support team themselves."
+   },
+   "signals": [
+    "Knowledge transfer is a single line or a few presentation sessions in the plan.",
+    "The support team is not named, or joins only at the end.",
+    "No hands-on tasks are planned for the support team."
+   ],
+   "contradiction": "Compare the plan's handover time with the size of the system in the architecture: a short handover for a large system means much will not transfer.",
+   "due": {
+    "plan": 4,
+    "evidenced": 9,
+    "proven": 10
+   },
+   "fail_fast": "Ask the support team to make one small real change this sprint, with the project team only watching.",
+   "severity": "high",
+   "related": [
+    "PM-06",
+    "HAND-01"
+   ],
+   "signal_id": null,
+   "pack": "tech",
+   "file": "packs/tech/checks/handover.yaml"
+  },
+  {
+   "id": "HAND-06",
+   "title": "No exit criteria for early-life support",
+   "kind": "delivery",
+   "concern": "handover",
+   "question": "Are there written criteria for ending the early weeks of close support after go-live (for example a number of clean runs, reconciled loads and no critical defects)? How will we know the system is ready to be left alone, rather than the team simply running out of time?",
+   "why": "The project team left after two weeks because the budget ended. Month-end processing, which had never run in production, failed the following week with nobody who knew the system.",
+   "applies": {
+    "kind": [
+     "any"
+    ],
+    "components": [
+     "any"
+    ],
+    "patterns": [
+     "any"
+    ]
+   },
+   "owner": "technical-anchor",
+   "also": [
+    "operations",
+    "project-manager"
+   ],
+   "evidence": {
+    "docs": [
+     "deployment",
+     "plan"
+    ],
+    "looks_like": "Written exit criteria for early-life support, covering at least one full business cycle, reconciled production loads and agreed defect levels."
+   },
+   "signals": [
+    "The plan ends at go-live, or has a fixed support period with no criteria.",
+    "Period-end or yearly processes are not mentioned in the early-life support period."
+   ],
+   "contradiction": "Compare the plan's early-life support period with the business calendar in the requirements: if the period ends before a month-end or other key cycle has run, the riskiest run happens unsupported.",
+   "due": {
+    "plan": 4,
+    "designed": 8,
+    "evidenced": 9
+   },
+   "fail_fast": "Ask: \"Which business cycle has not yet run in production?\" and keep support in place until it has.",
+   "severity": "medium",
+   "related": [
+    "HAND-04"
+   ],
+   "signal_id": null,
+   "pack": "tech",
+   "file": "packs/tech/checks/handover.yaml"
   },
   {
    "id": "SCD-01",
@@ -4025,7 +4108,8 @@
     "DEL-02"
    ],
    "signal_id": null,
-   "file": "catalog/checks/technical/history-over-time.yaml"
+   "pack": "tech",
+   "file": "packs/tech/checks/history-over-time.yaml"
   },
   {
    "id": "SCD-02",
@@ -4072,7 +4156,8 @@
     "SCD-04"
    ],
    "signal_id": null,
-   "file": "catalog/checks/technical/history-over-time.yaml"
+   "pack": "tech",
+   "file": "packs/tech/checks/history-over-time.yaml"
   },
   {
    "id": "SCD-03",
@@ -4117,7 +4202,8 @@
     "DES-04"
    ],
    "signal_id": null,
-   "file": "catalog/checks/technical/history-over-time.yaml"
+   "pack": "tech",
+   "file": "packs/tech/checks/history-over-time.yaml"
   },
   {
    "id": "SCD-04",
@@ -4161,7 +4247,8 @@
     "SERV-04"
    ],
    "signal_id": null,
-   "file": "catalog/checks/technical/history-over-time.yaml"
+   "pack": "tech",
+   "file": "packs/tech/checks/history-over-time.yaml"
   },
   {
    "id": "LATE-01",
@@ -4213,7 +4300,8 @@
     "REC-01"
    ],
    "signal_id": null,
-   "file": "catalog/checks/technical/late-and-corrected.yaml"
+   "pack": "tech",
+   "file": "packs/tech/checks/late-and-corrected.yaml"
   },
   {
    "id": "LATE-02",
@@ -4261,7 +4349,8 @@
     "REC-01"
    ],
    "signal_id": null,
-   "file": "catalog/checks/technical/late-and-corrected.yaml"
+   "pack": "tech",
+   "file": "packs/tech/checks/late-and-corrected.yaml"
   },
   {
    "id": "LATE-03",
@@ -4308,7 +4397,8 @@
     "PERF-02"
    ],
    "signal_id": null,
-   "file": "catalog/checks/technical/late-and-corrected.yaml"
+   "pack": "tech",
+   "file": "packs/tech/checks/late-and-corrected.yaml"
   },
   {
    "id": "LATE-04",
@@ -4356,7 +4446,8 @@
     "REC-02"
    ],
    "signal_id": null,
-   "file": "catalog/checks/technical/late-and-corrected.yaml"
+   "pack": "tech",
+   "file": "packs/tech/checks/late-and-corrected.yaml"
   },
   {
    "id": "OPS-01",
@@ -4402,7 +4493,8 @@
     "HAND-04"
    ],
    "signal_id": null,
-   "file": "catalog/checks/technical/operations.yaml"
+   "pack": "tech",
+   "file": "packs/tech/checks/operations.yaml"
   },
   {
    "id": "OPS-03",
@@ -4449,7 +4541,8 @@
     "COST-03"
    ],
    "signal_id": null,
-   "file": "catalog/checks/technical/operations.yaml"
+   "pack": "tech",
+   "file": "packs/tech/checks/operations.yaml"
   },
   {
    "id": "OPS-05",
@@ -4494,7 +4587,8 @@
     "HAND-04"
    ],
    "signal_id": null,
-   "file": "catalog/checks/technical/operations.yaml"
+   "pack": "tech",
+   "file": "packs/tech/checks/operations.yaml"
   },
   {
    "id": "ORCH-01",
@@ -4544,7 +4638,8 @@
     "SERV-02"
    ],
    "signal_id": null,
-   "file": "catalog/checks/technical/orchestration-and-recovery.yaml"
+   "pack": "tech",
+   "file": "packs/tech/checks/orchestration-and-recovery.yaml"
   },
   {
    "id": "ORCH-02",
@@ -4588,7 +4683,8 @@
     "OPS-01"
    ],
    "signal_id": null,
-   "file": "catalog/checks/technical/orchestration-and-recovery.yaml"
+   "pack": "tech",
+   "file": "packs/tech/checks/orchestration-and-recovery.yaml"
   },
   {
    "id": "ORCH-03",
@@ -4637,7 +4733,8 @@
     "ORCH-04"
    ],
    "signal_id": null,
-   "file": "catalog/checks/technical/orchestration-and-recovery.yaml"
+   "pack": "tech",
+   "file": "packs/tech/checks/orchestration-and-recovery.yaml"
   },
   {
    "id": "ORCH-04",
@@ -4681,7 +4778,8 @@
     "ORCH-03"
    ],
    "signal_id": null,
-   "file": "catalog/checks/technical/orchestration-and-recovery.yaml"
+   "pack": "tech",
+   "file": "packs/tech/checks/orchestration-and-recovery.yaml"
   },
   {
    "id": "ORCH-05",
@@ -4729,7 +4827,8 @@
     "SEC-05"
    ],
    "signal_id": null,
-   "file": "catalog/checks/technical/orchestration-and-recovery.yaml"
+   "pack": "tech",
+   "file": "packs/tech/checks/orchestration-and-recovery.yaml"
   },
   {
    "id": "ORCH-06",
@@ -4777,7 +4876,8 @@
     "ORCH-03"
    ],
    "signal_id": null,
-   "file": "catalog/checks/technical/orchestration-and-recovery.yaml"
+   "pack": "tech",
+   "file": "packs/tech/checks/orchestration-and-recovery.yaml"
   },
   {
    "id": "PERF-01",
@@ -4825,7 +4925,8 @@
     "HIST-02"
    ],
    "signal_id": null,
-   "file": "catalog/checks/technical/performance.yaml"
+   "pack": "tech",
+   "file": "packs/tech/checks/performance.yaml"
   },
   {
    "id": "PERF-02",
@@ -4872,7 +4973,8 @@
     "DES-06"
    ],
    "signal_id": null,
-   "file": "catalog/checks/technical/performance.yaml"
+   "pack": "tech",
+   "file": "packs/tech/checks/performance.yaml"
   },
   {
    "id": "PERF-03",
@@ -4922,7 +5024,8 @@
     "COST-01"
    ],
    "signal_id": null,
-   "file": "catalog/checks/technical/performance.yaml"
+   "pack": "tech",
+   "file": "packs/tech/checks/performance.yaml"
   },
   {
    "id": "PERF-04",
@@ -4966,7 +5069,8 @@
     "DQ-05"
    ],
    "signal_id": null,
-   "file": "catalog/checks/technical/performance.yaml"
+   "pack": "tech",
+   "file": "packs/tech/checks/performance.yaml"
   },
   {
    "id": "PERF-05",
@@ -5013,7 +5117,8 @@
     "SEC-03"
    ],
    "signal_id": null,
-   "file": "catalog/checks/technical/performance.yaml"
+   "pack": "tech",
+   "file": "packs/tech/checks/performance.yaml"
   },
   {
    "id": "REC-01",
@@ -5064,7 +5169,8 @@
     "DUP-01"
    ],
    "signal_id": null,
-   "file": "catalog/checks/technical/reconciliation.yaml"
+   "pack": "tech",
+   "file": "packs/tech/checks/reconciliation.yaml"
   },
   {
    "id": "REC-02",
@@ -5111,7 +5217,8 @@
     "TEST-04"
    ],
    "signal_id": null,
-   "file": "catalog/checks/technical/reconciliation.yaml"
+   "pack": "tech",
+   "file": "packs/tech/checks/reconciliation.yaml"
   },
   {
    "id": "REC-03",
@@ -5156,7 +5263,8 @@
     "REC-02"
    ],
    "signal_id": null,
-   "file": "catalog/checks/technical/reconciliation.yaml"
+   "pack": "tech",
+   "file": "packs/tech/checks/reconciliation.yaml"
   },
   {
    "id": "REC-04",
@@ -5203,7 +5311,8 @@
     "OPS-05"
    ],
    "signal_id": null,
-   "file": "catalog/checks/technical/reconciliation.yaml"
+   "pack": "tech",
+   "file": "packs/tech/checks/reconciliation.yaml"
   },
   {
    "id": "REL-01",
@@ -5252,7 +5361,8 @@
     "REL-06"
    ],
    "signal_id": null,
-   "file": "catalog/checks/technical/release-and-git.yaml"
+   "pack": "tech",
+   "file": "packs/tech/checks/release-and-git.yaml"
   },
   {
    "id": "REL-02",
@@ -5295,7 +5405,8 @@
     "TEST-03"
    ],
    "signal_id": null,
-   "file": "catalog/checks/technical/release-and-git.yaml"
+   "pack": "tech",
+   "file": "packs/tech/checks/release-and-git.yaml"
   },
   {
    "id": "REL-03",
@@ -5339,7 +5450,8 @@
     "REL-07"
    ],
    "signal_id": null,
-   "file": "catalog/checks/technical/release-and-git.yaml"
+   "pack": "tech",
+   "file": "packs/tech/checks/release-and-git.yaml"
   },
   {
    "id": "REL-04",
@@ -5383,7 +5495,8 @@
     "ENV-01"
    ],
    "signal_id": null,
-   "file": "catalog/checks/technical/release-and-git.yaml"
+   "pack": "tech",
+   "file": "packs/tech/checks/release-and-git.yaml"
   },
   {
    "id": "REL-05",
@@ -5427,7 +5540,8 @@
     "ENV-02"
    ],
    "signal_id": null,
-   "file": "catalog/checks/technical/release-and-git.yaml"
+   "pack": "tech",
+   "file": "packs/tech/checks/release-and-git.yaml"
   },
   {
    "id": "REL-06",
@@ -5471,7 +5585,8 @@
     "ENV-01"
    ],
    "signal_id": null,
-   "file": "catalog/checks/technical/release-and-git.yaml"
+   "pack": "tech",
+   "file": "packs/tech/checks/release-and-git.yaml"
   },
   {
    "id": "REL-07",
@@ -5518,7 +5633,8 @@
     "ORCH-05"
    ],
    "signal_id": null,
-   "file": "catalog/checks/technical/release-and-git.yaml"
+   "pack": "tech",
+   "file": "packs/tech/checks/release-and-git.yaml"
   },
   {
    "id": "SCH-01",
@@ -5564,7 +5680,8 @@
     "SCH-03"
    ],
    "signal_id": null,
-   "file": "catalog/checks/technical/schema-change.yaml"
+   "pack": "tech",
+   "file": "packs/tech/checks/schema-change.yaml"
   },
   {
    "id": "SCH-02",
@@ -5611,7 +5728,8 @@
     "OPS-01"
    ],
    "signal_id": null,
-   "file": "catalog/checks/technical/schema-change.yaml"
+   "pack": "tech",
+   "file": "packs/tech/checks/schema-change.yaml"
   },
   {
    "id": "SCH-03",
@@ -5659,7 +5777,8 @@
     "SERV-03"
    ],
    "signal_id": null,
-   "file": "catalog/checks/technical/schema-change.yaml"
+   "pack": "tech",
+   "file": "packs/tech/checks/schema-change.yaml"
   },
   {
    "id": "SEC-01",
@@ -5708,7 +5827,8 @@
     "SEC-05"
    ],
    "signal_id": null,
-   "file": "catalog/checks/technical/security-and-personal-data.yaml"
+   "pack": "tech",
+   "file": "packs/tech/checks/security-and-personal-data.yaml"
   },
   {
    "id": "SEC-02",
@@ -5757,7 +5877,8 @@
     "SEC-04"
    ],
    "signal_id": null,
-   "file": "catalog/checks/technical/security-and-personal-data.yaml"
+   "pack": "tech",
+   "file": "packs/tech/checks/security-and-personal-data.yaml"
   },
   {
    "id": "SEC-03",
@@ -5807,7 +5928,8 @@
     "PERF-05"
    ],
    "signal_id": null,
-   "file": "catalog/checks/technical/security-and-personal-data.yaml"
+   "pack": "tech",
+   "file": "packs/tech/checks/security-and-personal-data.yaml"
   },
   {
    "id": "SEC-04",
@@ -5852,7 +5974,8 @@
     "OPS-03"
    ],
    "signal_id": null,
-   "file": "catalog/checks/technical/security-and-personal-data.yaml"
+   "pack": "tech",
+   "file": "packs/tech/checks/security-and-personal-data.yaml"
   },
   {
    "id": "SEC-05",
@@ -5897,7 +6020,8 @@
     "ORCH-05"
    ],
    "signal_id": null,
-   "file": "catalog/checks/technical/security-and-personal-data.yaml"
+   "pack": "tech",
+   "file": "packs/tech/checks/security-and-personal-data.yaml"
   },
   {
    "id": "SERV-01",
@@ -5948,7 +6072,8 @@
     "SERV-04"
    ],
    "signal_id": null,
-   "file": "catalog/checks/technical/serving-and-consumers.yaml"
+   "pack": "tech",
+   "file": "packs/tech/checks/serving-and-consumers.yaml"
   },
   {
    "id": "SERV-02",
@@ -5994,7 +6119,8 @@
     "OPS-01"
    ],
    "signal_id": null,
-   "file": "catalog/checks/technical/serving-and-consumers.yaml"
+   "pack": "tech",
+   "file": "packs/tech/checks/serving-and-consumers.yaml"
   },
   {
    "id": "SERV-03",
@@ -6039,7 +6165,8 @@
     "SCH-03"
    ],
    "signal_id": null,
-   "file": "catalog/checks/technical/serving-and-consumers.yaml"
+   "pack": "tech",
+   "file": "packs/tech/checks/serving-and-consumers.yaml"
   },
   {
    "id": "SERV-04",
@@ -6085,7 +6212,8 @@
     "SCD-04"
    ],
    "signal_id": null,
-   "file": "catalog/checks/technical/serving-and-consumers.yaml"
+   "pack": "tech",
+   "file": "packs/tech/checks/serving-and-consumers.yaml"
   },
   {
    "id": "SERV-05",
@@ -6130,7 +6258,8 @@
     "DES-02"
    ],
    "signal_id": null,
-   "file": "catalog/checks/technical/serving-and-consumers.yaml"
+   "pack": "tech",
+   "file": "packs/tech/checks/serving-and-consumers.yaml"
   },
   {
    "id": "TEST-01",
@@ -6176,7 +6305,8 @@
     "DQ-01"
    ],
    "signal_id": null,
-   "file": "catalog/checks/technical/testing.yaml"
+   "pack": "tech",
+   "file": "packs/tech/checks/testing.yaml"
   },
   {
    "id": "TEST-02",
@@ -6221,7 +6351,8 @@
     "DQ-05"
    ],
    "signal_id": null,
-   "file": "catalog/checks/technical/testing.yaml"
+   "pack": "tech",
+   "file": "packs/tech/checks/testing.yaml"
   },
   {
    "id": "TEST-03",
@@ -6266,7 +6397,8 @@
     "TEST-01"
    ],
    "signal_id": null,
-   "file": "catalog/checks/technical/testing.yaml"
+   "pack": "tech",
+   "file": "packs/tech/checks/testing.yaml"
   },
   {
    "id": "TEST-04",
@@ -6311,7 +6443,8 @@
     "TEST-01"
    ],
    "signal_id": null,
-   "file": "catalog/checks/technical/testing.yaml"
+   "pack": "tech",
+   "file": "packs/tech/checks/testing.yaml"
   },
   {
    "id": "TEST-05",
@@ -6358,7 +6491,8 @@
     "SCH-02"
    ],
    "signal_id": null,
-   "file": "catalog/checks/technical/testing.yaml"
+   "pack": "tech",
+   "file": "packs/tech/checks/testing.yaml"
   }
  ],
  "bindings": {

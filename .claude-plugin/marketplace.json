@@ -1,0 +1,8 @@
+{
+  "name": "data-project-review",
+  "owner": {"name": "Clean Data Engineering"},
+  "description": "Skills that review data engineering projects for business analysis, project management and technical gaps.",
+  "plugins": [
+    {"name": "data-project-review", "source": "./", "description": "Four skills: the full project review plus one each for business analysis, project management and technical."}
+  ]
+}

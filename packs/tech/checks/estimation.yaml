@@ -169,39 +169,6 @@
   related: [EST-04, EST-06]
   signal_id: null
 
-- id: EST-06
-  title: Never corrected against actual progress
-  kind: delivery
-  concern: estimation
-  question: >-
-    Is actual effort compared with the estimate at least every two weeks, and has the estimate been
-    changed when the real rate differed? If we finish late, will we have known it two months before or
-    two days before?
-  why: >-
-    The thin slice took three times longer than planned per table. Nobody re-estimated, and the gap only
-    showed when the last month of the plan arrived with half the tables still to build.
-  applies: {kind: [any], components: [any], patterns: [any]}
-  owner: technical-anchor
-  also: [project-manager]
-  evidence:
-    docs: [estimate, status]
-    looks_like: >-
-      A re-estimate after the thin slice and then every two weeks, showing items done, the real rate, and
-      the forecast finish, with changes explained.
-  signals:
-    - The estimate document has one version and its date is before build started.
-    - Status reports show percent complete but never a forecast end date or rate.
-    - No mention of a thin slice or of the rate it achieved.
-  contradiction: >-
-    Compare status reports with the estimate: if progress reports show fewer items finished than the
-    estimate's rate predicts, but the end date never moves, the estimate is not being corrected.
-  due: {plan: 4, evidenced: 6}
-  fail_fast: >-
-    Divide items finished so far by weeks spent, and project the finish date from that rate today.
-  severity: high
-  related: [EST-01, PM-04]
-  signal_id: null
-
 - id: EST-07
   title: History load and data fixing underestimated
   kind: delivery

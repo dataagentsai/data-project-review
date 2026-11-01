@@ -1,5 +1,10 @@
 # Controlled vocabulary for the catalog. scripts/lint.py checks every check against these lists.
 
+packs:              # one per discipline; a check lives in the pack of the discipline that maintains that knowledge
+  ba: Business analysis. What the business needs, in testable terms - requirements, definitions, scope content, acceptance
+  pm: Project management. How the work runs - plan, dependencies, risks, decisions, stakeholders, communication, budget, benefits
+  tech: Technical. Whether it will work - data, design, platform, testing, release, operations, and the effort estimate
+
 kinds:              # what kind of work the team is doing
   new-platform: Building a new data platform (environments, standards, frameworks and the first data products)
   project-on-existing: A new project or data product on a platform that already exists

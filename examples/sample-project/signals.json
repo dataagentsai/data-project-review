@@ -1,0 +1,244 @@
+[
+  {
+    "signal": "vague-words",
+    "checks": [
+      "REQ-01"
+    ],
+    "count": 2,
+    "findings": [
+      {
+        "doc": "docs/requirements.md",
+        "line": 46,
+        "text": "| FR-10 | Load all historical data so trends and year-on-year comparisons work from day one | Must |",
+        "words": [
+          "all historical"
+        ]
+      },
+      {
+        "doc": "docs/requirements.md",
+        "line": 64,
+        "text": "| NFR-01 | Dashboard data should be near real-time so store managers can act on the day's trading |",
+        "words": [
+          "real-time",
+          "near real-time"
+        ]
+      }
+    ]
+  },
+  {
+    "signal": "single-number-estimate",
+    "checks": [
+      "EST-02"
+    ],
+    "count": 3,
+    "findings": [
+      {
+        "doc": "docs/estimate.md",
+        "line": 11,
+        "text": "**MVP 1 duration: 12 weeks** with the proposed team (technical anchor, 3 developers, BA, PM, part-time tester).",
+        "note": "headline figure given as a single number"
+      },
+      {
+        "doc": "docs/estimate.md",
+        "line": 34,
+        "text": "- BA and PM effort runs alongside the build for the full 12 weeks.",
+        "note": "headline figure given as a single number"
+      },
+      {
+        "doc": "docs/estimate.md",
+        "line": 53,
+        "text": "| Duration | 11 weeks | 12 weeks |",
+        "note": "headline figure given as a single number"
+      }
+    ]
+  },
+  {
+    "signal": "no-assumptions",
+    "checks": [
+      "EST-03"
+    ],
+    "count": 1,
+    "findings": [
+      {
+        "doc": "docs/estimate.md",
+        "line": null,
+        "text": "The estimate never states its assumptions."
+      }
+    ]
+  },
+  {
+    "signal": "no-out-of-scope",
+    "checks": [
+      "SCOPE-01"
+    ],
+    "count": 1,
+    "findings": [
+      {
+        "doc": null,
+        "line": null,
+        "text": "No out-of-scope list in requirements, discovery, plan or architecture."
+      }
+    ]
+  },
+  {
+    "signal": "risks-without-owner",
+    "checks": [
+      "PM-02"
+    ],
+    "count": 6,
+    "findings": [
+      {
+        "doc": "docs/raid-log.md",
+        "line": 9,
+        "text": "| R-01 | Wk 0 | POS access approval is slow: InfoSec approval for a new service account plus a firewall change typically takes about 6 weeks end to end | High | High | Request submitted in week 1; escalate through Platfo",
+        "owner": ""
+      },
+      {
+        "doc": "docs/raid-log.md",
+        "line": 10,
+        "text": "| R-02 | Wk 0 | Customer matching between POS loyalty and Cartwell produces false matches | Medium | Medium | BA to agree matching rules with finance; DQ checks on match rate | | Open |",
+        "owner": ""
+      },
+      {
+        "doc": "docs/raid-log.md",
+        "line": 11,
+        "text": "| R-03 | Wk 1 | Cartwell staging tenant cannot push to our test landing container in time | Medium | Medium | Use sample files from production (masked) until ready | | Open |",
+        "owner": ""
+      },
+      {
+        "doc": "docs/raid-log.md",
+        "line": 12,
+        "text": "| R-04 | Wk 2 | December peak volume (2.3× normal) may extend nightly run | Low | Medium | Autoscaling job clusters | | Open |",
+        "owner": ""
+      },
+      {
+        "doc": "docs/raid-log.md",
+        "line": 14,
+        "text": "| R-06 | Wk 3 | Finance retail calendar for 2027 not yet published | Low | Medium | Use 2026 pattern as placeholder | | Open |",
+        "owner": ""
+      },
+      {
+        "doc": "docs/raid-log.md",
+        "line": 15,
+        "text": "| R-07 | Wk 4 | Developer annual leave in weeks 8–9 (one developer, 2 weeks) | Certain | Medium | Front-load gold design | | Open |",
+        "owner": ""
+      }
+    ]
+  },
+  {
+    "signal": "no-decision-log",
+    "checks": [
+      "PM-03"
+    ],
+    "count": 2,
+    "findings": [
+      {
+        "doc": "docs/architecture.md",
+        "line": 76,
+        "text": "Decisions appear only as a section (### 7. Design decisions), not as a log with owner, date and who signed. Check whether it is kept up to date."
+      },
+      {
+        "doc": "docs/status-report-week5.md",
+        "line": 72,
+        "text": "Decisions appear only as a section (### 8. Decisions needed), not as a log with owner, date and who signed. Check whether it is kept up to date."
+      }
+    ]
+  },
+  {
+    "signal": "no-acceptance-criteria",
+    "checks": [
+      "REQ-02"
+    ],
+    "count": 1,
+    "findings": [
+      {
+        "doc": "docs/requirements.md",
+        "line": null,
+        "text": "Requirements have no acceptance criteria."
+      }
+    ]
+  },
+  {
+    "signal": "missing-doc-type",
+    "checks": [
+      "HAND-01"
+    ],
+    "count": 2,
+    "findings": [
+      {
+        "doc": null,
+        "line": null,
+        "doc_type": "decisions",
+        "text": "No decisions document (Decision log, architecture decision records).",
+        "checks": []
+      },
+      {
+        "doc": null,
+        "line": null,
+        "doc_type": "runbook",
+        "text": "No runbook document (Operations guide, support model, monitoring).",
+        "checks": [
+          "HAND-01"
+        ]
+      }
+    ]
+  },
+  {
+    "signal": "no-invisible-work",
+    "checks": [
+      "EST-04"
+    ],
+    "count": 1,
+    "findings": [
+      {
+        "doc": "docs/estimate.md",
+        "line": null,
+        "missing": [
+          "environments",
+          "access",
+          "cut-over / go-live",
+          "handover / knowledge transfer",
+          "deployment / release",
+          "documentation"
+        ],
+        "text": "The estimate has no lines for: environments, access, cut-over / go-live, handover / knowledge transfer, deployment / release, documentation."
+      }
+    ]
+  },
+  {
+    "signal": "status-always-green",
+    "checks": [
+      "PM-04"
+    ],
+    "count": 1,
+    "findings": [
+      {
+        "doc": "docs/status-report-week5.md",
+        "line": null,
+        "text": "Status is green everywhere (5 times) with no amber or red, while 4 lines mention slips, delays or blocks.",
+        "trouble_lines": [
+          {
+            "doc": "docs/status-report-week5.md",
+            "line": 28,
+            "text": "| M4 Silver returns; gold model | 7 | Not started | |"
+          },
+          {
+            "doc": "docs/status-report-week5.md",
+            "line": 29,
+            "text": "| M5 Dashboard and extract | 10 | Not started | Power BI wireframes reviewed |"
+          },
+          {
+            "doc": "docs/status-report-week5.md",
+            "line": 30,
+            "text": "| M6 SIT and performance | 11 | Not started | |"
+          },
+          {
+            "doc": "docs/status-report-week5.md",
+            "line": 31,
+            "text": "| M7 UAT and go-live | 12 | Not started | |"
+          }
+        ]
+      }
+    ]
+  }
+]

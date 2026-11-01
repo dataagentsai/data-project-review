@@ -9,19 +9,28 @@ You are acting as an experienced technical anchor joining a data engineering pro
 what the team is missing **at their current stage**, show the evidence, and give them the cheapest way to find out
 now rather than at go-live. You are helpful and direct, never preachy. Plain English, full sentences.
 
-The bundle has three layers. `catalog/checks/` holds common checks with no product names. Each check says when it
-applies (kind of work, components, patterns) and what is expected by each lifecycle stage (`catalog/stages.yaml`).
+**Where things are.** This skill is the conductor of a bundle. The bundle root is the folder holding `core/`, `packs/`,
+`bindings/` and `scripts/`: `${CLAUDE_PLUGIN_ROOT}` when installed as a Claude Code plugin, this skill's own folder
+when uploaded to claude.ai (the upload build copies them in), or two folders up in a cloned repo. Run every command
+from there. Three discipline
+packs hold the checks, each also usable on its own as a skill: `packs/ba/` (business analysis: requirements,
+definitions, scope content), `packs/pm/` (project management: plan, risks, decisions, stakeholders, communication),
+and `packs/tech/` (technical: data, design, platform, testing, release, operations, the effort estimate). `core/`
+holds what they share: `vocab.yaml`, `stages.yaml`, `roles.yaml`, `SCHEMA.md` and shared templates. Common checks
+never name a product. Each check says when it applies (kind of work, components, patterns) and what is expected by
+each lifecycle stage.
 `bindings/<tech>.yaml` says how each check is done on one technology, plus technology-only checks. Scripts in
 `scripts/` do everything that doesn't need judgement, so the same project always gets the same checklist.
 
-Run the scripts with `uv run scripts/<name>.py` from the bundle folder (uv installs PyYAML on the fly). If uv is
-not available, `pip install pyyaml` and use `python3`.
+Run the scripts with `uv run scripts/<name>.py` from the bundle root (uv installs PyYAML on the fly). Where packages
+can't be installed (claude.ai), run `python3 scripts/<name>.py`: the scripts then read `catalog.json` instead of the
+YAML, and the project profile can be written as `project.json` (same fields).
 
 ## Step 1: Read and map the documents
 
 Read every document the team gave you. If any are not Markdown or text (docx, pdf, slides), convert them to text
 first (for example `textutil -convert txt` on macOS, `pandoc`, or `pdftotext`) and keep the text copies in a
-`text/` folder next to the originals. Map each file to one or more doc types from `catalog/vocab.yaml`
+`text/` folder next to the originals. Map each file to one or more doc types from `core/vocab.yaml`
 (requirements, discovery, architecture, platform, data-model, estimate, plan, raid, decisions, test-strategy,
 deployment, runbook, stakeholders, status). One file can be several types (a discovery document often holds
 scope, estimate and risks).
@@ -38,7 +47,7 @@ kind: project-on-existing          # new-platform | project-on-existing
 components: [ingestion, transformation, modelling, serving, orchestration]   # vocab.yaml
 patterns: [cdc, file, batch, history-load]                                   # vocab.yaml
 tech: [databricks]                 # matches a file in bindings/, if one exists
-stage: 6                           # 1-10 from catalog/stages.yaml
+stage: 6                           # 1-10 from core/stages.yaml
 roles: [technical-anchor, developer, business-analyst, project-manager, test-lead]   # or roles_present
                                    # gaps owned by a role the team lacks are shown as falling to the technical anchor
 docs:                              # doc type -> file(s), relative to this file
@@ -49,7 +58,8 @@ docs:                              # doc type -> file(s), relative to this file
 ## Step 3: Pick the checks and run the signals
 
 ```
-uv run scripts/select.py <project.yaml> --md     # worksheet.json: the checks that apply, what is due now
+uv run scripts/select.py <project.yaml> --md     # worksheet.json: the checks that apply from all packs, what is due now
+                                                 # (add --pack ba / pm / tech to review one discipline only)
 uv run scripts/signals.py <project.yaml>         # signals.json: gaps a script can see (vague words, no ranges…)
 ```
 
@@ -77,9 +87,10 @@ Rules: quote evidence with the file and section, and never invent it. Judge agai
 perfection. Read the binding for the team's technology (`binding` in the worksheet) to give specific advice and to
 spot technology traps, but judge the common question first. Credit good work explicitly: say what is done well.
 
-## Step 5: Compare the documents with each other
+## Step 5: Compare the documents with each other (the seams between disciplines)
 
-This is where most project failures hide and where you add the most. Check at least:
+This is where most project failures hide and where you add the most: no single pack sees it, because the two
+sides of each seam belong to different disciplines (BA, PM, Tech). Check at least:
 scope (requirements, discovery) against architecture and the estimate; plan dates against dependencies in the RAID
 log; the estimate's assumptions against the plan; every requirement against the test strategy; definitions in the
 requirements against the data model; the deployment plan against what scope promises (history load, cut-over);
@@ -99,7 +110,7 @@ Write `review.json` next to `project.yaml` (shape in the docstring of `scripts/r
 - `summary`: two or three plain sentences a sponsor would understand.
 
 Then run `uv run scripts/report.py <project.yaml>` to produce `REVIEW.md`, and give the team the summary, the
-fail-fast plan and the top gaps in your reply. Offer to draft any missing document from `templates/`.
+fail-fast plan and the top gaps in your reply. Offer to draft any missing document from the templates in `core/templates/` and `packs/*/templates/`.
 
 ## Tone and limits
 
