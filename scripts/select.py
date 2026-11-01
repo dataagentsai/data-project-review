@@ -36,7 +36,6 @@ def worksheet(prof):
             "signal_id": c.get("signal_id"), "fail_fast": c.get("fail_fast"),
             "expected_now": now, "coming_up": {"level": nxt[0], "stage": nxt[1]} if nxt else None,
             "binding": how or None, "tech_only": c.get("binding"),
-            "status": None, "evidence_found": [], "note": None,   # Claude fills these in
         })
     order = {"high": 0, "medium": 1, "low": 2}
     rows.sort(key=lambda r: (r["expected_now"] is None, order.get(r["severity"], 1), r["id"]))

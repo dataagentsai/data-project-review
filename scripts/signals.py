@@ -126,11 +126,20 @@ def risks_without_owner(prof):
 
 
 def no_decision_log(prof):
+    """A decision log has owners and dates per decision. A 'key decisions' section inside another document is a
+    start, but decisions there get lost or reopened, so it is reported softly."""
     if docs_of(prof, "decisions"):
         return []
+    sections = []
     for _, p, lines in docs_of(prof, *cat.vocab()["doc_types"]):
-        if any(re.match(r"\s*#+\s*.*decision (?:log|record|register)", l, re.I) for l in lines):
-            return []
+        for i, l in enumerate(lines):
+            if re.match(r"\s*#+\s*.*decision (?:log|record|register)", l, re.I):
+                return []
+            if re.match(r"\s*#+\s*.*decision", l, re.I):
+                sections.append(hit(prof, p, i, l))
+    if sections:
+        return [{**s, "text": f"Decisions appear only as a section ({s['text']}), not as a log with owner, date and "
+                              "who signed. Check whether it is kept up to date."} for s in sections[:3]]
     return [{"doc": None, "line": None, "text": "No decision log or decision records found."}]
 
 

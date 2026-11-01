@@ -52,6 +52,7 @@ def project(path):
     p = Path(path)
     prof = load_yaml(p)
     prof["_dir"] = p.parent
+    prof.setdefault("roles", prof.get("roles_present") or [])   # accept either name
     return prof
 
 

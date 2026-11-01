@@ -60,34 +60,6 @@
   related: [PERF-02, ORCH-05, DES-06]
   signal_id: null
 
-- id: DES-03
-  title: Big decisions recorded with the options
-  kind: technical
-  concern: design
-  question: >-
-    Are the big technical choices written down as short decision records, with the options
-    considered, the reasons and who decided?
-  why: >-
-    The choice of a streaming design was agreed verbally; six months later a new architect
-    reopened it, and nobody could explain why batch had been rejected.
-  applies:
-    kind: [any]
-    components: [any]
-    patterns: [any]
-  owner: architect
-  also: [technical-anchor]
-  evidence:
-    docs: [decisions, architecture]
-    looks_like: >-
-      A decision log with one short record per big choice: context, options, decision,
-      consequences, date and owner.
-  due: {plan: 3, designed: 4, evidenced: 6}
-  fail_fast: >-
-    List the five choices that would be most expensive to reverse and check each has a record.
-  severity: low
-  related: [DES-06, ENV-05]
-  signal_id: null
-
 - id: DES-04
   title: Grain and keys of every table
   kind: technical

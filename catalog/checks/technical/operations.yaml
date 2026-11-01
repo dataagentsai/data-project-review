@@ -25,38 +25,7 @@
   fail_fast: >-
     Make a job fail in test and time how long it takes for a person to know.
   severity: high
-  related: [DQ-04, OPS-02, OPS-04]
-  signal_id: null
-
-- id: OPS-02
-  title: A runbook operations can follow at night
-  kind: technical
-  concern: operations
-  question: >-
-    Is there a runbook that tells support how to check, rerun, reload and escalate each pipeline
-    without calling the developers?
-  why: >-
-    The night support team saw a failure, did not know whether rerunning was safe, and woke the
-    one developer who knew; she was on holiday.
-  applies:
-    kind: [any]
-    components: [orchestration, platform]
-    patterns: [any]
-  owner: technical-anchor
-  also: [operations]
-  evidence:
-    docs: [runbook]
-    looks_like: >-
-      Per pipeline: what it does, its schedule and dependencies, common failures and fixes, how to
-      rerun and reload a period, and who to escalate to.
-  signals:
-    - The plan lists "runbook" as a deliverable in the last week only.
-  due: {plan: 4, designed: 6, evidenced: 8, proven: 9}
-  fail_fast: >-
-    Give the runbook to someone from operations, break a test pipeline, and watch whether they can
-    recover it alone.
-  severity: high
-  related: [OPS-01, HIST-04, OPS-04]
+  related: [DQ-04, HAND-01, HAND-04]
   signal_id: null
 
 - id: OPS-03
@@ -88,34 +57,6 @@
   related: [REC-01, OPS-01, COST-03]
   signal_id: null
 
-- id: OPS-04
-  title: Support model agreed before go-live
-  kind: technical
-  concern: operations
-  question: >-
-    Who supports the solution after go-live, during which hours, and have they agreed to take it on?
-  why: >-
-    The project assumed the platform team would support it; the platform team had never been asked,
-    refused at go-live, and the developers stayed on call for six months.
-  applies:
-    kind: [any]
-    components: [any]
-    patterns: [any]
-  owner: operations
-  also: [project-manager, technical-anchor]
-  evidence:
-    docs: [runbook, stakeholders]
-    looks_like: >-
-      A named support team, support hours that match the freshness promise, escalation levels, and
-      their written acceptance.
-  due: {plan: 3, designed: 5, evidenced: 8, proven: 9}
-  fail_fast: >-
-    Ask the intended support team's lead whether they know about the project and have agreed to
-    support it.
-  severity: high
-  related: [OPS-02, OPS-05]
-  signal_id: null
-
 - id: OPS-05
   title: Production watched closely after go-live
   kind: technical
@@ -141,5 +82,5 @@
   fail_fast: >-
     Put hypercare dates, people and exit criteria in the plan now.
   severity: medium
-  related: [REC-04, OPS-04]
+  related: [REC-04, HAND-04]
   signal_id: null

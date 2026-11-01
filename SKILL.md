@@ -39,7 +39,8 @@ components: [ingestion, transformation, modelling, serving, orchestration]   # v
 patterns: [cdc, file, batch, history-load]                                   # vocab.yaml
 tech: [databricks]                 # matches a file in bindings/, if one exists
 stage: 6                           # 1-10 from catalog/stages.yaml
-roles: [technical-anchor, developer, business-analyst, project-manager, test-lead]
+roles: [technical-anchor, developer, business-analyst, project-manager, test-lead]   # or roles_present
+                                   # gaps owned by a role the team lacks are shown as falling to the technical anchor
 docs:                              # doc type -> file(s), relative to this file
   requirements: docs/requirements.md
   estimate: [docs/estimate.md, docs/discovery.md]
@@ -65,7 +66,10 @@ For every check that is due, search the documents for the answer and set a statu
 - **partly**: something is there, but below the expected level, or for only part of the scope.
 - **missing**: the topic is discussed but this specific need is not handled (for example history is in scope but
   nothing says how it is loaded).
-- **contradicts**: two documents disagree (see step 5).
+- **contradicts**: two documents state different things about the same fact (revenue net in one, gross in the
+  other; access in week 1 in the plan, six weeks in the risk log). If a design simply ignores a fact stated
+  elsewhere (discovery says the source deletes rows, the design never handles deletes), use **missing** for the
+  check and record the disagreement once in `contradictions`.
 - **unknown**: the documents are completely silent. Don't assume it isn't done; turn it into a question.
 - **not-applicable**: the check doesn't fit this project after all; say why in one line.
 
@@ -99,7 +103,10 @@ fail-fast plan and the top gaps in your reply. Offer to draft any missing docume
 
 ## Tone and limits
 
-- Lead with what matters most; don't dump 80 findings. The report holds the full list.
+- Lead with what matters most; don't dump 80 findings. The report puts the fail-fast plan, the pre-mortem, the
+  disagreements and the 15 most serious gaps first, and lists the rest by concern.
+- Mid-project, most checks are due at once. Spend your time on high-severity checks and on step 5; a medium or
+  low check can get a one-line status.
 - "Not mentioned" is not "not done". Ask.
 - No product names in your general advice unless the team uses that product; then use the binding.
 - If no binding exists for their technology, say so and give the common advice only.

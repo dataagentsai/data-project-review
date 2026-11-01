@@ -60,7 +60,7 @@ docs/DESIGN.md           why it is built this way
 
 ## How we know it works
 
-`examples/sample-project/` is an invented retailer's project with about 25 planted gaps (some hidden by omission,
+`examples/sample-project/` is an invented retailer's project with 27 planted gaps (some hidden by omission,
 some by vague words, some only visible when two documents disagree) and a few things done well that a reviewer
 must not flag. Claude reviews it blind; `scripts/score.py` reports how many gaps it caught and how many false
 alarms it raised. See `tests/RESULTS.md`.

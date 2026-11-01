@@ -1,6 +1,7 @@
 # Which checks should catch each planted gap in tests/sample-project-key.yaml, and which checks must NOT be
 # reported as a gap for each thing done well (false-positive traps, numbered T01.. in key order).
 # Written by hand from the catalog's ids before the blind run, so the reviewer can't shape it.
+# 1 Nov 2026 after run 1: OPS-02, OPS-04 and DES-03 merged into HAND-01, HAND-04 and PM-03.
 
 gaps:
   G01: [DUP-01, DUP-02]                    # resent file loaded twice
@@ -13,7 +14,7 @@ gaps:
   G08: [SEC-01, SEC-02]                    # personal data to marketing, no masking
   G09: [REL-05]                            # credentials in config files in git
   G10: [REL-07]                            # no rollback
-  G11: [OPS-01, OPS-02, HAND-01]           # no runbook, failure email to dev list only
+  G11: [OPS-01, HAND-01]           # no runbook, failure email to dev list only
   G12: [COST-01, COST-03, COST-04]         # running cost never mentioned
   G13: [SCH-01, SCH-02, SCH-03, DBX-05]    # vendor renames columns, schema inferred once
   G14: [ORCH-01, ORCH-03]                  # fixed 05:00 schedule, files arrive late, no recovery
@@ -23,13 +24,13 @@ gaps:
   G18: [SCOPE-01, SCOPE-02]                # no out-of-scope list
   G19: [PM-01, PM-07, PM-10]               # plan: access week 1; RAID: approval 6 weeks
   G20: [PM-02]                             # 6 of 7 risks without owner
-  G21: [PM-03, COM-03, DES-03]             # no decision log
+  G21: [PM-03, COM-03]             # no decision log
   G22: [PM-04, COM-01]                     # all green while slipping
   G23: [STK-01]                            # POS owner and IT operations missing
   G24: [STK-01, SERV-01]                   # marketing extract consumer not a stakeholder, no contract
   G25: [PM-05, TEST-04]                    # UAT only in the go-live week
   G26: [STK-05, REQ-02]                    # sponsor signs off alone, no acceptance criteria
-  G27: [HAND-03, HAND-04, OPS-04]          # nobody owns support after go-live
+  G27: [HAND-03, HAND-04]          # nobody owns support after go-live
 
 traps:
   T01: [DQ-01, DQ-02]                      # data quality rules table with actions and owners

@@ -122,5 +122,5 @@
     In test, reload one day from three days ago with a parameter and check that only that day's
     rows and its downstream aggregates changed.
   severity: medium
-  related: [DUP-02, LATE-01, OPS-02]
+  related: [DUP-02, LATE-01, HAND-01]
   signal_id: null
